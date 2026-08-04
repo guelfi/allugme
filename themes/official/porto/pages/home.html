@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{tenant.name}} — Início</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+</head>
+<body>
+  <!-- partial:header -->
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="home.html">
+        <img src="{{tenant.logo_url}}" alt="" width="36" height="36" onerror="this.style.display='none'" />
+        <span data-bind="tenant.name">{{tenant.name}}</span>
+      </a>
+      <nav class="nav" aria-label="Principal">
+        <a href="home.html" aria-current="page">Início</a>
+        <a href="listing.html">Imóveis</a>
+        <a href="schedule.html">Agendar visita</a>
+      </nav>
+      <div class="header-actions">
+        <a class="phone-link" href="tel:{{tenant.phone}}" data-bind="tenant.phone">{{tenant.phone}}</a>
+        <a class="btn btn--primary" href="listing.html">Buscar</a>
+        <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-label="Abrir menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      </div>
+    </div>
+    <nav class="nav--mobile" data-nav-mobile aria-label="Mobile">
+      <a href="home.html">Início</a>
+      <a href="listing.html">Imóveis</a>
+      <a href="schedule.html">Agendar visita</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero__media" aria-hidden="true">
+      <img
+        src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&q=80"
+        alt=""
+        width="1600"
+        height="900"
+      />
+      <div class="hero__shade"></div>
+    </div>
+    <div class="container hero__content">
+      <p class="hero__brand" data-bind="tenant.name">{{tenant.name}}</p>
+      <h1 class="hero__title">Encontre um lar com a clareza de uma plataforma moderna</h1>
+      <p class="hero__lead">Locação e compra com busca rápida e visita agendada no horário certo.</p>
+      <div class="hero__cta">
+        <a class="btn btn--on-dark" href="listing.html">Buscar imóveis</a>
+        <a class="btn btn--outline-light" href="schedule.html">Agendar visita</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="search-strip">
+    <div class="container">
+      <form class="search-strip__panel" action="listing.html" method="get" data-search-filters>
+        {{search.filters}}
+        <div class="field">
+          <label for="city">Cidade</label>
+          <input id="city" name="city" type="search" placeholder="Busque por cidade" />
+        </div>
+        <div class="field">
+          <label for="neighborhood">Bairro</label>
+          <input id="neighborhood" name="neighborhood" type="search" placeholder="Busque por bairro" />
+        </div>
+        <div class="field">
+          <label for="price">Valor até</label>
+          <select id="price" name="price">
+            <option value="">Qualquer</option>
+            <option value="3000">R$ 3.000</option>
+            <option value="5000">R$ 5.000</option>
+            <option value="10000">R$ 10.000</option>
+            <option value="1000000">R$ 1 mi</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="bedrooms">Quartos</label>
+          <select id="bedrooms" name="bedrooms">
+            <option value="">Todos</option>
+            <option value="1">1+</option>
+            <option value="2">2+</option>
+            <option value="3">3+</option>
+          </select>
+        </div>
+        <button class="btn btn--primary" type="submit">Buscar imóveis</button>
+      </form>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <div class="section__head">
+        <div>
+          <h2>Imóveis em destaque</h2>
+          <p>Seleção atualizada da carteira · {{tenant.name}}</p>
+        </div>
+        <a class="btn btn--ghost" href="listing.html">Ver todos</a>
+      </div>
+      <div class="grid-properties" data-demo-properties>
+        {{properties}}
+      </div>
+    </div>
+  </section>
+
+  <!-- partial:footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer__inner">
+        <div>
+          <div class="brand"><span data-bind="tenant.name">{{tenant.name}}</span></div>
+          <p>Vitrine digital para locação e venda — atendimento humano com agenda inteligente.</p>
+        </div>
+        <div>
+          <strong>Contato</strong>
+          <p><a href="tel:{{tenant.phone}}" data-bind="tenant.phone">{{tenant.phone}}</a></p>
+        </div>
+        <div>
+          <strong>Navegação</strong>
+          <p><a href="listing.html">Imóveis</a><br /><a href="schedule.html">Agendar visita</a></p>
+        </div>
+      </div>
+      <p class="site-footer__copy">© <span data-bind="tenant.name">{{tenant.name}}</span></p>
+    </div>
+  </footer>
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>

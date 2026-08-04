@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{property.title}} — {{tenant.name}}</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="home.html"><span data-bind="tenant.name">{{tenant.name}}</span></a>
+      <nav class="nav">
+        <a href="home.html">Início</a>
+        <a href="listing.html">Imóveis</a>
+        <a href="schedule.html">Agendar visita</a>
+      </nav>
+      <div class="header-actions">
+        <a class="btn btn--primary" href="schedule.html">Agendar visita</a>
+        <button class="menu-toggle" type="button" data-menu-toggle aria-label="Abrir menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      </div>
+    </div>
+    <nav class="nav--mobile" data-nav-mobile>
+      <a href="listing.html">Imóveis</a>
+      <a href="schedule.html">Agendar visita</a>
+    </nav>
+  </header>
+
+  <div class="property-hero">
+    <img
+      src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1600&q=80"
+      alt="{{property.title}}"
+      data-bind="property.images"
+      width="1600"
+      height="700"
+    />
+    <!-- {{property.images}} -->
+  </div>
+
+  <div class="container property-detail">
+    <div class="property-detail__main">
+      <h1>{{property.title}}</h1>
+      <p class="property-detail__price">{{property.price}}</p>
+      <ul class="specs">
+        <li>{{property.operation}}</li>
+        <li>{{property.bedrooms}} quarto(s)</li>
+        <li>{{property.neighborhood}}</li>
+        <li>{{property.city}}</li>
+      </ul>
+      <p>{{property.description}}</p>
+      <p style="color: var(--color-muted)">
+        Imóvel moderno com boa iluminação natural, acabamento contemporâneo e fácil acesso a comércio e transporte.
+        Substituído automaticamente quando o backend injetar {{property.description}}.
+      </p>
+    </div>
+    <aside class="property-detail__aside">
+      <h2 class="visually-hidden">Ações</h2>
+      <p style="margin-top:0;font-weight:700;color:var(--color-primary)">Interessado?</p>
+      <p style="color:var(--color-muted);font-size:0.95rem">Escolha um horário e o corretor confirma pelo WhatsApp.</p>
+      <a class="btn btn--primary btn--block" href="schedule.html">Agendar visita</a>
+      <p class="trust">Fale com <span data-bind="tenant.name">{{tenant.name}}</span><br />
+        <a href="tel:{{tenant.phone}}" data-bind="tenant.phone">{{tenant.phone}}</a>
+      </p>
+    </aside>
+  </div>
+
+  <div class="sticky-cta-mobile">
+    <a class="btn btn--primary btn--block" href="schedule.html">Agendar visita</a>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p class="site-footer__copy">© <span data-bind="tenant.name">{{tenant.name}}</span></p>
+    </div>
+  </footer>
+  <script src="../assets/js/main.js"></script>
+  <script>
+    (function () {
+      const demo = {
+        title: "Apartamento luminoso em Pinheiros",
+        price: "R$ 4.200/mês",
+        operation: "Alugar",
+        bedrooms: "2",
+        neighborhood: "Pinheiros",
+        city: "São Paulo",
+        description: "Sala integrada, varanda gourmet e 1 vaga. Pronto para morar."
+      };
+      document.querySelectorAll("h1").forEach((el) => {
+        if (/\{\{/.test(el.textContent)) el.textContent = demo.title;
+      });
+      const price = document.querySelector(".property-detail__price");
+      if (price && /\{\{/.test(price.textContent)) price.textContent = demo.price;
+      const specs = document.querySelectorAll(".specs li");
+      if (specs[0] && /\{\{/.test(specs[0].textContent)) {
+        specs[0].textContent = demo.operation;
+        specs[1].textContent = demo.bedrooms + " quarto(s)";
+        specs[2].textContent = demo.neighborhood;
+        specs[3].textContent = demo.city;
+      }
+    })();
+  </script>
+</body>
+</html>

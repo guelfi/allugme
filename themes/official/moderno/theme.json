@@ -1,0 +1,6 @@
+{
+  "key": "moderno",
+  "name": "Moderno",
+  "version": "1.0.0",
+  "pages": ["home", "listing", "property", "schedule"]
+}

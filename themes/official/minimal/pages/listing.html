@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{tenant.name}} — Imóveis</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="home.html"><span data-bind="tenant.name">{{tenant.name}}</span></a>
+      <nav class="nav">
+        <a href="home.html">Início</a>
+        <a href="listing.html" aria-current="page">Imóveis</a>
+        <a href="schedule.html">Visita</a>
+      </nav>
+      <div class="header-actions">
+        <button class="menu-toggle" type="button" data-menu-toggle aria-label="Menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+    <nav class="nav--mobile" data-nav-mobile>
+      <a href="listing.html">Imóveis</a>
+      <a href="schedule.html">Visita</a>
+    </nav>
+  </header>
+
+  <div class="container listing-layout">
+    <div class="listing-toolbar">
+      <h1>Imóveis</h1>
+      <span>Carteira publicada</span>
+    </div>
+    <form class="filters" action="listing.html" method="get" data-search-filters>
+      {{search.filters}}
+      <div class="field"><label for="city">Cidade</label><input id="city" name="city" /></div>
+      <div class="field"><label for="neighborhood">Bairro</label><input id="neighborhood" name="neighborhood" /></div>
+      <div class="field">
+        <label for="operation">Tipo</label>
+        <select id="operation" name="operation"><option value="">Todos</option><option value="rent">Alugar</option><option value="sale">Comprar</option></select>
+      </div>
+      <div class="field">
+        <label for="price">Valor até</label>
+        <select id="price" name="price"><option value="">Qualquer</option><option value="4000">R$ 4.000</option><option value="1500000">R$ 1,5 mi</option></select>
+      </div>
+      <div class="field">
+        <label for="bedrooms">Quartos</label>
+        <select id="bedrooms" name="bedrooms"><option value="">Todos</option><option value="1">1+</option><option value="2">2+</option><option value="3">3+</option></select>
+      </div>
+      <button class="btn btn--accent" type="submit">Filtrar</button>
+    </form>
+    <div class="grid-properties" data-demo-properties>{{properties}}</div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container"><p class="site-footer__copy">© <span data-bind="tenant.name">{{tenant.name}}</span></p></div>
+  </footer>
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>

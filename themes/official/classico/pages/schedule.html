@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agendar visita — {{tenant.name}}</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="home.html"><span data-bind="tenant.name">{{tenant.name}}</span></a>
+      <nav class="nav">
+        <a href="home.html">Início</a>
+        <a href="listing.html">Imóveis</a>
+        <a href="schedule.html" aria-current="page">Agendar visita</a>
+      </nav>
+      <div class="header-actions">
+        <button class="menu-toggle" type="button" data-menu-toggle aria-label="Abrir menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      </div>
+    </div>
+    <nav class="nav--mobile" data-nav-mobile>
+      <a href="listing.html">Imóveis</a>
+      <a href="schedule.html">Agendar visita</a>
+    </nav>
+  </header>
+
+  <div class="container schedule-wrap">
+    <section class="panel">
+      <h1>Agende sua visita</h1>
+      <p style="color:var(--color-muted);margin-top:0">
+        Escolha um horário livre. O corretor recebe o pedido no WhatsApp e confirma com você.
+      </p>
+      <p><strong>Imóvel:</strong> <span>{{property.title}}</span></p>
+      <label for="visit-date"><strong>Data</strong></label>
+      <input id="visit-date" type="date" style="width:100%;margin:0.5rem 0 1rem;padding:0.7rem;border-radius:8px;border:1px solid var(--color-border)" />
+      <p><strong>Horários disponíveis</strong></p>
+      <div class="slots" data-slots data-endpoint="{{visit.slots_endpoint}}">
+        <!-- slots da API -->
+      </div>
+      <p class="trust">Intervalo mínimo entre visitas respeitado automaticamente na agenda do corretor.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Seus dados</h2>
+      <form data-visit-form action="{{visit.submit_endpoint}}" method="post">
+        <input type="hidden" name="slot" value="" />
+        <div class="field" style="margin-bottom:0.85rem">
+          <label for="name">Nome</label>
+          <input id="name" name="name" required autocomplete="name" />
+        </div>
+        <div class="field" style="margin-bottom:0.85rem">
+          <label for="phone">Telefone / WhatsApp</label>
+          <input id="phone" name="phone" required autocomplete="tel" placeholder="(11) 90000-0000" />
+        </div>
+        <div class="field" style="margin-bottom:1.1rem">
+          <label for="email">E-mail</label>
+          <input id="email" name="email" type="email" required autocomplete="email" />
+        </div>
+        <button class="btn btn--primary btn--block" type="submit">Solicitar visita</button>
+      </form>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p class="site-footer__copy">© <span data-bind="tenant.name">{{tenant.name}}</span> · Resposta via WhatsApp do corretor</p>
+    </div>
+  </footer>
+  <script src="../assets/js/main.js"></script>
+  <script>
+    document.querySelectorAll("span").forEach((el) => {
+      if (el.textContent.includes("{{property.title}}")) {
+        el.textContent = "Apartamento luminoso em Pinheiros";
+      }
+    });
+  </script>
+</body>
+</html>

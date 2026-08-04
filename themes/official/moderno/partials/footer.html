@@ -1,0 +1,33 @@
+<!-- partial:footer theme:moderno -->
+<footer class="site-footer" data-od-id="site-footer">
+  <div class="container site-footer__grid">
+    <div>
+      <a class="brand" href="home.html">
+        <img class="brand__logo" src="{{tenant.logo_url}}" alt="Logotipo de {{tenant.name}}" width="34" height="34" />
+        <span class="brand__name">{{tenant.name}}</span>
+      </a>
+      <p class="site-footer__tag">Vitrine oficial de imóveis para alugar e comprar, atendida diretamente pelo corretor responsável.</p>
+      <div class="footer-contact">
+        <a href="tel:{{tenant.phone}}"><i data-lucide="phone" aria-hidden="true"></i> {{tenant.phone}}</a>
+        <a href="https://wa.me/55{{tenant.phone}}" rel="noopener"><i data-lucide="message-circle" aria-hidden="true"></i> WhatsApp do corretor</a>
+      </div>
+    </div>
+    <nav aria-label="Explorar">
+      <h2>Explorar</h2>
+      <a href="home.html">Início</a>
+      <a href="listing.html">Imóveis à venda e para alugar</a>
+      <a href="schedule.html">Agendar uma visita</a>
+    </nav>
+    <div>
+      <h2>Atendimento</h2>
+      <div class="footer-contact">
+        <span><i data-lucide="clock" aria-hidden="true"></i> Segunda a sábado, 9h às 19h</span>
+        <span><i data-lucide="shield-check" aria-hidden="true"></i> CRECI e CNPJ informados pelo anunciante</span>
+      </div>
+    </div>
+  </div>
+  <div class="container site-footer__bar">
+    <span>© {{tenant.name}} — Todos os direitos reservados.</span>
+    <span>Tema Moderno · Vitrine imobiliária SaaS</span>
+  </div>
+</footer>

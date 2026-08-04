@@ -1,0 +1,8 @@
+{
+  "key": "porto",
+  "name": "Porto",
+  "version": "1.0.0",
+  "pages": ["home", "listing", "property", "schedule"],
+  "fonts": ["Sora", "IBM Plex Sans"],
+  "description": "Contemporâneo costeiro — navy, seafoam e areia suave"
+}

@@ -1,0 +1,8 @@
+{
+  "key": "minimal",
+  "name": "Minimal",
+  "version": "1.0.0",
+  "pages": ["home", "listing", "property", "schedule"],
+  "fonts": ["DM Serif Display", "DM Sans"],
+  "description": "Editorial tipográfico — preto, branco e oliva seca"
+}

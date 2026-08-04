@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tema Moderno — Vitrine imobiliária SaaS</title>
+  <meta name="description" content="Apresentação do tema oficial Moderno: home, busca, detalhe do imóvel e agendamento de visita para vitrines imobiliárias SaaS no Brasil." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      if (window.lucide) window.lucide.createIcons();
+    });
+  </script>
+</head>
+<body data-page="launcher" data-theme="moderno">
+  <main>
+    <section class="launcher-hero" data-od-id="launcher-hero">
+      <div class="container">
+        <span class="eyebrow">Tema oficial · v1.0.0</span>
+        <h1 class="hero__title" style="color:var(--fg);max-width:18ch">Tema Moderno para vitrines imobiliárias</h1>
+        <p style="max-width:56ch;color:var(--muted);font-size:1.15rem">
+          Quatro páginas prontas para o backend injetar dados via placeholders:
+          azul oceano como marca, ciano reservado à ação, Newsreader no display e
+          Source Sans 3 no corpo. Mobile-first, acessível (AA) e sem framework.
+        </p>
+        <div class="token-row" aria-label="Tokens principais do tema">
+          <span class="token-swatch"><i style="background:#0b3d91"></i> --brand · oceano</span>
+          <span class="token-swatch"><i style="background:#00a3a1"></i> --accent · ciano</span>
+          <span class="token-swatch"><i style="background:#f8fafc"></i> --surface · slate 50</span>
+          <span class="token-swatch"><i style="background:#0f172a"></i> --fg · slate 900</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="container launcher-grid" data-od-id="launcher-grid">
+      <a class="launcher-card" href="pages/home.html" data-od-id="launcher-home">
+        <span class="eyebrow">Página 01</span>
+        <h2>Home</h2>
+        <p>Hero full-bleed com busca, imóveis em destaque, passos de conversão e faixa de agendamento.</p>
+        <span class="go">Abrir página <i data-lucide="arrow-right" aria-hidden="true"></i></span>
+      </a>
+      <a class="launcher-card" href="pages/listing.html" data-od-id="launcher-listing">
+        <span class="eyebrow">Página 02</span>
+        <h2>Busca / resultados</h2>
+        <p>Filtros sticky no desktop e drawer no mobile, grade de 2–3 colunas com cards de imóvel.</p>
+        <span class="go">Abrir página <i data-lucide="arrow-right" aria-hidden="true"></i></span>
+      </a>
+      <a class="launcher-card" href="pages/property.html" data-od-id="launcher-property">
+        <span class="eyebrow">Página 03</span>
+        <h2>Detalhe do imóvel</h2>
+        <p>Galeria grande com miniaturas, painel de preço fixo e CTA “Agendar visita” colado no mobile.</p>
+        <span class="go">Abrir página <i data-lucide="arrow-right" aria-hidden="true"></i></span>
+      </a>
+      <a class="launcher-card" href="pages/schedule.html" data-od-id="launcher-schedule">
+        <span class="eyebrow">Página 04</span>
+        <h2>Agendar visita</h2>
+        <p>Slots vindos da API com fallback de demonstração, formulário curto e linha de confiança do WhatsApp.</p>
+        <span class="go">Abrir página <i data-lucide="arrow-right" aria-hidden="true"></i></span>
+      </a>
+    </div>
+
+    <section class="section section--surface" data-od-id="launcher-structure">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Integração</span>
+            <h2>Estrutura do tema</h2>
+            <p>Partials canônicos, tokens em <code>:root</code> e JS vanilla leve. O contrato completo de placeholders está no <code>README.md</code>.</p>
+          </div>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <span class="step__icon"><i data-lucide="layout-template" aria-hidden="true"></i></span>
+            <h3>pages/ + partials/</h3>
+            <p>Header, footer e property-card são injetados pelos marcadores <code>&lt;!-- partial:* --&gt;</code>.</p>
+          </div>
+          <div class="step">
+            <span class="step__icon"><i data-lucide="braces" aria-hidden="true"></i></span>
+            <h3>Placeholders literais</h3>
+            <p><code>{{tenant.*}}</code>, <code>{{property.*}}</code>, <code>{{properties}}</code>, <code>{{search.filters}}</code>, <code>{{visit.*}}</code>.</p>
+          </div>
+          <div class="step">
+            <span class="step__icon"><i data-lucide="smartphone" aria-hidden="true"></i></span>
+            <h3>Preview honesto</h3>
+            <p>Blocos de exemplo somem sozinhos quando o backend injeta os dados reais.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

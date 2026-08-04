@@ -1,0 +1,9 @@
+{
+  "key": "urbano",
+  "name": "Urbano",
+  "version": "2.0.0",
+  "pages": ["home", "listing", "property", "schedule"],
+  "fonts": ["Nunito Sans"],
+  "description": "Design system inspirado no padrão de mercado proptech (referência QuintoAndar): azul royal, card de busca arredondado, tipografia sans geométrica",
+  "designReference": "QuintoAndar homepage patterns (não afiliado; sem uso de marca/logo)"
+}

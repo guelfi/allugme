@@ -1,0 +1,26 @@
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="brand" href="home.html">
+      <img src="{{tenant.logo_url}}" alt="" width="36" height="36" data-bind="tenant.logo" onerror="this.style.display='none'" />
+      <span data-bind="tenant.name">{{tenant.name}}</span>
+    </a>
+    <nav class="nav" aria-label="Principal">
+      <a href="home.html">Início</a>
+      <a href="listing.html">Imóveis</a>
+      <a href="schedule.html">Agendar visita</a>
+    </nav>
+    <div class="header-actions">
+      <a class="phone-link" href="tel:{{tenant.phone}}" data-bind="tenant.phone">{{tenant.phone}}</a>
+      <a class="btn btn--primary" href="listing.html">Buscar</a>
+      <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-label="Abrir menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="nav--mobile" data-nav-mobile aria-label="Mobile">
+    <a href="home.html">Início</a>
+    <a href="listing.html">Imóveis</a>
+    <a href="schedule.html">Agendar visita</a>
+    <a href="tel:{{tenant.phone}}" data-bind="tenant.phone">{{tenant.phone}}</a>
+  </nav>
+</header>

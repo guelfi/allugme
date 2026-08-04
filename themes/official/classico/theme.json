@@ -1,0 +1,8 @@
+{
+  "key": "classico",
+  "name": "Clássico",
+  "version": "1.0.0",
+  "pages": ["home", "listing", "property", "schedule"],
+  "fonts": ["Cormorant Garamond", "Karla"],
+  "description": "Consultivo e sofisticado — verde floresta e dourado contido"
+}

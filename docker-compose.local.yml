@@ -1,0 +1,110 @@
+# Ambiente local — paridade com OCI (sem publicar porta no host).
+# Acesso via nginx-local na rede projetos-local:
+#   http://192.168.15.119/allugme/
+#   http://192.168.15.119/allugme/swagger/index.html
+#   http://192.168.15.119/allugme/api/v1/...
+#   http://192.168.15.119/allugme/t/{slug}/
+#
+# Subir:
+#   docker compose -f docker-compose.local.yml up -d --build
+#
+# Pré-requisito: rede projetos-local + container nginx-local
+#   (ver /home/guelfi/Projetos/docker-compose.nginx.local.yml)
+
+services:
+  allugme-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://192.168.15.119/allugme/api/v1
+        VITE_BASE_PATH: /allugme/
+    container_name: allugme-frontend
+    expose:
+      - "80"
+    networks:
+      - allugme-net
+      - projetos-local
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+  allugme-postgres:
+    image: postgres:16-alpine
+    container_name: allugme-postgres
+    environment:
+      POSTGRES_DB: allugme
+      POSTGRES_USER: allugme
+      POSTGRES_PASSWORD: allugme_dev
+    volumes:
+      - allugme_pg:/var/lib/postgresql/data
+    networks:
+      - allugme-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U allugme -d allugme"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  allugme-redis:
+    image: redis:7-alpine
+    container_name: allugme-redis
+    networks:
+      - allugme-net
+
+  allugme-api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: allugme-api
+    depends_on:
+      allugme-postgres:
+        condition: service_healthy
+      allugme-redis:
+        condition: service_started
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__PostgreSQL: Host=allugme-postgres;Port=5432;Database=allugme;Username=allugme;Password=allugme_dev
+      ConnectionStrings__Redis: allugme-redis:6379
+      Jwt__SigningKey: DEV_ONLY_CHANGE_ME_Allugme_Jwt_Signing_Key_32+
+      Seed__Enabled: "true"
+      Seed__DemoData: "true"
+      Seed__DemoPassword: Demo@123456
+      Seed__SuperAdmin__Email: admin@alugue.me
+      Seed__SuperAdmin__Password: Admin123#
+      Swagger__Enabled: "true"
+      Evolution__Enabled: "false"
+      Themes__RootPath: /app/themes/official
+      PublicBasePath: /allugme
+      Cors__Origins__0: http://192.168.15.119
+      Cors__Origins__1: http://localhost:5173
+    volumes:
+      - ./storage/media:/app/storage/media
+      - ./themes/official:/app/themes/official:ro
+    expose:
+      - "8080"
+    networks:
+      - allugme-net
+      - projetos-local
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    restart: unless-stopped
+
+volumes:
+  allugme_pg:
+
+networks:
+  allugme-net:
+    driver: bridge
+  projetos-local:
+    external: true

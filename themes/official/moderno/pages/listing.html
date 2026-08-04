@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{tenant.name}} — Buscar imóveis</title>
+  <meta name="description" content="Busque imóveis para alugar e comprar por cidade, bairro, valor e quartos na vitrine oficial de {{tenant.name}}." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <script src="../assets/js/main.js" defer></script>
+</head>
+<body data-page="listing" data-theme="moderno">
+  <!-- partial:header -->
+
+  <main class="section" data-page="listing" data-theme="moderno">
+    <div class="container">
+      <div class="listing-head" data-od-id="listing-head">
+        <span class="eyebrow">Busca de imóveis</span>
+        <h1>Imóveis à venda e para alugar</h1>
+        <p>Refine pelos filtros ao lado ou explore os resultados abaixo.</p>
+      </div>
+
+      <button class="btn btn--outline filters-toggle" type="button" aria-expanded="false" aria-controls="filters" data-od-id="filters-toggle">
+        <i data-lucide="sliders-horizontal" aria-hidden="true"></i> Filtrar resultados
+      </button>
+
+      <div class="listing-layout">
+        <!-- Filtros: sticky no desktop, drawer no mobile -->
+        <aside class="filters" id="filters" aria-label="Filtros de busca" data-od-id="filters">
+          <button class="filters__close" type="button" aria-label="Fechar filtros">
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
+          <form action="listing.html" method="get">
+            <h2>Filtros</h2>
+            <span class="inject-marker">{{search.filters}}</span>
+
+            <label class="field">
+              <span>Cidade</span>
+              <input type="text" name="cidade" placeholder="Ex.: São Paulo" autocomplete="address-level2" />
+            </label>
+            <label class="field">
+              <span>Bairro</span>
+              <input type="text" name="bairro" placeholder="Ex.: Vila Madalena" />
+            </label>
+            <label class="field">
+              <span>Valor até</span>
+              <select name="valor_max">
+                <option value="">Qualquer valor</option>
+                <option value="2500">R$ 2.500</option>
+                <option value="5000">R$ 5.000</option>
+                <option value="10000">R$ 10.000</option>
+                <option value="20000">R$ 20.000</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Quartos</span>
+              <select name="quartos">
+                <option value="">Qualquer quantidade</option>
+                <option value="1">1+</option>
+                <option value="2">2+</option>
+                <option value="3">3+</option>
+                <option value="4">4+</option>
+              </select>
+            </label>
+            <fieldset class="field" style="border:none;padding:0;margin:0 0 1rem">
+              <legend class="field-label" style="padding:0;margin-bottom:0.35rem">Operação</legend>
+              <div class="radio-row">
+                <label><input type="radio" name="operacao" value="alugar" checked /> Alugar</label>
+                <label><input type="radio" name="operacao" value="comprar" /> Comprar</label>
+              </div>
+            </fieldset>
+
+            <button class="btn btn--primary btn--block" type="submit" data-od-id="filters-apply">Aplicar filtros</button>
+          </form>
+        </aside>
+        <div class="filters-overlay" aria-hidden="true"></div>
+
+        <!-- Resultados -->
+        <section aria-label="Resultados da busca" data-od-id="results">
+          <div class="grid-imoveis">
+            <span class="inject-marker">{{properties}}</span>
+
+            <!-- PREVIEW-ONLY: exemplos; removidos quando o backend injeta {{properties}} -->
+            <article class="card-imovel" data-preview-only data-preview-for="{{properties}}" data-od-id="property-card-1">
+              <a class="card-imovel__link" href="property.html">
+                <figure class="card-imovel__media">
+                  <img src="../assets/img/imovel-1.jpg" alt="Sala ampla de apartamento com varanda e vista urbana" loading="lazy" />
+                  <span class="badge badge--alugar">Alugar</span>
+                </figure>
+                <div class="card-imovel__body">
+                  <p class="card-imovel__price">R$ 4.200 <small>/mês</small></p>
+                  <h3 class="card-imovel__title">Apartamento 2 quartos com varanda</h3>
+                  <p class="card-imovel__loc"><i data-lucide="map-pin" aria-hidden="true"></i> Vila Madalena · São Paulo</p>
+                  <p class="card-imovel__meta"><span><i data-lucide="bed-double" aria-hidden="true"></i> 2 quartos</span></p>
+                </div>
+              </a>
+            </article>
+
+            <article class="card-imovel" data-preview-only data-preview-for="{{properties}}" data-od-id="property-card-2">
+              <a class="card-imovel__link" href="property.html">
+                <figure class="card-imovel__media">
+                  <img src="../assets/img/imovel-3.jpg" alt="Sala de estar com sofá e estante em apartamento iluminado" loading="lazy" />
+                  <span class="badge badge--alugar">Alugar</span>
+                </figure>
+                <div class="card-imovel__body">
+                  <p class="card-imovel__price">R$ 3.150 <small>/mês</small></p>
+                  <h3 class="card-imovel__title">Apartamento iluminado com home office</h3>
+                  <p class="card-imovel__loc"><i data-lucide="map-pin" aria-hidden="true"></i> Pinheiros · São Paulo</p>
+                  <p class="card-imovel__meta"><span><i data-lucide="bed-double" aria-hidden="true"></i> 2 quartos</span></p>
+                </div>
+              </a>
+            </article>
+
+            <article class="card-imovel" data-preview-only data-preview-for="{{properties}}" data-od-id="property-card-3">
+              <a class="card-imovel__link" href="property.html">
+                <figure class="card-imovel__media">
+                  <img src="../assets/img/imovel-4.jpg" alt="Casa moderna com piscina e área gourmet" loading="lazy" />
+                  <span class="badge badge--comprar">Comprar</span>
+                </figure>
+                <div class="card-imovel__body">
+                  <p class="card-imovel__price">R$ 1.450.000</p>
+                  <h3 class="card-imovel__title">Casa com piscina em condomínio</h3>
+                  <p class="card-imovel__loc"><i data-lucide="map-pin" aria-hidden="true"></i> Barra da Tijuca · Rio de Janeiro</p>
+                  <p class="card-imovel__meta"><span><i data-lucide="bed-double" aria-hidden="true"></i> 4 quartos</span></p>
+                </div>
+              </a>
+            </article>
+
+            <article class="card-imovel" data-preview-only data-preview-for="{{properties}}" data-od-id="property-card-4">
+              <a class="card-imovel__link" href="property.html">
+                <figure class="card-imovel__media">
+                  <img src="../assets/img/imovel-2.jpg" alt="Quarto de studio mobiliado com iluminação natural" loading="lazy" />
+                  <span class="badge badge--alugar">Alugar</span>
+                </figure>
+                <div class="card-imovel__body">
+                  <p class="card-imovel__price">R$ 1.890 <small>/mês</small></p>
+                  <h3 class="card-imovel__title">Studio mobiliado perto do metrô</h3>
+                  <p class="card-imovel__loc"><i data-lucide="map-pin" aria-hidden="true"></i> Savassi · Belo Horizonte</p>
+                  <p class="card-imovel__meta"><span><i data-lucide="bed-double" aria-hidden="true"></i> 1 quarto</span></p>
+                </div>
+              </a>
+            </article>
+
+            <article class="card-imovel" data-preview-only data-preview-for="{{properties}}" data-od-id="property-card-5">
+              <a class="card-imovel__link" href="property.html">
+                <figure class="card-imovel__media">
+                  <img src="../assets/img/imovel-5.jpg" alt="Sala integrada com cozinha em tons claros" loading="lazy" />
+                  <span class="badge badge--comprar">Comprar</span>
+                </figure>
+                <div class="card-imovel__body">
+                  <p class="card-imovel__price">R$ 720.000</p>
+                  <h3 class="card-imovel__title">Apartamento com cozinha integrada</h3>
+                  <p class="card-imovel__loc"><i data-lucide="map-pin" aria-hidden="true"></i> Meireles · Fortaleza</p>
+                  <p class="card-imovel__meta"><span><i data-lucide="bed-double" aria-hidden="true"></i> 3 quartos</span></p>
+                </div>
+              </a>
+            </article>
+
+            <article class="card-imovel" data-preview-only data-preview-for="{{properties}}" data-od-id="property-card-6">
+              <a class="card-imovel__link" href="property.html">
+                <figure class="card-imovel__media">
+                  <img src="../assets/img/imovel-6.jpg" alt="Cozinha moderna com bancada em ilha" loading="lazy" />
+                  <span class="badge badge--alugar">Alugar</span>
+                </figure>
+                <div class="card-imovel__body">
+                  <p class="card-imovel__price">R$ 5.400 <small>/mês</small></p>
+                  <h3 class="card-imovel__title">Garden com cozinha gourmet</h3>
+                  <p class="card-imovel__loc"><i data-lucide="map-pin" aria-hidden="true"></i> Moinhos de Vento · Porto Alegre</p>
+                  <p class="card-imovel__meta"><span><i data-lucide="bed-double" aria-hidden="true"></i> 3 quartos</span></p>
+                </div>
+              </a>
+            </article>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <!-- partial:footer -->
+</body>
+</html>

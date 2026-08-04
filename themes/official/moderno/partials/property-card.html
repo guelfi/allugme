@@ -1,0 +1,21 @@
+<!-- partial:property-card theme:moderno -->
+<!-- Card canônico renderizado pelo backend dentro do loop {{properties}}. -->
+<article class="card-imovel" data-od-id="property-card">
+  <a class="card-imovel__link" href="property.html">
+    <figure class="card-imovel__media">
+      <img src="{{property.images}}" alt="Foto de {{property.title}}" loading="lazy" />
+      <span class="badge badge--alugar">{{property.operation}}</span>
+    </figure>
+    <div class="card-imovel__body">
+      <p class="card-imovel__price">{{property.price}}</p>
+      <h3 class="card-imovel__title">{{property.title}}</h3>
+      <p class="card-imovel__loc">
+        <i data-lucide="map-pin" aria-hidden="true"></i>
+        {{property.neighborhood}} · {{property.city}}
+      </p>
+      <p class="card-imovel__meta">
+        <span><i data-lucide="bed-double" aria-hidden="true"></i> {{property.bedrooms}} quartos</span>
+      </p>
+    </div>
+  </a>
+</article>

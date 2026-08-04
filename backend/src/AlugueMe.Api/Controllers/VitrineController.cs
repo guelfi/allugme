@@ -1,0 +1,58 @@
+using AlugueMe.Application.Interfaces;
+using AlugueMe.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace AlugueMe.Api.Controllers;
+
+[ApiController]
+public class VitrineController(AppDbContext db, IThemeRenderer themeRenderer, IConfiguration configuration) : ControllerBase
+{
+    [HttpGet("/t/{slug}")]
+    [HttpGet("/t/{slug}/")]
+    public Task<IActionResult> Home(string slug, CancellationToken ct) =>
+        RenderAsync(slug, "home", ct);
+
+    [HttpGet("/t/{slug}/{page}")]
+    public Task<IActionResult> Page(string slug, string page, CancellationToken ct)
+    {
+        page = page.EndsWith(".html", StringComparison.OrdinalIgnoreCase)
+            ? page[..^5]
+            : page;
+        return RenderAsync(slug, page, ct);
+    }
+
+    private async Task<IActionResult> RenderAsync(string slug, string page, CancellationToken ct)
+    {
+        var tenant = await db.Tenants
+            .Include(t => t.Settings)
+            .FirstOrDefaultAsync(t => t.Slug == slug && t.Status == Domain.Enums.TenantStatus.Active, ct);
+
+        if (tenant is null)
+            return NotFound();
+
+        var publicBase = configuration["PublicBasePath"]?.TrimEnd('/') ?? "";
+        var apiBase = $"{publicBase}/api/v1";
+
+        var placeholders = new Dictionary<string, string>
+        {
+            ["tenant.name"] = tenant.Name,
+            ["tenant.logo_url"] = "",
+            ["tenant.phone"] = tenant.Settings?.WhatsAppE164 ?? "",
+            ["visit.slots_endpoint"] = $"{apiBase}/public/properties/{{propertyId}}/visit-slots",
+            ["visit.submit_endpoint"] = $"{apiBase}/public/visits",
+            ["search.filters"] = "",
+            ["property.title"] = "",
+            ["property.price"] = "",
+            ["property.city"] = "",
+            ["property.neighborhood"] = "",
+            ["property.bedrooms"] = "",
+            ["property.operation"] = "",
+            ["property.images"] = "",
+            ["properties"] = ""
+        };
+
+        var html = await themeRenderer.RenderPageAsync(tenant.ThemeKey, page, placeholders, ct);
+        return Content(html, "text/html; charset=utf-8");
+    }
+}

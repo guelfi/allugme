@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{property.title}} — {{tenant.name}}</title>
+  <meta name="description" content="{{property.title}} em {{property.neighborhood}}, {{property.city}}. {{property.bedrooms}} quartos · {{property.operation}} · {{property.price}}." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <script src="../assets/js/main.js" defer></script>
+</head>
+<body data-page="property" data-theme="moderno">
+  <!-- partial:header -->
+
+  <main class="section" data-page="property" data-theme="moderno">
+    <div class="container">
+      <!-- Galeria: o backend injeta as <img> no lugar de {{property.images}} -->
+      <div class="gallery" data-od-id="gallery">
+        <span class="inject-marker">{{property.images}}</span>
+
+        <!-- PREVIEW-ONLY: galeria de exemplo; removida quando o backend injeta {{property.images}} -->
+        <figure class="gallery__main" data-preview-only data-preview-for="{{property.images}}">
+          <img src="../assets/img/imovel-1.jpg" alt="Foto principal do imóvel" />
+        </figure>
+        <div class="gallery__thumbs" data-preview-only data-preview-for="{{property.images}}" role="group" aria-label="Miniaturas da galeria">
+          <button type="button" aria-pressed="true"><img src="../assets/img/imovel-1.jpg" alt="Ver foto da sala com varanda" /></button>
+          <button type="button" aria-pressed="false"><img src="../assets/img/galeria-2.jpg" alt="Ver foto do quarto principal" /></button>
+          <button type="button" aria-pressed="false"><img src="../assets/img/imovel-6.jpg" alt="Ver foto da cozinha" /></button>
+          <button type="button" aria-pressed="false"><img src="../assets/img/imovel-5.jpg" alt="Ver foto da área integrada" /></button>
+        </div>
+      </div>
+
+      <div class="property-layout">
+        <div>
+          <header class="property-head" data-od-id="property-head">
+            <p class="property-head__loc">
+              <i data-lucide="map-pin" aria-hidden="true"></i>
+              {{property.neighborhood}} · {{property.city}}
+            </p>
+            <h1>{{property.title}}</h1>
+            <p>
+              <span class="badge badge--alugar">{{property.operation}}</span>
+              <span class="badge" style="background:var(--surface-2);color:var(--fg)">
+                <i data-lucide="bed-double" aria-hidden="true"></i>&nbsp;{{property.bedrooms}} quartos
+              </span>
+            </p>
+          </header>
+
+          <h2 class="visually-hidden">Descrição do imóvel</h2>
+          <div class="property-description" data-od-id="property-description">
+            <p>{{property.description}}</p>
+          </div>
+        </div>
+
+        <!-- Painel de preço / conversão -->
+        <aside class="price-panel" aria-label="Preço e agendamento" data-od-id="price-panel">
+          <p class="price-panel__price">{{property.price}} <small>{{property.operation}}</small></p>
+          <p class="price-panel__sub">Valor anunciado pelo corretor responsável.</p>
+          <a class="btn btn--primary btn--block" href="schedule.html" data-od-id="property-cta">
+            <i data-lucide="calendar-check" aria-hidden="true"></i> Agendar visita
+          </a>
+          <a class="btn btn--outline btn--block" href="tel:{{tenant.phone}}">
+            <i data-lucide="phone" aria-hidden="true"></i> Ligar para o corretor
+          </a>
+          <p class="trust-line">
+            <i data-lucide="message-circle" aria-hidden="true"></i>
+            Resposta rápida via WhatsApp do corretor · {{tenant.phone}}
+          </p>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <!-- CTA fixo no mobile -->
+  <div class="sticky-cta" data-od-id="sticky-cta">
+    <p class="sticky-cta__price">{{property.price}} <small>{{property.operation}}</small></p>
+    <a class="btn btn--primary" href="schedule.html">Agendar visita</a>
+  </div>
+
+  <!-- partial:footer -->
+</body>
+</html>

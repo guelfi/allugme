@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{tenant.name}} — Imóveis para alugar e comprar</title>
+  <meta name="description" content="Vitrine oficial de {{tenant.name}}: apartamentos, casas e coberturas para alugar e comprar, com agendamento de visita direto com o corretor." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <script src="../assets/js/main.js" defer></script>
+</head>
+<body data-page="home" data-theme="moderno">
+  <!-- partial:header -->
+
+  <main data-page="home" data-theme="moderno">
+    <!-- Hero full-bleed -->
+    <section class="hero" data-od-id="hero">
+      <div class="hero__media" aria-hidden="true">
+        <img src="../assets/img/hero.jpg" alt="" fetchpriority="high" />
+      </div>
+      <div class="container hero__content">
+        <p class="hero__eyebrow">Vitrine oficial · {{tenant.name}}</p>
+        <h1 class="hero__title">Seu próximo lar, com quem conhece cada rua.</h1>
+        <p class="hero__sub">Imóveis verificados para alugar e comprar, com visita agendada direto com o corretor — sem fila, sem intermediário.</p>
+        <div class="hero__actions">
+          <a class="btn btn--primary" href="listing.html" data-od-id="hero-cta-buscar">
+            <i data-lucide="search" aria-hidden="true"></i> Buscar imóveis
+          </a>
+          <a class="btn btn--outline" href="schedule.html" data-od-id="hero-cta-agendar">Agendar visita</a>
+        </div>
+
+        <form class="search-bar" action="listing.html" method="get" role="search" data-od-id="hero-search">
+          <label class="field">
+            <span>Cidade</span>
+            <input type="text" name="cidade" placeholder="Ex.: São Paulo" autocomplete="address-level2" />
+          </label>
+          <label class="field">
+            <span>Operação</span>
+            <select name="operacao">
+              <option value="alugar">Alugar</option>
+              <option value="comprar">Comprar</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Valor até</span>
+            <select name="valor_max">
+              <option value="">Qualquer valor</option>
+              <option value="2500">R$ 2.500</option>
+              <option value="5000">R$ 5.000</option>
+              <option value="10000">R$ 10.000</option>
+              <option value="20000">R$ 20.000</option>
+            </select>
+          </label>
+          <button class="btn btn--primary" type="submit">Buscar</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Destaques -->
+    <section class="section" data-od-id="featured">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Seleção da semana</span>
+            <h2>Imóveis em destaque</h2>
+          </div>
+          <a class="section-head__link" href="listing.html">Ver todos os imóveis →</a>
+        </div>
+
+        <div class="grid-imoveis">
+          <span class="inject-marker">{{properties}}</span>
+
+          <!-- PREVIEW-ONLY: exemplos de cards renderizados; o backend remove ao injetar {{properties}} -->
+          <article class="card-imovel" data-preview-only data-preview-for="{{properties}}" data-od-id="property-card-1">
+            <a class="card-imovel__link" href="property.html">
+              <figure class="card-imovel__media">
+                <img src="../assets/img/imovel-1.jpg" alt="Sala ampla de apartamento com varanda e vista urbana" loading="lazy" />
+                <span class="badge badge--alugar">Alugar</span>
+              </figure>
+              <div class="card-imovel__body">
+                <p class="card-imovel__price">R$ 4.200 <small>/mês</small></p>
+                <h3 class="card-imovel__title">Apartamento 2 quartos com varanda</h3>
+                <p class="card-imovel__loc"><i data-lucide="map-pin" aria-hidden="true"></i> Vila Madalena · São Paulo</p>
+                <p class="card-imovel__meta"><span><i data-lucide="bed-double" aria-hidden="true"></i> 2 quartos</span></p>
+              </div>
+            </a>
+          </article>
+
+          <article class="card-imovel" data-preview-only data-preview-for="{{properties}}" data-od-id="property-card-2">
+            <a class="card-imovel__link" href="property.html">
+              <figure class="card-imovel__media">
+                <img src="../assets/img/imovel-4.jpg" alt="Casa moderna com piscina e área gourmet" loading="lazy" />
+                <span class="badge badge--comprar">Comprar</span>
+              </figure>
+              <div class="card-imovel__body">
+                <p class="card-imovel__price">R$ 1.450.000</p>
+                <h3 class="card-imovel__title">Casa com piscina em condomínio</h3>
+                <p class="card-imovel__loc"><i data-lucide="map-pin" aria-hidden="true"></i> Barra da Tijuca · Rio de Janeiro</p>
+                <p class="card-imovel__meta"><span><i data-lucide="bed-double" aria-hidden="true"></i> 4 quartos</span></p>
+              </div>
+            </a>
+          </article>
+
+          <article class="card-imovel" data-preview-only data-preview-for="{{properties}}" data-od-id="property-card-3">
+            <a class="card-imovel__link" href="property.html">
+              <figure class="card-imovel__media">
+                <img src="../assets/img/imovel-2.jpg" alt="Quarto de studio mobiliado com iluminação natural" loading="lazy" />
+                <span class="badge badge--alugar">Alugar</span>
+              </figure>
+              <div class="card-imovel__body">
+                <p class="card-imovel__price">R$ 1.890 <small>/mês</small></p>
+                <h3 class="card-imovel__title">Studio mobiliado perto do metrô</h3>
+                <p class="card-imovel__loc"><i data-lucide="map-pin" aria-hidden="true"></i> Savassi · Belo Horizonte</p>
+                <p class="card-imovel__meta"><span><i data-lucide="bed-double" aria-hidden="true"></i> 1 quarto</span></p>
+              </div>
+            </a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Como funciona -->
+    <section class="section section--surface" data-od-id="steps">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Sem burocracia</span>
+            <h2>Do anúncio à visita em três passos</h2>
+          </div>
+        </div>
+        <div class="steps">
+          <div class="step" data-od-id="step-busca">
+            <span class="step__icon"><i data-lucide="search" aria-hidden="true"></i></span>
+            <h3>Busque com filtros reais</h3>
+            <p>Cidade, bairro, valor e quartos — os resultados respeitam exatamente o que você pediu.</p>
+          </div>
+          <div class="step" data-od-id="step-agenda">
+            <span class="step__icon"><i data-lucide="calendar-check" aria-hidden="true"></i></span>
+            <h3>Escolha o horário</h3>
+            <p>A agenda mostra os slots livres do corretor em tempo real. Escolha e confirme em um minuto.</p>
+          </div>
+          <div class="step" data-od-id="step-fecha">
+            <span class="step__icon"><i data-lucide="key-round" aria-hidden="true"></i></span>
+            <h3>Feche com o corretor</h3>
+            <p>Nada de central de atendimento: a negociação segue direto pelo WhatsApp de quem cuida do imóvel.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Faixa CTA -->
+    <section class="section" data-od-id="cta-band-section">
+      <div class="container">
+        <div class="cta-band" data-od-id="cta-band">
+          <div>
+            <h2>Prefere ver o imóvel antes de decidir?</h2>
+            <p>Agende uma visita presencial ou por videochamada. O corretor confirma pelo WhatsApp no mesmo dia.</p>
+          </div>
+          <a class="btn btn--light" href="schedule.html" data-od-id="cta-band-btn">
+            <i data-lucide="calendar-check" aria-hidden="true"></i> Agendar visita
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- partial:footer -->
+</body>
+</html>

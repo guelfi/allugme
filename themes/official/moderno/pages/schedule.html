@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{tenant.name}} — Agendar visita</title>
+  <meta name="description" content="Escolha o melhor dia e horário e agende sua visita com o corretor de {{tenant.name}}. Confirmação rápida pelo WhatsApp." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <script src="../assets/js/main.js" defer></script>
+</head>
+<body data-page="schedule" data-theme="moderno">
+  <!-- partial:header -->
+
+  <main class="section" data-page="schedule" data-theme="moderno">
+    <div class="container">
+      <div class="section-head" data-od-id="schedule-head">
+        <div>
+          <span class="eyebrow">Agendamento</span>
+          <h1>Agendar visita</h1>
+          <p>Escolha um horário livre na agenda e deixe seus dados. O corretor confirma pelo WhatsApp.</p>
+        </div>
+      </div>
+
+      <div class="schedule-layout">
+        <!-- Slots vindos da API -->
+        <section id="slots" data-endpoint="{{visit.slots_endpoint}}" aria-label="Horários disponíveis" data-od-id="slots">
+          <h2 class="visually-hidden">Dias e horários disponíveis</h2>
+          <div class="slots__days" role="group" aria-label="Escolha o dia"></div>
+          <div class="slots__times" role="group" aria-label="Escolha o horário"></div>
+          <p id="slots-status" class="field-hint" role="status" aria-live="polite" style="margin-top:0.9rem">
+            Carregando horários disponíveis…
+          </p>
+        </section>
+
+        <!-- Formulário curto -->
+        <form class="schedule-form" id="visit-form" action="{{visit.submit_endpoint}}" method="post" data-od-id="visit-form">
+          <h2>Seus dados</h2>
+          <label class="field">
+            <span>Nome completo</span>
+            <input type="text" name="nome" autocomplete="name" required placeholder="Como o corretor deve te chamar" />
+          </label>
+          <label class="field">
+            <span>Telefone / WhatsApp</span>
+            <input type="tel" name="telefone" autocomplete="tel" inputmode="tel" required placeholder="(11) 98765-4321" />
+          </label>
+          <label class="field">
+            <span>E-mail</span>
+            <input type="email" name="email" autocomplete="email" required placeholder="voce@exemplo.com" />
+          </label>
+
+          <input type="hidden" name="slot" id="slot-selecionado" value="" />
+
+          <button class="btn btn--primary btn--block" type="submit" data-od-id="visit-submit">
+            <i data-lucide="calendar-check" aria-hidden="true"></i> Confirmar agendamento
+          </button>
+
+          <p class="form-status" hidden></p>
+
+          <p class="trust-line">
+            <i data-lucide="message-circle" aria-hidden="true"></i>
+            Resposta via WhatsApp do corretor · {{tenant.phone}}
+          </p>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- partial:footer -->
+</body>
+</html>

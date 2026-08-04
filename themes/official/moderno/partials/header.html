@@ -1,0 +1,24 @@
+<!-- partial:header theme:moderno -->
+<header class="site-header" data-od-id="site-header">
+  <div class="container site-header__inner">
+    <a class="brand" href="home.html" data-od-id="brand">
+      <img class="brand__logo" src="{{tenant.logo_url}}" alt="Logotipo de {{tenant.name}}" width="34" height="34" />
+      <span class="brand__name">{{tenant.name}}</span>
+    </a>
+    <nav class="site-nav" id="site-nav" aria-label="Navegação principal">
+      <a href="home.html" data-nav="home">Início</a>
+      <a href="listing.html" data-nav="listing">Imóveis</a>
+      <a href="schedule.html" data-nav="schedule">Agendar visita</a>
+    </nav>
+    <div class="site-header__actions">
+      <a class="header-phone" href="tel:{{tenant.phone}}">
+        <i data-lucide="phone" aria-hidden="true"></i>
+        <span>{{tenant.phone}}</span>
+      </a>
+      <a class="btn btn--primary" href="schedule.html" data-od-id="header-cta">Agendar visita</a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Abrir menu">
+        <i data-lucide="menu" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,27 @@
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="brand" href="home.html"><span data-bind="tenant.name">{{tenant.name}}</span></a>
+    <nav class="nav" aria-label="Principal">
+      <a href="listing.html?operation=rent" data-nav="rent">Alugar</a>
+      <a href="listing.html?operation=sale" data-nav="sale">Comprar</a>
+      <a href="schedule.html" data-nav="schedule">Agendar visita</a>
+      <a href="listing.html" data-nav="listing">Imóveis</a>
+    </nav>
+    <div class="header-actions">
+      <a class="phone-link" href="tel:{{tenant.phone}}" data-bind="tenant.phone">{{tenant.phone}}</a>
+      <span class="btn-profile" aria-hidden="true">
+        <span class="btn-profile__avatar">V</span>
+        Entrar
+      </span>
+      <button class="menu-toggle" type="button" data-menu-toggle aria-label="Abrir menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="nav--mobile" data-nav-mobile>
+    <a href="listing.html?operation=rent">Alugar</a>
+    <a href="listing.html?operation=sale">Comprar</a>
+    <a href="listing.html">Imóveis</a>
+    <a href="schedule.html">Agendar visita</a>
+  </nav>
+</header>

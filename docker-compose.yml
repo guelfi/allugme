@@ -1,0 +1,116 @@
+version: '3.3'
+
+# OCI — stack completa (frontend + API + Postgres + Redis).
+# Acesso público canônico (IP + path, nginx-proxy sem porta publicada):
+#   http://129.153.86.168/allugme/
+#   http://129.153.86.168/allugme/api/v1/...
+#   http://129.153.86.168/allugme/swagger/index.html
+#   http://129.153.86.168/allugme/t/{slug}/
+#
+# Secrets: sobrescreva via /var/www/allugme/.env (não versionado).
+
+services:
+  allugme-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://129.153.86.168/allugme/api/v1}
+        VITE_BASE_PATH: ${VITE_BASE_PATH:-/allugme/}
+    container_name: allugme-frontend
+    depends_on:
+      allugme-api:
+        condition: service_healthy
+    expose:
+      - "80"
+    networks:
+      - allugme-net
+      - www_projetos-net
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+  allugme-postgres:
+    image: postgres:16-alpine
+    container_name: allugme-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-allugme}
+      POSTGRES_USER: ${POSTGRES_USER:-allugme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-allugme_oci_change_me}
+    volumes:
+      - allugme_pg:/var/lib/postgresql/data
+    networks:
+      - allugme-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U allugme -d allugme"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  allugme-redis:
+    image: redis:7-alpine
+    container_name: allugme-redis
+    networks:
+      - allugme-net
+    restart: unless-stopped
+
+  allugme-api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: allugme-api
+    depends_on:
+      allugme-postgres:
+        condition: service_healthy
+      allugme-redis:
+        condition: service_started
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__PostgreSQL: Host=allugme-postgres;Port=5432;Database=${POSTGRES_DB:-allugme};Username=${POSTGRES_USER:-allugme};Password=${POSTGRES_PASSWORD:-allugme_oci_change_me}
+      ConnectionStrings__Redis: allugme-redis:6379
+      Jwt__SigningKey: ${Jwt__SigningKey:-CHANGE_ME_OCI_Allugme_Jwt_Signing_Key_32chars+}
+      Seed__Enabled: ${Seed__Enabled:-true}
+      Seed__DemoData: ${Seed__DemoData:-true}
+      Seed__DemoPassword: ${Seed__DemoPassword:-Demo@123456}
+      Seed__SuperAdmin__Email: ${Seed__SuperAdmin__Email:-admin@alugue.me}
+      Seed__SuperAdmin__Password: ${Seed__SuperAdmin__Password:-Admin123#}
+      Swagger__Enabled: ${Swagger__Enabled:-true}
+      Evolution__Enabled: ${Evolution__Enabled:-false}
+      Themes__RootPath: /app/themes/official
+      PublicBasePath: /allugme
+      Cors__Origins__0: https://batuara.org.br
+      Cors__Origins__1: https://www.batuara.org.br
+      Cors__Origins__2: http://129.153.86.168
+      Cors__Origins__3: http://192.168.15.119
+      Cors__Origins__4: http://batuara.org.br
+    volumes:
+      - ./storage/media:/app/storage/media
+      - ./themes/official:/app/themes/official:ro
+    expose:
+      - "8080"
+    networks:
+      - allugme-net
+      - www_projetos-net
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+volumes:
+  allugme_pg:
+
+networks:
+  allugme-net:
+    driver: bridge
+  www_projetos-net:
+    external: true
