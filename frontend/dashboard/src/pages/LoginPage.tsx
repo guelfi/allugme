@@ -24,11 +24,16 @@ export function LoginPage() {
   return (
     <div className="login-page">
       <form className="login-card card" onSubmit={(e) => void handleSubmit(e)}>
-        <h1>
-          <Link to="/" className="brand-home-link">
-            Allugme
+        <div className="login-brand-block">
+          <Link to="/" className="login-back-link">
+            ← Voltar à página inicial
           </Link>
-        </h1>
+          <h1>
+            <Link to="/" className="brand-home-link">
+              Allugme
+            </Link>
+          </h1>
+        </div>
         <p className="muted">Acesse o painel</p>
         {error && <div className="alert alert-error">{error}</div>}
         <label>

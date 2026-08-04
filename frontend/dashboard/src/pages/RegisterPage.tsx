@@ -62,11 +62,16 @@ export function RegisterPage() {
     return (
       <div className="login-page lp-register-wrap">
         <div className="login-card card register-card">
-          <p className="lp-kicker">
-            <Link to="/" className="brand-home-link">
-              Allugme
+          <div className="login-brand-block">
+            <Link to="/" className="login-back-link">
+              ← Voltar à página inicial
             </Link>
-          </p>
+            <p className="lp-kicker">
+              <Link to="/" className="brand-home-link">
+                Allugme
+              </Link>
+            </p>
+          </div>
           <h1>Cadastro recebido</h1>
           <p className="muted">{done.message}</p>
           <div className="alert" style={{ background: '#ecfdf5', color: '#065f46' }}>
@@ -89,11 +94,16 @@ export function RegisterPage() {
     <div className="login-page lp-register-wrap">
       <form className="login-card card register-card" onSubmit={(e) => void handleSubmit(e)}>
         <header className="register-head">
-          <p className="lp-kicker">
-            <Link to="/" className="brand-home-link">
-              Allugme
+          <div className="login-brand-block">
+            <Link to="/" className="login-back-link">
+              ← Voltar à página inicial
             </Link>
-          </p>
+            <p className="lp-kicker">
+              <Link to="/" className="brand-home-link">
+                Allugme
+              </Link>
+            </p>
+          </div>
           <h1>{isAgency ? 'Cadastro de imobiliária' : 'Cadastro de corretor'}</h1>
           <p className="muted register-lead">
             {isAgency
