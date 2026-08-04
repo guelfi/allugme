@@ -1372,25 +1372,64 @@ th {
 }
 
 .lp-close-contact {
-  display: grid;
-  gap: 0.65rem;
-  justify-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.35rem;
+  justify-content: center;
+  align-items: center;
   margin-top: 1.15rem;
 }
 
-.lp-close-contact .lp-wa-btn {
-  width: min(100%, 22rem);
-}
-
-.lp-close-mail {
-  color: rgba(255, 255, 255, 0.88);
+.lp-close-channel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: rgba(255, 255, 255, 0.92);
   text-decoration: underline;
   text-underline-offset: 0.18em;
   font-weight: 600;
+  font-size: 1.02rem;
 }
 
-.lp-close-mail:hover {
+.lp-close-channel:hover {
   color: #fff;
+}
+
+.lp-close-wa {
+  text-decoration: none;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  background: #25d366;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(37, 211, 102, 0.28);
+}
+
+.lp-close-wa:hover {
+  color: #fff;
+  background: #1ebe57;
+}
+
+.lp-close-wa span {
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+
+.lp-close-wa-icon {
+  width: 1.25em;
+  height: 1.25em;
+  flex-shrink: 0;
+}
+
+.lp-footer-wa {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.lp-footer-wa svg {
+  width: 1.05em;
+  height: 1.05em;
+  color: #25d366;
 }
 
 .lp-privacy-inner {
@@ -1863,8 +1902,7 @@ th {
   }
 
   .lp-hero-cta .btn-lg,
-  .lp-close-cta .btn-lg,
-  .lp-close-contact .btn-lg {
+  .lp-close-cta .btn-lg {
     padding: 0.72rem 1rem;
     font-size: 0.95rem;
   }
@@ -2206,14 +2244,7 @@ th {
   }
 
   .lp-close-contact {
-    grid-template-columns: auto auto;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-  }
-
-  .lp-close-contact .lp-wa-btn {
-    width: auto;
+    gap: 0.85rem 1.5rem;
   }
 
   .lp-close-cta {
