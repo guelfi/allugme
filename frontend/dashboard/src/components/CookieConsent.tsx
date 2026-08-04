@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const STORAGE_KEY = 'allugme.cookieConsent'
 
@@ -14,20 +14,38 @@ function readConsent(): ConsentValue | null {
   return null
 }
 
+function setCookieHeight(px: number) {
+  document.documentElement.style.setProperty('--lp-cookie-h', `${Math.max(0, px)}px`)
+}
+
 export function CookieConsent() {
   const [visible, setVisible] = useState(false)
+  const bannerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     setVisible(readConsent() === null)
   }, [])
 
   useEffect(() => {
-    document.documentElement.style.setProperty(
-      '--lp-cookie-h',
-      visible ? '5.75rem' : '0px',
-    )
+    if (!visible) {
+      setCookieHeight(0)
+      return
+    }
+
+    const el = bannerRef.current
+    if (!el) return
+
+    const sync = () => setCookieHeight(el.getBoundingClientRect().height)
+    sync()
+
+    const ro = new ResizeObserver(sync)
+    ro.observe(el)
+    window.addEventListener('resize', sync)
+
     return () => {
-      document.documentElement.style.setProperty('--lp-cookie-h', '0px')
+      ro.disconnect()
+      window.removeEventListener('resize', sync)
+      setCookieHeight(0)
     }
   }, [visible])
 
@@ -43,7 +61,12 @@ export function CookieConsent() {
   if (!visible) return null
 
   return (
-    <div className="lp-cookie" role="dialog" aria-label="Consentimento de cookies">
+    <div
+      ref={bannerRef}
+      className="lp-cookie"
+      role="dialog"
+      aria-label="Consentimento de cookies"
+    >
       <div className="lp-cookie-inner">
         <p>
           Usamos cookies necessários para o funcionamento do site e, com o seu consentimento,
