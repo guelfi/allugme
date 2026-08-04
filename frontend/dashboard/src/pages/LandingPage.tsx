@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { agencyPricing } from '../pricing'
 
 type CarouselDirection = 'forward' | 'reverse'
 
@@ -310,25 +311,31 @@ export function LandingPage() {
         <section id="planos" className="lp-viewport lp-section lp-section-alt">
           <div className="lp-section-inner">
             <header className="lp-section-head">
-              <h2>Planos claros. Pagamento via Pix.</h2>
+              <h2>Planos para imobiliárias. Pagamento via Pix.</h2>
               <p>
-                Escolha o ciclo, faça o Pix e aguarde a liberação pelo administrador do Allugme.
-                Sem cartão obrigatório no lançamento.
+                Até {agencyPricing.monthly.includedBrokers} corretores inclusos. Corretor extra:{' '}
+                {agencyPricing.extraBrokerMonthly}/mês no mensal ou {agencyPricing.extraBrokerYearly}
+                /mês no anual. Liberação pelo administrador após o Pix.
               </p>
             </header>
             <div className="lp-pricing">
               <article className="lp-price-card">
                 <h3>Mensal</h3>
                 <p className="lp-price">
-                  R$&nbsp;59<span>/mês</span>
+                  R$&nbsp;99<span>/mês</span>
                 </p>
                 <ul>
-                  <li>Vitrine com layouts oficiais</li>
-                  <li>Agenda de visitas + buffer</li>
-                  <li>WhatsApp operacional</li>
+                  <li>Até {agencyPricing.monthly.includedBrokers} corretores inclusos</li>
+                  <li>
+                    Corretor extra: {agencyPricing.extraBrokerMonthly}/mês
+                  </li>
+                  <li>Vitrine, agenda com buffer e WhatsApp</li>
                   <li>Ativação após Pix</li>
                 </ul>
-                <Link to="/register?plan=monthly" className="btn btn-primary btn-block">
+                <Link
+                  to="/register?type=agency&plan=monthly"
+                  className="btn btn-primary btn-block"
+                >
                   Assinar mensal
                 </Link>
               </article>
@@ -336,15 +343,20 @@ export function LandingPage() {
                 <p className="lp-badge">Melhor custo</p>
                 <h3>Anual</h3>
                 <p className="lp-price">
-                  R$&nbsp;500<span>/ano</span>
+                  R$&nbsp;900<span>/ano</span>
                 </p>
                 <ul>
-                  <li>Tudo do plano mensal</li>
-                  <li>Economia equivalente a ~2 meses</li>
-                  <li>Prioridade em novos layouts</li>
+                  <li>Até {agencyPricing.yearly.includedBrokers} corretores inclusos</li>
+                  <li>
+                    Corretor extra: {agencyPricing.extraBrokerYearly}/mês
+                  </li>
+                  <li>Economia vs. 12× mensal</li>
                   <li>Liberação pelo administrador</li>
                 </ul>
-                <Link to="/register?plan=yearly" className="btn btn-primary btn-block">
+                <Link
+                  to="/register?type=agency&plan=yearly"
+                  className="btn btn-primary btn-block"
+                >
                   Assinar anual
                 </Link>
               </article>

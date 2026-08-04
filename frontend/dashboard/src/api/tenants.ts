@@ -16,3 +16,10 @@ export async function updateTenantStatus(
 ): Promise<Tenant> {
   return patch<Tenant>(`/tenants/${id}/status`, { status })
 }
+
+export async function updateTenantPlan(
+  id: string,
+  payload: { plan?: string; extraBrokerSlots?: number; status?: string },
+): Promise<Tenant> {
+  return patch<Tenant>(`/tenants/${id}/plan`, payload)
+}

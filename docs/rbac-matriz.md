@@ -16,14 +16,16 @@
 
 | Capacidade | SaaS Admin | Agency Admin | Broker | Indep. | Visitante |
 |------------|:----------:|:------------:|:------:|:------:|:---------:|
-| Gerenciar tenants | ✅ | — | — | — | — |
+| Gerenciar tenants (ativar/Pix/assentos) | ✅ | — | — | — | — |
+| Ver imóveis/visitas/clientes/equipe (todos tenants) | ✅ leitura | — | — | — | — |
+| Editar dados de tenant (imóveis, visitas, equipe…) | — | ✅ | escopo** | ✅ | — |
 | Convidar/remover corretores | — | ✅ | — | —* | — |
 | Cadastrar/editar imóvel | — | ✅ | ✅** | ✅ | — |
 | Publicar / despublicar imóvel | — | ✅ | ✅** | ✅ | — |
 | Buscar / ver imóveis publicados | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Solicitar visita | — | — | — | — | ✅ |
-| Ver agenda do tenant | ✅ | ✅ | própria | ✅ | — |
-| Confirmar/recusar visita | ✅ | ✅ | próprias*** | ✅ | — |
+| Ver agenda do tenant | ✅ leitura | ✅ | própria | ✅ | — |
+| Confirmar/recusar visita | — | ✅ | próprias*** | ✅ | — |
 | Configurar buffer do tenant | — | ✅ | — | ✅ | — |
 | Configurar buffer próprio | — | — | ✅ | ✅ | — |
 | Configurar WhatsApp do tenant (Evolution) | — | ✅ | — | ✅ | — |
@@ -41,11 +43,12 @@
 - `tenant.manage` → `saas_admin`
 - `users.invite` → `agency_admin`
 - `property.create` → `agency_admin`, `broker`, `independent_broker`
-- `property.update` → dono do imóvel **ou** `agency_admin` **ou** `saas_admin`
+- `property.update` → dono do imóvel **ou** `agency_admin` / `independent_broker` (**não** saas_admin)
 - `property.publish` → mesmos + tenant ativo
 - `property.view_public` → qualquer um se `status = published` e tenant ativo
+- `property.view_all` → saas_admin (somente leitura)
 - `visit.request` → visitante (ou anônimo com dados de contato)
-- `visit.manage` → corretor responsável / agency_admin / saas_admin
+- `visit.manage` → corretor responsável / agency_admin / independent_broker (**não** saas_admin)
 - `settings.buffer.tenant` → agency_admin / independent_broker
 - `settings.buffer.broker` → broker / independent_broker
 - `settings.whatsapp.tenant` → agency_admin / independent_broker

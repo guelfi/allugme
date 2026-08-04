@@ -31,8 +31,12 @@ public class AuthController(AppDbContext db, IJwtTokenService jwt) : ControllerB
 
         var accountType = (request.AccountType ?? "agency").Trim().ToLowerInvariant();
         var isIndependent = accountType is "independent" or "corretor" or "broker";
-        var plan = (request.Plan ?? "monthly").Trim().ToLowerInvariant();
-        var planLabel = plan is "yearly" or "anual" ? "Anual (R$ 500,00)" : "Mensal (R$ 59,00)";
+        var plan = DtoMappers.NormalizePlan(request.Plan);
+        var planLabel = isIndependent
+            ? (plan == "yearly" ? "Anual (corretor independente)" : "Mensal (corretor independente)")
+            : plan == "yearly"
+                ? "Anual (R$ 900,00) — até 5 corretores; extra R$ 29,00/mês por corretor"
+                : "Mensal (R$ 99,00) — até 5 corretores; extra R$ 39,00/mês por corretor";
 
         var slug = await UniqueSlugAsync(request.BusinessName, ct);
 
@@ -53,7 +57,10 @@ public class AuthController(AppDbContext db, IJwtTokenService jwt) : ControllerB
             Slug = slug,
             Type = isIndependent ? TenantType.Independent : TenantType.Agency,
             Status = TenantStatus.PendingPayment,
-            ThemeKey = "moderno"
+            ThemeKey = "moderno",
+            Plan = plan,
+            IncludedBrokerSlots = isIndependent ? 1 : 5,
+            ExtraBrokerSlots = 0
         };
         db.Tenants.Add(tenant);
         db.TenantSettings.Add(new TenantSettings
@@ -128,7 +135,7 @@ public class AuthController(AppDbContext db, IJwtTokenService jwt) : ControllerB
         }
 
         var token = jwt.GenerateToken(user.Id, user.Email, user.Name, user.IsSaasAdmin, tenantId, role);
-        return Ok(new AuthResponse(token, MapUser(user, memberships)));
+        return Ok(new AuthResponse(token, await MapUserAsync(user, memberships, ct)));
     }
 
     [HttpPost("logout")]
@@ -145,7 +152,7 @@ public class AuthController(AppDbContext db, IJwtTokenService jwt) : ControllerB
             return NotFound();
 
         var memberships = await LoadMembershipsAsync(userId, ct);
-        return Ok(MapUser(user, memberships));
+        return Ok(await MapUserAsync(user, memberships, ct));
     }
 
     private async Task<List<TenantMembership>> LoadMembershipsAsync(Guid userId, CancellationToken ct) =>
@@ -154,9 +161,23 @@ public class AuthController(AppDbContext db, IJwtTokenService jwt) : ControllerB
             .Where(m => m.UserId == userId)
             .ToListAsync(ct);
 
-    private static UserDto MapUser(User user, List<TenantMembership> memberships) =>
-        new(user.Id, user.Email, user.Name, user.Phone, user.IsSaasAdmin,
-            memberships.Select(DtoMappers.ToDto).ToList());
+    private async Task<UserDto> MapUserAsync(User user, List<TenantMembership> memberships, CancellationToken ct)
+    {
+        var tenantIds = memberships.Select(m => m.TenantId).Distinct().ToList();
+        var usage = await db.TenantMemberships
+            .Where(m => tenantIds.Contains(m.TenantId))
+            .GroupBy(m => m.TenantId)
+            .Select(g => new { TenantId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.TenantId, x => x.Count, ct);
+
+        return new UserDto(
+            user.Id,
+            user.Email,
+            user.Name,
+            user.Phone,
+            user.IsSaasAdmin,
+            memberships.Select(m => DtoMappers.ToDto(m, usage.GetValueOrDefault(m.TenantId))).ToList());
+    }
 
     private async Task<string> UniqueSlugAsync(string name, CancellationToken ct)
     {

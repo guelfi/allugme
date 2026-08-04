@@ -91,8 +91,9 @@ public class VisitsController(AppDbContext db, IRedisLockService lockService, IW
 
     private bool CanManage(Domain.Entities.Visit visit)
     {
-        if (User.IsSaasAdmin())
-            return true;
+        // SaaS admin: somente leitura
+        if (User.IsSaasAdmin() && User.GetRole() is null)
+            return false;
 
         var tenantId = User.GetTenantId();
         if (tenantId != visit.TenantId)

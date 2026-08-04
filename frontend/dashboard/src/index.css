@@ -99,8 +99,17 @@ h1, h2, p {
   margin: 0;
 }
 
-button, input, select {
+button, input, select, textarea {
   font: inherit;
+}
+
+textarea {
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  resize: vertical;
+  min-height: 6rem;
 }
 
 /* App shell — mobile first */

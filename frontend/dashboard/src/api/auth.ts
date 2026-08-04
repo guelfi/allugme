@@ -1,11 +1,18 @@
 import { get, post } from './http'
-import type { LoginResponse, User, UserRole } from '../types'
+import type { LoginResponse, MembershipRole, TenantType, User, UserRole } from '../types'
 
 type ApiMembership = {
   tenantId: string
   tenantName?: string
   tenantSlug?: string
   role: string
+  tenantType?: string
+  plan?: string
+  includedBrokerSlots?: number
+  extraBrokerSlots?: number
+  usedBrokerSlots?: number
+  maxBrokerSlots?: number
+  canManageBrokers?: boolean
 }
 
 type ApiUser = {
@@ -31,12 +38,22 @@ function mapRole(dto: ApiUser): UserRole {
 }
 
 export function mapUser(dto: ApiUser): User {
+  const membership = dto.memberships?.[0]
+  const membershipRole = membership?.role as MembershipRole | undefined
   return {
     id: dto.id,
     email: dto.email,
     name: dto.name,
     role: mapRole(dto),
-    tenantId: dto.memberships?.[0]?.tenantId,
+    membershipRole,
+    tenantId: membership?.tenantId,
+    tenantType: (membership?.tenantType as TenantType | undefined) ?? undefined,
+    plan: membership?.plan === 'yearly' ? 'yearly' : membership?.plan ? 'monthly' : undefined,
+    includedBrokerSlots: membership?.includedBrokerSlots,
+    extraBrokerSlots: membership?.extraBrokerSlots,
+    usedBrokerSlots: membership?.usedBrokerSlots,
+    maxBrokerSlots: membership?.maxBrokerSlots,
+    canManageBrokers: Boolean(membership?.canManageBrokers),
   }
 }
 

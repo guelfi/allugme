@@ -62,7 +62,10 @@ public class DemoSeed(AppDbContext db, IOptions<SeedOptions> seedOptions, ILogge
                 Name = name,
                 Type = type,
                 Status = TenantStatus.Active,
-                ThemeKey = themeKey
+                ThemeKey = themeKey,
+                Plan = "monthly",
+                IncludedBrokerSlots = type == TenantType.Independent ? 1 : 5,
+                ExtraBrokerSlots = 0
             };
             db.Tenants.Add(tenant);
             db.TenantSettings.Add(new TenantSettings
@@ -72,6 +75,13 @@ public class DemoSeed(AppDbContext db, IOptions<SeedOptions> seedOptions, ILogge
                 VisitDurationMinutes = 60,
                 WhatsAppNotifyEnabled = false
             });
+        }
+        else
+        {
+            tenant.Plan = string.IsNullOrWhiteSpace(tenant.Plan) ? "monthly" : tenant.Plan;
+            tenant.IncludedBrokerSlots = type == TenantType.Independent ? 1 : Math.Max(tenant.IncludedBrokerSlots, 5);
+            if (type == TenantType.Independent)
+                tenant.ExtraBrokerSlots = 0;
         }
 
         Guid responsibleBrokerId;
@@ -110,7 +120,10 @@ public class DemoSeed(AppDbContext db, IOptions<SeedOptions> seedOptions, ILogge
             Name = "Demo Suspensa",
             Type = TenantType.Agency,
             Status = TenantStatus.Suspended,
-            ThemeKey = "moderno"
+            ThemeKey = "moderno",
+            Plan = "monthly",
+            IncludedBrokerSlots = 5,
+            ExtraBrokerSlots = 0
         };
         db.Tenants.Add(tenant);
         db.TenantSettings.Add(new TenantSettings { TenantId = tenant.Id });

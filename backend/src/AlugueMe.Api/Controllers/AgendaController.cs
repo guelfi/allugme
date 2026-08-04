@@ -36,9 +36,16 @@ public class AgendaController(AppDbContext db) : ControllerBase
     [HttpPost("blocks")]
     public async Task<ActionResult<CalendarBlockDto>> CreateBlock([FromBody] CreateCalendarBlockRequest request, CancellationToken ct)
     {
+        if (User.IsSaasAdmin() && string.IsNullOrEmpty(User.GetRole()))
+            return Forbid();
+
         var tenantId = User.GetTenantId();
         if (tenantId is null)
             return BadRequest(new { message = "Contexto de tenant não definido." });
+
+        var role = User.GetRole();
+        if (role is not ("broker" or "agency_admin" or "independent_broker"))
+            return Forbid();
 
         var block = new CalendarBlock
         {
@@ -54,5 +61,30 @@ public class AgendaController(AppDbContext db) : ControllerBase
 
         return Created($"/api/v1/agenda/blocks/{block.Id}",
             new CalendarBlockDto(block.Id, block.BrokerId, block.StartAt, block.EndAt, block.Reason));
+    }
+
+    [HttpDelete("blocks/{id:guid}")]
+    public async Task<IActionResult> DeleteBlock(Guid id, CancellationToken ct)
+    {
+        if (User.IsSaasAdmin() && string.IsNullOrEmpty(User.GetRole()))
+            return Forbid();
+
+        var tenantId = User.GetTenantId();
+        if (tenantId is null)
+            return BadRequest(new { message = "Contexto de tenant não definido." });
+
+        var block = await db.CalendarBlocks.FirstOrDefaultAsync(b => b.Id == id && b.TenantId == tenantId, ct);
+        if (block is null)
+            return NotFound();
+
+        var role = User.GetRole();
+        if (role == "broker" && block.BrokerId != User.GetUserId())
+            return Forbid();
+        if (role is not ("broker" or "agency_admin" or "independent_broker"))
+            return Forbid();
+
+        db.CalendarBlocks.Remove(block);
+        await db.SaveChangesAsync(ct);
+        return NoContent();
     }
 }

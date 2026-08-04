@@ -1,19 +1,33 @@
 export type UserRole = 'saas_admin' | 'tenant_admin' | 'broker'
+export type TenantType = 'agency' | 'independent'
+export type MembershipRole = 'agency_admin' | 'broker' | 'independent_broker'
 
 export interface User {
   id: string
   name: string
   email: string
   role: UserRole
+  membershipRole?: MembershipRole
   tenantId?: string
+  tenantType?: TenantType
+  plan?: 'monthly' | 'yearly'
+  includedBrokerSlots?: number
+  extraBrokerSlots?: number
+  usedBrokerSlots?: number
+  maxBrokerSlots?: number
+  canManageBrokers?: boolean
 }
 
 export interface Tenant {
   id: string
   name: string
   slug: string
-  status: 'active' | 'suspended' | 'pending'
+  status: 'active' | 'suspended' | 'pending' | 'pending_payment'
   type: string
+  plan?: string
+  includedBrokerSlots?: number
+  extraBrokerSlots?: number
+  maxBrokerSlots?: number
   createdAt: string
 }
 
@@ -29,6 +43,9 @@ export interface Property {
   bedrooms?: number
   areaM2?: number
   updatedAt: string
+  description?: string
+  neighborhood?: string
+  tenantId?: string
 }
 
 export interface Visit {
@@ -37,10 +54,13 @@ export interface Visit {
   propertyTitle: string
   visitorName: string
   visitorPhone: string
+  visitorEmail?: string
+  brokerName?: string
   startAt: string
   endAt: string
-  status: 'pending' | 'confirmed' | 'declined' | 'cancelled'
+  status: 'pending' | 'confirmed' | 'declined' | 'rejected' | 'cancelled'
   confirmationCode?: string
+  tenantId?: string
 }
 
 export interface TenantSettings {

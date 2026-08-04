@@ -1,14 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import {
+  canEditTheme,
+  canEditTenantSettings,
+  canManageTeam,
+  isBroker,
+  isSaasReadOnly,
+} from '../../permissions'
 
-const navItems = [
-  { to: '/painel', label: 'Início', end: true },
-  { to: '/properties', label: 'Imóveis' },
-  { to: '/visits', label: 'Visitas' },
-  { to: '/settings', label: 'Configurações' },
-  { to: '/theme', label: 'Tema' },
-]
+type NavItem = { to: string; label: string; end?: boolean }
 
 export function AppShell() {
   const { user, logout, isSaasAdmin } = useAuth()
@@ -20,6 +21,44 @@ export function AppShell() {
       document.body.style.overflow = ''
     }
   }, [menuOpen])
+
+  const navItems = useMemo(() => {
+    const items: NavItem[] = [{ to: '/painel', label: 'Início', end: true }]
+
+    if (isSaasReadOnly(user)) {
+      items.push(
+        { to: '/admin/tenants', label: 'Tenants' },
+        { to: '/properties', label: 'Imóveis' },
+        { to: '/visits', label: 'Visitas' },
+        { to: '/clients', label: 'Clientes' },
+      )
+      return items
+    }
+
+    if (isBroker(user)) {
+      items.push(
+        { to: '/properties', label: 'Imóveis' },
+        { to: '/visits', label: 'Agenda' },
+        { to: '/clients', label: 'Clientes' },
+        { to: '/settings', label: 'Configurações' },
+      )
+      return items
+    }
+
+    // Admin imobiliária / corretor independente
+    items.push(
+      { to: '/properties', label: 'Imóveis' },
+      { to: '/visits', label: 'Visitas' },
+      { to: '/clients', label: 'Clientes' },
+    )
+    if (canManageTeam(user)) items.push({ to: '/team', label: 'Equipe' })
+    if (canEditTenantSettings(user) || isBroker(user)) {
+      items.push({ to: '/settings', label: 'Configurações' })
+    }
+    if (canEditTheme(user)) items.push({ to: '/theme', label: 'Tema' })
+    if (isSaasAdmin) items.push({ to: '/admin/tenants', label: 'Tenants' })
+    return items
+  }, [user, isSaasAdmin])
 
   const links = (
     <>
@@ -34,17 +73,17 @@ export function AppShell() {
           {item.label}
         </NavLink>
       ))}
-      {isSaasAdmin && (
-        <NavLink
-          to="/admin/tenants"
-          className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
-          onClick={() => setMenuOpen(false)}
-        >
-          Tenants
-        </NavLink>
-      )}
     </>
   )
+
+  const bottomItems = navItems.slice(0, 4)
+  const roleHint = isSaasReadOnly(user)
+    ? 'SaaS · somente leitura'
+    : isBroker(user)
+      ? 'Corretor'
+      : user?.tenantType === 'independent'
+        ? 'Corretor independente'
+        : 'Imobiliária'
 
   return (
     <div className={`app-shell${menuOpen ? ' menu-open' : ''}`}>
@@ -64,7 +103,12 @@ export function AppShell() {
           <strong>Allugme</strong>
         </div>
         <div className="user-menu">
-          <span className="user-name">{user?.name ?? user?.email}</span>
+          <span className="user-name">
+            {user?.name ?? user?.email}
+            <small className="muted" style={{ display: 'block', fontSize: '0.7rem' }}>
+              {roleHint}
+            </small>
+          </span>
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => void logout()}>
             Sair
           </button>
@@ -85,7 +129,7 @@ export function AppShell() {
           <span className="brand-mark">A</span>
           <div>
             <strong>Allugme</strong>
-            <small>Painel</small>
+            <small>{roleHint}</small>
           </div>
         </div>
         <nav className="nav">{links}</nav>
@@ -98,7 +142,7 @@ export function AppShell() {
       </div>
 
       <nav className="bottom-nav" aria-label="Navegação principal">
-        {navItems.slice(0, 4).map((item) => (
+        {bottomItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

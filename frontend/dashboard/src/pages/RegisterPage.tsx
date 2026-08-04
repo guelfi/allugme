@@ -1,6 +1,7 @@
 import { type FormEvent, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { registerAccount } from '../api/auth'
+import { agencyPricing, planFullLabel } from '../pricing'
 
 export function RegisterPage() {
   const [params] = useSearchParams()
@@ -18,10 +19,7 @@ export function RegisterPage() {
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState<{ message: string; plan: string } | null>(null)
 
-  const planLabel = useMemo(
-    () => (plan === 'yearly' ? 'Anual — R$ 500,00' : 'Mensal — R$ 59,00'),
-    [plan],
-  )
+  const planLabel = useMemo(() => planFullLabel(plan), [plan])
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -115,7 +113,9 @@ export function RegisterPage() {
               checked={plan === 'monthly'}
               onChange={() => setPlan('monthly')}
             />
-            Mensal — R$ 59,00
+            {accountType === 'agency'
+              ? `${agencyPricing.monthly.fullLabel} (até ${agencyPricing.monthly.includedBrokers} corretores)`
+              : 'Mensal — corretor independente (sem equipe)'}
           </label>
           <label>
             <input
@@ -124,8 +124,20 @@ export function RegisterPage() {
               checked={plan === 'yearly'}
               onChange={() => setPlan('yearly')}
             />
-            Anual — R$ 500,00
+            {accountType === 'agency'
+              ? `${agencyPricing.yearly.fullLabel} (até ${agencyPricing.yearly.includedBrokers} corretores)`
+              : 'Anual — corretor independente (sem equipe)'}
           </label>
+          {accountType === 'agency' ? (
+            <p className="muted" style={{ margin: '0.35rem 0 0', fontSize: '0.85rem' }}>
+              Corretor extra: {agencyPricing.extraBrokerMonthly}/mês no mensal ou{' '}
+              {agencyPricing.extraBrokerYearly}/mês no anual.
+            </p>
+          ) : (
+            <p className="muted" style={{ margin: '0.35rem 0 0', fontSize: '0.85rem' }}>
+              Conta individual: não é possível cadastrar outros corretores.
+            </p>
+          )}
         </fieldset>
 
         <label>

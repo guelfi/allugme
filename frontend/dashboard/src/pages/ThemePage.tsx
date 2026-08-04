@@ -1,8 +1,12 @@
 import { type FormEvent, useEffect, useState } from 'react'
+import { Navigate } from 'react-router-dom'
 import { getTheme, OFFICIAL_THEMES, updateTheme } from '../api/theme'
+import { useAuth } from '../contexts/AuthContext'
+import { canEditTheme } from '../permissions'
 import type { ThemeConfig } from '../types'
 
 export function ThemePage() {
+  const { user } = useAuth()
   const [form, setForm] = useState<ThemeConfig>({ themeId: 'moderno' })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -10,11 +14,16 @@ export function ThemePage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!canEditTheme(user)) return
     getTheme()
       .then(setForm)
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false))
-  }, [])
+  }, [user])
+
+  if (!canEditTheme(user)) {
+    return <Navigate to="/painel" replace />
+  }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
