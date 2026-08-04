@@ -1,15 +1,23 @@
 import { type FormEvent, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { registerAccount } from '../api/auth'
-import { agencyPricing, planFullLabel } from '../pricing'
+import { agencyPricing, independentPricing, planFullLabel } from '../pricing'
+
+type AccountType = 'agency' | 'independent'
+type Plan = 'monthly' | 'yearly'
+
+function parseAccountType(value: string | null): AccountType {
+  return value === 'independent' ? 'independent' : 'agency'
+}
+
+function parsePlan(value: string | null): Plan {
+  return value === 'yearly' ? 'yearly' : 'monthly'
+}
 
 export function RegisterPage() {
-  const [params] = useSearchParams()
-  const initialType = params.get('type') === 'independent' ? 'independent' : 'agency'
-  const initialPlan = params.get('plan') === 'yearly' ? 'yearly' : 'monthly'
-
-  const [accountType, setAccountType] = useState<'agency' | 'independent'>(initialType)
-  const [plan, setPlan] = useState<'monthly' | 'yearly'>(initialPlan)
+  const [params, setParams] = useSearchParams()
+  const accountType = parseAccountType(params.get('type'))
+  const plan = parsePlan(params.get('plan'))
   const [name, setName] = useState('')
   const [businessName, setBusinessName] = useState('')
   const [email, setEmail] = useState('')
@@ -19,7 +27,14 @@ export function RegisterPage() {
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState<{ message: string; plan: string } | null>(null)
 
-  const planLabel = useMemo(() => planFullLabel(plan), [plan])
+  const planLabel = useMemo(() => planFullLabel(plan, accountType), [plan, accountType])
+  const isAgency = accountType === 'agency'
+
+  function updateParam(key: 'type' | 'plan', value: string) {
+    const next = new URLSearchParams(params)
+    next.set(key, value)
+    setParams(next, { replace: true })
+  }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -78,66 +93,99 @@ export function RegisterPage() {
             Allugme
           </Link>
         </p>
-        <h1>Criar conta</h1>
-        <p className="muted">Imobiliária ou corretor — ativação após Pix.</p>
+        <h1>{isAgency ? 'Cadastro de imobiliária' : 'Cadastro de corretor'}</h1>
+        <p className="muted">
+          {isAgency
+            ? 'Equipe, vitrine e agenda — ativação após Pix.'
+            : 'Conta individual — vitrine e agenda só suas, ativação após Pix.'}
+        </p>
+
+        <div className="register-context">
+          <span className="register-context-badge">
+            {isAgency ? 'Imobiliária' : 'Corretor independente'}
+          </span>
+          <button
+            type="button"
+            className="register-context-switch"
+            onClick={() =>
+              updateParam('type', isAgency ? 'independent' : 'agency')
+            }
+          >
+            {isAgency ? 'Quero ser corretor' : 'Quero imobiliária'}
+          </button>
+        </div>
+
         {error && <div className="alert alert-error">{error}</div>}
 
-        <fieldset className="segmented">
-          <legend>Tipo de conta</legend>
-          <label>
-            <input
-              type="radio"
-              name="type"
-              checked={accountType === 'agency'}
-              onChange={() => setAccountType('agency')}
-            />
-            Imobiliária
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="type"
-              checked={accountType === 'independent'}
-              onChange={() => setAccountType('independent')}
-            />
-            Corretor independente
-          </label>
-        </fieldset>
+        <fieldset className="register-plans">
+          <legend>Escolha o plano</legend>
+          <div className="register-plan-grid">
+            <label
+              className={`register-plan-card${plan === 'monthly' ? ' is-selected' : ''}`}
+            >
+              <input
+                type="radio"
+                name="plan"
+                checked={plan === 'monthly'}
+                onChange={() => updateParam('plan', 'monthly')}
+              />
+              <span className="register-plan-name">Mensal</span>
+              <span className="register-plan-price">
+                R$&nbsp;{isAgency ? agencyPricing.monthly.amount : independentPricing.monthly.amount}
+                <small>/mês</small>
+              </span>
+              <ul>
+                {isAgency ? (
+                  <>
+                    <li>Até {agencyPricing.monthly.includedBrokers} corretores inclusos</li>
+                    <li>Extra: {agencyPricing.extraBrokerMonthly}/mês</li>
+                    <li>Vitrine, agenda e WhatsApp</li>
+                  </>
+                ) : (
+                  <>
+                    <li>Conta individual (1 corretor)</li>
+                    <li>Vitrine, agenda e WhatsApp</li>
+                    <li>Sem equipe</li>
+                  </>
+                )}
+              </ul>
+            </label>
 
-        <fieldset className="segmented">
-          <legend>Plano</legend>
-          <label>
-            <input
-              type="radio"
-              name="plan"
-              checked={plan === 'monthly'}
-              onChange={() => setPlan('monthly')}
-            />
-            {accountType === 'agency'
-              ? `${agencyPricing.monthly.fullLabel} (até ${agencyPricing.monthly.includedBrokers} corretores)`
-              : 'Mensal — corretor independente (sem equipe)'}
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="plan"
-              checked={plan === 'yearly'}
-              onChange={() => setPlan('yearly')}
-            />
-            {accountType === 'agency'
-              ? `${agencyPricing.yearly.fullLabel} (até ${agencyPricing.yearly.includedBrokers} corretores)`
-              : 'Anual — corretor independente (sem equipe)'}
-          </label>
-          {accountType === 'agency' ? (
-            <p className="muted" style={{ margin: '0.35rem 0 0', fontSize: '0.85rem' }}>
-              Corretor extra: {agencyPricing.extraBrokerMonthly}/mês no mensal ou{' '}
-              {agencyPricing.extraBrokerYearly}/mês no anual.
-            </p>
-          ) : (
-            <p className="muted" style={{ margin: '0.35rem 0 0', fontSize: '0.85rem' }}>
-              Conta individual: não é possível cadastrar outros corretores.
-            </p>
-          )}
+            <label
+              className={`register-plan-card register-plan-card-featured${plan === 'yearly' ? ' is-selected' : ''}`}
+            >
+              <input
+                type="radio"
+                name="plan"
+                checked={plan === 'yearly'}
+                onChange={() => updateParam('plan', 'yearly')}
+              />
+              <span className="register-plan-badge">Melhor custo</span>
+              <span className="register-plan-name">Anual</span>
+              <span className="register-plan-price">
+                R$&nbsp;{isAgency ? agencyPricing.yearly.amount : independentPricing.yearly.amount}
+                <small>/ano</small>
+              </span>
+              <ul>
+                {isAgency ? (
+                  <>
+                    <li>Até {agencyPricing.yearly.includedBrokers} corretores inclusos</li>
+                    <li>Extra: {agencyPricing.extraBrokerYearly}/mês</li>
+                    <li>Economia vs. 12× mensal</li>
+                  </>
+                ) : (
+                  <>
+                    <li>Conta individual (1 corretor)</li>
+                    <li>Mesmos recursos do mensal</li>
+                    <li>Economia vs. 12× mensal</li>
+                  </>
+                )}
+              </ul>
+            </label>
+          </div>
+          <p className="register-plan-note">
+            Pagamento via Pix. Liberação pelo administrador Allugme.
+          </p>
         </fieldset>
 
         <label>
@@ -145,7 +193,7 @@ export function RegisterPage() {
           <input value={name} onChange={(e) => setName(e.target.value)} required />
         </label>
         <label>
-          {accountType === 'agency' ? 'Nome da imobiliária' : 'Nome comercial / marca'}
+          {isAgency ? 'Nome da imobiliária' : 'Nome comercial / marca'}
           <input value={businessName} onChange={(e) => setBusinessName(e.target.value)} required />
         </label>
         <label>
@@ -173,7 +221,7 @@ export function RegisterPage() {
         </p>
 
         <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? 'Enviando…' : 'Enviar cadastro'}
+          {loading ? 'Enviando…' : isAgency ? 'Cadastrar imobiliária' : 'Cadastrar corretor'}
         </button>
         <p className="muted" style={{ textAlign: 'center' }}>
           Já tem conta? <Link to="/login">Entrar</Link>

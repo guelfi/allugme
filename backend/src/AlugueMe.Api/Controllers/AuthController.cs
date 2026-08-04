@@ -33,7 +33,9 @@ public class AuthController(AppDbContext db, IJwtTokenService jwt) : ControllerB
         var isIndependent = accountType is "independent" or "corretor" or "broker";
         var plan = DtoMappers.NormalizePlan(request.Plan);
         var planLabel = isIndependent
-            ? (plan == "yearly" ? "Anual (corretor independente)" : "Mensal (corretor independente)")
+            ? (plan == "yearly"
+                ? "Anual (R$ 470,00) — corretor independente"
+                : "Mensal (R$ 49,00) — corretor independente")
             : plan == "yearly"
                 ? "Anual (R$ 900,00) — até 5 corretores; extra R$ 29,00/mês por corretor"
                 : "Mensal (R$ 99,00) — até 5 corretores; extra R$ 39,00/mês por corretor";
