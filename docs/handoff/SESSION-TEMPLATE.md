@@ -1,4 +1,4 @@
-# Sessão de trabalho — Alugue.me
+# Sessão de trabalho — Allugme
 
 **Data:** YYYY-MM-DD  
 **Duração:**  

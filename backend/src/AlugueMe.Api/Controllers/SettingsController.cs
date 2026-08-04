@@ -106,7 +106,7 @@ public class SettingsController(AppDbContext db, IWhatsAppQueue whatsAppQueue) :
         if (tenantSettings?.EvolutionInstanceName is null)
             return BadRequest(new { message = "Evolution instance não configurada." });
 
-        var text = request.Message ?? "Mensagem de teste Alugue.me";
+        var text = request.Message ?? "Mensagem de teste Allugme";
         await whatsAppQueue.EnqueueAsync(new WhatsAppQueueMessage(
             tenantId, null, tenantSettings.EvolutionInstanceName, request.ToE164, text), ct);
 

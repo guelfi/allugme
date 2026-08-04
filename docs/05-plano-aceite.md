@@ -1,4 +1,4 @@
-# Plano de Aceite — Alugue.me
+# Plano de Aceite — Allugme
 
 **Versão:** 1.2  
 **Data:** 2026-08-04  
@@ -190,7 +190,7 @@ Pasta sugerida: `docs/handoff/checkpoints/aceite-YYYYMMDD/`
 ## 8. Ata de aceite (template)
 
 ```
-ATA DE ACEITE — Alugue.me MVP
+ATA DE ACEITE — Allugme MVP
 Data: _______________
 Build/Tag: _______________
 Avaliador: _______________

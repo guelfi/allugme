@@ -1,4 +1,4 @@
-# Documentação do Projeto — Alugue.me
+# Documentação do Projeto — Allugme
 
 Índice do pacote documental. Arquivos da trilha **.NET 10 + React** na raiz desta pasta; material exclusivo do Oscar em [`Oscar/`](Oscar/).  
 MVP inclui **WhatsApp via Evolution API** e **Redis** (fila, locks, cache, idempotência).
@@ -11,7 +11,7 @@ MVP inclui **WhatsApp via Evolution API** e **Redis** (fila, locks, cache, idemp
 |------|----------|
 | `01`–`05` + `handoff/` | Documentos oficiais da implementação .NET 10 + React |
 | `glossario.md`, `rbac-matriz.md`, `escopo-mvp-rinha.md` | Referências comuns (linguagem neutra) |
-| [`Oscar/`](Oscar/) | Modelos (templates) para a trilha PHP — sem marca/domínio Alugue.me |
+| [`Oscar/`](Oscar/) | Modelos (templates) para a trilha PHP — sem marca/domínio Allugme |
 | `Resumo_Executivo_Analise_Mercado_QuintoAndar.pdf` | Benchmark de mercado (contexto) |
 
 ## Documentos principais
@@ -34,7 +34,7 @@ MVP inclui **WhatsApp via Evolution API** e **Redis** (fila, locks, cache, idemp
 
 Ver [Oscar/README.md](Oscar/README.md).  
 
-**Regra:** o pacote em `Oscar/` não cita **Alugue.me** / **Alugueme** / `alugue.me`; ele define `[Nome do Projeto]`, slug e domínio próprios. Ao enviar, inclua também os três arquivos comuns da raiz (`glossario.md`, `rbac-matriz.md`, `escopo-mvp-rinha.md`) se quiser o escopo alinhado.
+**Regra:** o pacote em `Oscar/` não cita **Allugme** / `allugme.com.br`; ele define `[Nome do Projeto]`, slug e domínio próprios. Ao enviar, inclua também os três arquivos comuns da raiz (`glossario.md`, `rbac-matriz.md`, `escopo-mvp-rinha.md`) se quiser o escopo alinhado.
 
 ## Como manter
 

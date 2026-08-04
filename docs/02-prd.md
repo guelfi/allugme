@@ -1,4 +1,4 @@
-# PRD — Product Requirements Document — Alugue.me
+# PRD — Product Requirements Document — Allugme
 
 **Versão:** 1.2  
 **Data:** 2026-08-04  

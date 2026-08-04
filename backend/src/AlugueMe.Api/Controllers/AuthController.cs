@@ -78,7 +78,7 @@ public class AuthController(AppDbContext db, IJwtTokenService jwt) : ControllerB
         return Ok(new
         {
             message =
-                "Cadastro recebido. Realize o pagamento via Pix e aguarde a liberação pelo administrador do Alugue.me para acessar o painel.",
+                "Cadastro recebido. Realize o pagamento via Pix e aguarde a liberação pelo administrador do Allugme para acessar o painel.",
             plan = planLabel,
             paymentMethod = "pix",
             tenant = new { tenant.Id, tenant.Name, tenant.Slug, status = "pending_payment" },
@@ -123,7 +123,7 @@ public class AuthController(AppDbContext db, IJwtTokenService jwt) : ControllerB
             if (tenant?.Status == TenantStatus.Suspended)
                 return StatusCode(StatusCodes.Status403Forbidden, new
                 {
-                    message = "Conta suspensa. Fale com o suporte Alugue.me."
+                    message = "Conta suspensa. Fale com o suporte Allugme."
                 });
         }
 

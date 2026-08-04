@@ -49,12 +49,17 @@ export function RegisterPage() {
     return (
       <div className="login-page lp-register-wrap">
         <div className="login-card card">
+          <p className="lp-kicker">
+            <Link to="/" className="brand-home-link">
+              Allugme
+            </Link>
+          </p>
           <h1>Cadastro recebido</h1>
           <p className="muted">{done.message}</p>
           <div className="alert" style={{ background: '#ecfdf5', color: '#065f46' }}>
             Plano: <strong>{done.plan || planLabel}</strong>
             <br />
-            Pagamento: <strong>Pix</strong> — liberação pelo administrador Alugue.me.
+            Pagamento: <strong>Pix</strong> — liberação pelo administrador Allugme.
           </div>
           <Link to="/login" className="btn btn-primary">
             Ir para o login
@@ -70,7 +75,11 @@ export function RegisterPage() {
   return (
     <div className="login-page lp-register-wrap">
       <form className="login-card card register-card" onSubmit={(e) => void handleSubmit(e)}>
-        <p className="lp-kicker">Alugue.me</p>
+        <p className="lp-kicker">
+          <Link to="/" className="brand-home-link">
+            Allugme
+          </Link>
+        </p>
         <h1>Criar conta</h1>
         <p className="muted">Imobiliária ou corretor — ativação após Pix.</p>
         {error && <div className="alert alert-error">{error}</div>}

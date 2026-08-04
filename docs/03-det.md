@@ -1,4 +1,4 @@
-# DET — Detalhamento da Especificação Técnica — Alugue.me
+# DET — Detalhamento da Especificação Técnica — Allugme
 
 **Versão:** 1.2  
 **Data:** 2026-08-04  

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Idempotent: ensure Alugue.me API/front locations exist in nginx.conf."""
+"""Idempotent: ensure Allugme API/front locations exist in nginx.conf."""
 
 from __future__ import annotations
 
@@ -7,8 +7,8 @@ import re
 import sys
 from pathlib import Path
 
-MARKER_BEGIN = "# BEGIN ALLUGME (managed by Alugue.me CD)"
-MARKER_END = "# END ALLUGME (managed by Alugue.me CD)"
+MARKER_BEGIN = "# BEGIN ALLUGME (managed by Allugme CD)"
+MARKER_END = "# END ALLUGME (managed by Allugme CD)"
 
 MANAGED_BLOCK_RE = re.compile(
     re.escape(MARKER_BEGIN) + r".*?" + re.escape(MARKER_END) + r"\n?",
@@ -82,7 +82,7 @@ def main() -> int:
                 updated = updated[: ssl_server.start()] + patched_server + updated[ssl_server.end() :]
 
     if updated == original:
-        print("nginx.conf already up to date for Alugue.me")
+        print("nginx.conf already up to date for Allugme")
         return 0
 
     backup = nginx_path.with_suffix(nginx_path.suffix + ".bak-allugme")

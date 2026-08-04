@@ -23,7 +23,7 @@ public class SeedOptions
     public const string SectionName = "Seed";
     public bool Enabled { get; set; }
     public string DemoPassword { get; set; } = "Demo@123456";
-    public string SaasAdminEmail { get; set; } = "admin@alugue.me";
+    public string SaasAdminEmail { get; set; } = "admin@allugme.com.br";
     public string SaasAdminPassword { get; set; } = "Admin123#";
 }
 

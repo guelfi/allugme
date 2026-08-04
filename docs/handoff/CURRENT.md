@@ -1,4 +1,4 @@
-# Estado atual — Alugue.me (Trilha A)
+# Estado atual — Allugme (Trilha A)
 
 **Última atualização:** 2026-08-04  
 **Fase:** MVP implementado (0→5 scaffold operacional)  
@@ -38,7 +38,7 @@ Path no servidor: `/var/www/allugme`
 
 | Role | Email | Senha |
 |------|-------|-------|
-| SaaS Admin | `admin@alugue.me` | `Admin123#` |
+| SaaS Admin | `admin@allugme.com.br` | `Admin123#` |
 | Demo tenant | `admin@{slug}.local` | `Demo@123456` |
 
 Slugs: `horizon`, `vista-urbana`, `casa-tradicao`, `atlas`, `porto-lar`

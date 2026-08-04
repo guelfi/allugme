@@ -16,13 +16,19 @@ if (!string.IsNullOrWhiteSpace(publicBasePath))
 builder.Services.AddControllers();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
+var homeUrl = string.IsNullOrWhiteSpace(publicBasePath)
+    ? "/"
+    : $"{publicBasePath.TrimEnd('/')}/";
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "AlugueMe API",
+        Title = "Allugme API",
         Version = "v1",
-        Description = "API do SaaS Alugue.me — Swagger exposto durante o desenvolvimento."
+        Description =
+            $"API do SaaS Allugme — Swagger exposto durante o desenvolvimento.\n\n" +
+            $"[← Voltar ao Allugme]({homeUrl})"
     });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -73,8 +79,51 @@ app.UseSwaggerUI(c =>
     var swaggerJson = string.IsNullOrWhiteSpace(publicBasePath)
         ? "/swagger/v1/swagger.json"
         : $"{publicBasePath.TrimEnd('/')}/swagger/v1/swagger.json";
-    c.SwaggerEndpoint(swaggerJson, "AlugueMe API v1");
+    c.SwaggerEndpoint(swaggerJson, "Allugme API v1");
     c.RoutePrefix = "swagger";
+    c.DocumentTitle = "Allugme API";
+    c.HeadContent = $$"""
+        <style>
+          .allugme-home-link {
+            position: fixed;
+            top: 10px;
+            right: 14px;
+            z-index: 10001;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: #0f766e;
+            color: #fff !important;
+            text-decoration: none !important;
+            font: 600 0.9rem/1 system-ui, -apple-system, sans-serif;
+            padding: 0.55rem 0.95rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(15, 40, 36, 0.28);
+          }
+          .allugme-home-link:hover { background: #0d655e; }
+          .swagger-ui .topbar .download-url-wrapper { margin-right: 9.5rem; }
+          @media (max-width: 768px) {
+            .allugme-home-link {
+              top: auto;
+              bottom: 14px;
+              right: 14px;
+              left: 14px;
+              justify-content: center;
+            }
+            .swagger-ui .topbar .download-url-wrapper { margin-right: 0; }
+          }
+        </style>
+        <script>
+          document.addEventListener('DOMContentLoaded', function () {
+            var a = document.createElement('a');
+            a.className = 'allugme-home-link';
+            a.href = {{System.Text.Json.JsonSerializer.Serialize(homeUrl)}};
+            a.textContent = '← Voltar ao Allugme';
+            a.setAttribute('aria-label', 'Voltar ao domínio Allugme');
+            document.body.appendChild(a);
+          });
+        </script>
+        """;
 });
 
 app.UseCors();

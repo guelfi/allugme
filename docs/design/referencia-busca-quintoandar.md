@@ -120,7 +120,7 @@ No código: `themes/official/urbano/assets/css/main.css` (`:root`).
 
 ---
 
-## D. Mapeamento no Alugue.me
+## D. Mapeamento no Allugme
 
 | Elemento da referência | Onde está / deve estar |
 |------------------------|------------------------|

@@ -97,7 +97,7 @@ jobs:
                 'Seed__Enabled=true' \
                 'Seed__DemoData=true' \
                 'Seed__DemoPassword=Demo@123456' \
-                'Seed__SuperAdmin__Email=admin@alugue.me' \
+                'Seed__SuperAdmin__Email=admin@allugme.com.br' \
                 'Seed__SuperAdmin__Password=Admin123#' \
                 'Swagger__Enabled=true' \
                 'Evolution__Enabled=false' \

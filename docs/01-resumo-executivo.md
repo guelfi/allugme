@@ -1,4 +1,4 @@
-# Resumo Executivo — Alugue.me
+# Resumo Executivo — Allugme
 
 **Versão:** 1.2  
 **Data:** 2026-08-04  
@@ -13,7 +13,7 @@ Imobiliárias e corretores independentes precisam de uma vitrine digital e de co
 
 ## 2. Proposta
 
-**Alugue.me** é um SaaS multi-tenant que oferece:
+**Allugme** é um SaaS multi-tenant que oferece:
 
 1. **Painel** para cadastrar e publicar imóveis da carteira  
 2. **Vitrine** por imobiliária/corretor (temas HTML)  

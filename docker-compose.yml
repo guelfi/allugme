@@ -79,7 +79,7 @@ services:
       Seed__Enabled: ${Seed__Enabled:-true}
       Seed__DemoData: ${Seed__DemoData:-true}
       Seed__DemoPassword: ${Seed__DemoPassword:-Demo@123456}
-      Seed__SuperAdmin__Email: ${Seed__SuperAdmin__Email:-admin@alugue.me}
+      Seed__SuperAdmin__Email: ${Seed__SuperAdmin__Email:-admin@allugme.com.br}
       Seed__SuperAdmin__Password: ${Seed__SuperAdmin__Password:-Admin123#}
       Swagger__Enabled: ${Swagger__Enabled:-true}
       Evolution__Enabled: ${Evolution__Enabled:-false}

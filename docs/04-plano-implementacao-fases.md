@@ -1,4 +1,4 @@
-# Plano de Implementação em Fases — Alugue.me
+# Plano de Implementação em Fases — Allugme
 
 **Versão:** 1.2  
 **Data:** 2026-08-04  

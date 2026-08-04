@@ -9,7 +9,7 @@ export function DashboardPage() {
       <header className="page-header">
         <div>
           <h1>Olá, {user?.name?.split(' ')[0] ?? 'corretor'}</h1>
-          <p className="muted">Resumo do painel Alugue.me</p>
+          <p className="muted">Resumo do painel Allugme</p>
         </div>
       </header>
       <div className="grid-cards">

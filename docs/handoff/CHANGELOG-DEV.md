@@ -1,4 +1,4 @@
-# Changelog de desenvolvimento — Alugue.me
+# Changelog de desenvolvimento — Allugme
 
 Registro cronológico de evolução (decisões, entregas, mudanças de escopo).
 
@@ -9,7 +9,7 @@ Registro cronológico de evolução (decisões, entregas, mudanças de escopo).
 ### Documentação
 - Criado pacote em `docs/` (Resumo, PRD, DET, Fases, Aceite, handoff) na raiz.  
 - Referências comuns na raiz: glossário, RBAC, escopo MVP rinha.  
-- Modelos da trilha B apenas em `docs/Oscar/` (sem marca Alugue.me).  
+- Modelos da trilha B apenas em `docs/Oscar/` (sem marca Allugme).  
 - **v1.1:** WhatsApp via Evolution API incluído no MVP (docs atualizados).  
 - **v1.2:** Redis incluído no MVP (fila WA, locks, cache, idempotência).
 

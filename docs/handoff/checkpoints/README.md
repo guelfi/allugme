@@ -1,4 +1,4 @@
-# Checkpoints da rinha — Trilha A (Alugue.me)
+# Checkpoints da rinha — Trilha A (Allugme)
 
 Atualize este arquivo (ou crie `S4.md`, `S8.md`…) ao atingir cada marco.
 
