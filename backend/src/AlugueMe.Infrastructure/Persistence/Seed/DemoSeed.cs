@@ -74,15 +74,18 @@ public class DemoSeed(AppDbContext db, IOptions<SeedOptions> seedOptions, ILogge
             });
         }
 
+        Guid responsibleBrokerId;
         if (type == TenantType.Independent)
         {
-            await EnsureUserAsync($"admin@{slug}.local", "Admin", MembershipRole.IndependentBroker, tenant, cancellationToken);
+            var indie = await EnsureUserAsync($"admin@{slug}.local", "Admin", MembershipRole.IndependentBroker, tenant, cancellationToken);
+            responsibleBrokerId = indie.Id;
         }
         else
         {
             await EnsureUserAsync($"admin@{slug}.local", "Admin", MembershipRole.AgencyAdmin, tenant, cancellationToken);
             var broker1 = await EnsureUserAsync($"corretor1@{slug}.local", "Corretor 1", MembershipRole.Broker, tenant, cancellationToken);
-            var broker2 = await EnsureUserAsync($"corretor2@{slug}.local", "Corretor 2", MembershipRole.Broker, tenant, cancellationToken);
+            await EnsureUserAsync($"corretor2@{slug}.local", "Corretor 2", MembershipRole.Broker, tenant, cancellationToken);
+            responsibleBrokerId = broker1.Id;
 
             if (slug == "horizon")
             {
@@ -90,7 +93,9 @@ public class DemoSeed(AppDbContext db, IOptions<SeedOptions> seedOptions, ILogge
             }
         }
 
-        await EnsurePropertiesAsync(tenant, cancellationToken);
+        // Memberships precisam estar persistidos antes de consultar no EnsureProperties
+        await db.SaveChangesAsync(cancellationToken);
+        await EnsurePropertiesAsync(tenant, responsibleBrokerId, cancellationToken);
     }
 
     private async Task EnsureSuspendedTenantAsync(CancellationToken cancellationToken)
@@ -154,24 +159,11 @@ public class DemoSeed(AppDbContext db, IOptions<SeedOptions> seedOptions, ILogge
         });
     }
 
-    private async Task EnsurePropertiesAsync(Tenant tenant, CancellationToken cancellationToken)
+    private async Task EnsurePropertiesAsync(Tenant tenant, Guid responsibleBrokerId, CancellationToken cancellationToken)
     {
         var count = await db.Properties.CountAsync(p => p.TenantId == tenant.Id, cancellationToken);
         if (count >= 3)
             return;
-
-        var broker = await db.TenantMemberships
-            .Where(m => m.TenantId == tenant.Id && m.Role != MembershipRole.AgencyAdmin)
-            .Select(m => m.UserId)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (broker == Guid.Empty)
-        {
-            broker = await db.TenantMemberships
-                .Where(m => m.TenantId == tenant.Id)
-                .Select(m => m.UserId)
-                .FirstAsync(cancellationToken);
-        }
 
         var templates = new[]
         {
@@ -187,7 +179,7 @@ public class DemoSeed(AppDbContext db, IOptions<SeedOptions> seedOptions, ILogge
             {
                 Id = Guid.NewGuid(),
                 TenantId = tenant.Id,
-                ResponsibleBrokerId = broker,
+                ResponsibleBrokerId = responsibleBrokerId,
                 Operation = op,
                 Status = PropertyStatus.Published,
                 PropertyType = ptype,
