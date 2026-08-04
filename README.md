@@ -1,4 +1,4 @@
-# Alugue.me — Trilha A (.NET 10 + React)
+# Alugue.me — (.NET 10 + React)
 
 SaaS multi-tenant de vitrine imobiliária + agenda de visitas + WhatsApp (Evolution API).
 
