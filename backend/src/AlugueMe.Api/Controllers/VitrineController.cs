@@ -1,5 +1,6 @@
 using AlugueMe.Application.Interfaces;
 using AlugueMe.Infrastructure.Persistence;
+using AlugueMe.Infrastructure.Themes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -51,6 +52,7 @@ public class VitrineController(AppDbContext db, IThemeRenderer themeRenderer, IC
         };
 
         var html = await themeRenderer.RenderPageAsync(tenant.ThemeKey, page, placeholders, ct);
+        html = ThemeAssetUrlRewriter.Rewrite(html, tenant.ThemeKey, publicBase);
         return Content(html, "text/html; charset=utf-8");
     }
 }

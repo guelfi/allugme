@@ -138,6 +138,19 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/media"
 });
 
+// Assets dos temas oficiais (CSS/JS/img da vitrine)
+var themesRoot = builder.Configuration.GetSection(ThemesOptions.SectionName).Get<ThemesOptions>()?.RootPath
+    ?? "themes/official";
+themesRoot = Path.GetFullPath(themesRoot);
+if (Directory.Exists(themesRoot))
+{
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(themesRoot),
+        RequestPath = "/themes"
+    });
+}
+
 app.MapControllers();
 app.MapHealthChecks("/health");
 
