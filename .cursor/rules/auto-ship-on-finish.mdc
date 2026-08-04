@@ -1,5 +1,5 @@
 ---
-description: Após update local, perguntar se deve commit/push/PR e acompanhar CI/CD (usuário decide)
+description: Após update local, perguntar se deve commit/push na main e acompanhar CI/CD (usuário decide)
 alwaysApply: true
 ---
 
@@ -15,27 +15,26 @@ Quando a solicitação estiver **implementada e atualizada no ambiente local** (
 4. **Perguntar explicitamente** (não executar ainda):
 
 > Implementação e update local concluídos.  
-> Deseja que eu execute agora o fluxo remoto: commit → push → PR → CI → merge → acompanhar CD na OCI?  
+> Deseja que eu sincronize agora com o remoto: commit → push direto em `main` → acompanhar CI/CD na OCI?  
 > Ou prefere validar primeiro no local (painel `http://192.168.15.119/allugme`, vitrine `http://192.168.15.119/{slug}/`) antes de liberar?
 
 **Não** use hooks `stop` com `followup_message` para repetir esta pergunta — isso gera loop enquanto o working tree estiver dirty.
 
-5. Só se o usuário responder **sim / pode / liberar / execute o ship** (ou equivalente claro):
-   - branch `cursor/<slug>`
-   - commit + push
-   - PR + aguardar CI
-   - merge (se autoaprovação falhar no GitHub, seguir após CI verde)
-   - `git checkout main && git pull`
-   - acompanhar CD OCI (e `./scripts/deploy-oci.sh` só se o usuário pedir ou o CD falhar e ele autorizar)
-   - reportar URLs da PR, merge e produção
+5. Só se o usuário responder **sim / pode / liberar / execute o ship / sincronizar** (ou equivalente claro):
+   - garantir working tree em `main` atualizada (`git checkout main && git pull --ff-only` quando seguro)
+   - **commit na `main`** (mensagem clara; seguir protocolo de commit do usuário)
+   - **`git push origin main`** — **sem criar branch de feature e sem PR**
+   - acompanhar GitHub Actions: CI em `main` → CD Deploy to OCI (disparado pelo workflow após CI verde)
+   - se o CD automático falhar no gate (ex.: `workflow_run` da branch errada), re-disparar ou usar `workflow_dispatch` com `confirm_deploy=YES` quando fizer sentido
+   - reportar URLs do commit, runs de CI/CD e produção
 
 ## Quando NÃO perguntar / NÃO shippar
 
 - Pedido só de pergunta/explicação, sem mudanças.
 - Usuário já pediu no mesmo turno para **não** publicar.
-- Usuário pediu explicitamente só local / “não faça PR ainda”.
+- Usuário pediu explicitamente só local / “não faça push ainda”.
 - Só há segredos (`.env`, chaves) — avisar e não incluir.
 
 ## Tom da pergunta
 
-Curta, uma decisão binária: validar local primeiro **ou** liberar ship remoto agora.
+Curta, uma decisão binária: validar local primeiro **ou** liberar sync remoto (`main`) agora.
