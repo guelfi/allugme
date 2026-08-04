@@ -1,0 +1,38 @@
+---
+description: Ao finalizar solicitação com mudanças, commit/push/PR/merge e acompanhar CI/CD automaticamente
+alwaysApply: true
+---
+
+# Auto-ship ao finalizar solicitação (Allugme)
+
+Quando a solicitação do usuário estiver **concluída** e houver mudanças relevantes no working tree (código, deploy, docs do projeto), **não perguntar** se deve commit/PR — executar o fluxo abaixo até o fim e avisar o resultado.
+
+## Quando aplicar
+
+- Houve edições/commits locais ainda não publicados na `main`, **ou**
+- A tarefa pediu correção/feature que já está pronta no disco.
+
+## Quando NÃO aplicar
+
+- Pedido só de pergunta/explicação sem alteração de arquivos.
+- Usuário pediu explicitamente para **não** commit/push/merge.
+- Só há arquivos de segredo (`.env`, chaves) — avisar e não incluir.
+
+## Fluxo obrigatório
+
+1. **Branch** `cursor/<slug-curto>` a partir de `main` atualizada (`git fetch` + rebase/ff se seguro).
+2. **Commit** com mensagem no estilo do repo (HEREDOC); só arquivos da tarefa.
+3. **Push** `-u origin HEAD`.
+4. **PR** com `gh pr create` (base `main`), summary + test plan.
+5. **Checks:** `gh pr checks <n> --watch` até CI verde (ou falha reportada).
+6. **Review:** tentar `gh pr review --approve`; se o GitHub bloquear autoaprovação da própria PR, seguir sem isso.
+7. **Merge:** `gh pr merge <n> --merge --delete-branch` após CI sucesso.
+8. **Local:** `git checkout main && git pull`.
+9. **CD:** acompanhar `CD - Deploy to OCI` (`gh run watch`) quando disparar; se o usuário precisar do fix na OCI antes do CD, pode rodar `./scripts/deploy-oci.sh` e informar.
+10. **Resposta final:** URL da PR, commit/merge, status CI/CD, URLs relevantes (local/prod).
+
+## Exceções
+
+- Se CI falhar: corrigir na mesma branch, push, reacompanhar — não mergear vermelho.
+- Se merge bloqueado por regra do GitHub: reportar o bloqueio e o que falta.
+- Não usar `--force` em `main` nem pular hooks.
