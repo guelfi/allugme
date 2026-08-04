@@ -616,30 +616,48 @@ th {
 .lp-theme {
   background: #fff;
   border-radius: 16px;
-  padding: 1rem;
+  padding: 0.85rem;
   border: 1px solid rgba(20, 32, 28, 0.08);
 }
 
-.lp-theme-swatch {
-  height: 72px;
+.lp-theme-thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
   border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
   margin-bottom: 0.85rem;
+  aspect-ratio: 16 / 10;
+  background: #d8e4df;
 }
 
-.lp-theme-moderno .lp-theme-swatch {
-  background: linear-gradient(135deg, #0ea5a4, #134e4a);
+.lp-theme-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+  transition: transform 0.35s ease;
 }
-.lp-theme-urbano .lp-theme-swatch {
-  background: linear-gradient(135deg, #2d4eb9, #1e3a8a);
+
+.lp-theme-thumb:hover img,
+.lp-theme-thumb:focus-visible img {
+  transform: scale(1.04);
 }
-.lp-theme-classico .lp-theme-swatch {
-  background: linear-gradient(135deg, #2f5d50, #c9a227);
-}
-.lp-theme-minimal .lp-theme-swatch {
-  background: linear-gradient(135deg, #111, #6b7c3e);
-}
-.lp-theme-porto .lp-theme-swatch {
-  background: linear-gradient(135deg, #0c2a4d, #3db8a4);
+
+.lp-theme-thumb-label {
+  position: absolute;
+  left: 0.6rem;
+  bottom: 0.6rem;
+  background: rgba(20, 32, 28, 0.82);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
 }
 
 .lp-theme h3 {
@@ -650,6 +668,63 @@ th {
 .lp-theme p {
   color: var(--lp-muted);
   font-size: 0.92rem;
+}
+
+.lp-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(10, 18, 16, 0.72);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.lp-modal-panel {
+  width: min(1100px, 100%);
+  height: min(860px, 92vh);
+  background: #f7faf8;
+  border-radius: 20px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+}
+
+.lp-modal-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(20, 32, 28, 0.1);
+}
+
+.lp-modal-head h3 {
+  font-size: 1.05rem;
+  font-family: 'Source Sans 3', sans-serif;
+  font-weight: 500;
+  color: var(--lp-muted);
+  max-width: 36rem;
+}
+
+.lp-modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.lp-modal-frame-wrap {
+  min-height: 0;
+  background: #fff;
+}
+
+.lp-modal-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #fff;
 }
 
 .lp-section-foot {

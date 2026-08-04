@@ -1,32 +1,42 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+
+const assetBase = (import.meta.env.BASE_URL || '/allugme/').replace(/\/?$/, '/')
 
 const themes = [
   {
     key: 'moderno',
     name: 'Moderno',
     blurb: 'Vitrine clean com foco em conversão e busca rápida.',
+    demoSlug: 'horizon',
   },
   {
     key: 'urbano',
     name: 'Urbano',
     blurb: 'Estilo marketplace: hero forte, card de busca e listagem com mapa.',
+    demoSlug: 'vista-urbana',
   },
   {
     key: 'classico',
     name: 'Clássico',
     blurb: 'Tom consultivo para imobiliárias tradicionais e de alto padrão.',
+    demoSlug: 'casa-tradicao',
   },
   {
     key: 'minimal',
     name: 'Minimal',
     blurb: 'Editorial e sofisticado — menos ruído, mais presença do imóvel.',
+    demoSlug: 'atlas',
   },
   {
     key: 'porto',
     name: 'Porto',
     blurb: 'Identidade costeira, leve e memorável para marcas regionais.',
+    demoSlug: 'porto-lar',
   },
-]
+] as const
+
+type ThemeItem = (typeof themes)[number]
 
 const features = [
   {
@@ -55,7 +65,30 @@ const features = [
   },
 ]
 
+function thumbSrc(key: string) {
+  return `${assetBase}theme-previews/${key}.jpg`
+}
+
+function demoUrl(slug: string) {
+  return `${assetBase}t/${slug}/`
+}
+
 export function LandingPage() {
+  const [preview, setPreview] = useState<ThemeItem | null>(null)
+
+  useEffect(() => {
+    if (!preview) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setPreview(null)
+    }
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [preview])
+
   return (
     <div className="lp">
       <header className="lp-nav">
@@ -131,14 +164,22 @@ export function LandingPage() {
           <header className="lp-section-head">
             <h2>Layouts que vestem a marca — e espaço para criar os seus.</h2>
             <p>
-              Comece com os cinco temas oficiais. Depois, personalize ou solicite novos layouts:
-              a ferramenta é customizável e se adapta à imobiliária ou ao corretor independente.
+              Clique na miniatura para ver o modelo em ação. Depois, personalize ou solicite novos
+              layouts: a ferramenta se adapta à imobiliária ou ao corretor independente.
             </p>
           </header>
           <div className="lp-theme-grid">
             {themes.map((t) => (
               <article key={t.key} className={`lp-theme lp-theme-${t.key}`}>
-                <div className="lp-theme-swatch" />
+                <button
+                  type="button"
+                  className="lp-theme-thumb"
+                  onClick={() => setPreview(t)}
+                  aria-label={`Ver preview do layout ${t.name}`}
+                >
+                  <img src={thumbSrc(t.key)} alt={`Preview do layout ${t.name}`} loading="lazy" />
+                  <span className="lp-theme-thumb-label">Ver modelo</span>
+                </button>
                 <h3>{t.name}</h3>
                 <p>{t.blurb}</p>
               </article>
@@ -243,11 +284,50 @@ export function LandingPage() {
         </div>
         <div className="lp-footer-links">
           <Link to="/login">Entrar no painel</Link>
-          <a href="/allugme/swagger/index.html" target="_blank" rel="noreferrer">
+          <a href={`${assetBase}swagger/index.html`} target="_blank" rel="noreferrer">
             API / Swagger
           </a>
         </div>
       </footer>
+
+      {preview && (
+        <div
+          className="lp-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Preview do layout ${preview.name}`}
+          onClick={() => setPreview(null)}
+        >
+          <div className="lp-modal-panel" onClick={(e) => e.stopPropagation()}>
+            <header className="lp-modal-head">
+              <div>
+                <p className="lp-kicker">Layout {preview.name}</p>
+                <h3>{preview.blurb}</h3>
+              </div>
+              <div className="lp-modal-actions">
+                <a
+                  className="btn btn-secondary"
+                  href={demoUrl(preview.demoSlug)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Abrir em nova aba
+                </a>
+                <button type="button" className="btn btn-ghost" onClick={() => setPreview(null)}>
+                  Fechar
+                </button>
+              </div>
+            </header>
+            <div className="lp-modal-frame-wrap">
+              <iframe
+                title={`Preview ${preview.name}`}
+                src={demoUrl(preview.demoSlug)}
+                className="lp-modal-frame"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
