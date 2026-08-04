@@ -25,11 +25,19 @@ public static class EnumMapper
     public static TenantType ParseTenantType(string value) =>
         value.Equals("independent", StringComparison.OrdinalIgnoreCase) ? TenantType.Independent : TenantType.Agency;
 
-    public static string ToApi(TenantStatus status) =>
-        status == TenantStatus.Active ? "active" : "suspended";
+    public static string ToApi(TenantStatus status) => status switch
+    {
+        TenantStatus.Active => "active",
+        TenantStatus.PendingPayment => "pending_payment",
+        _ => "suspended"
+    };
 
-    public static TenantStatus ParseTenantStatus(string value) =>
-        value.Equals("suspended", StringComparison.OrdinalIgnoreCase) ? TenantStatus.Suspended : TenantStatus.Active;
+    public static TenantStatus ParseTenantStatus(string value) => value.ToLowerInvariant() switch
+    {
+        "suspended" => TenantStatus.Suspended,
+        "pending" or "pending_payment" => TenantStatus.PendingPayment,
+        _ => TenantStatus.Active
+    };
 
     public static string ToApi(PropertyOperation op) => op == PropertyOperation.Rent ? "rent" : "sale";
     public static PropertyOperation ParsePropertyOperation(string value) =>
@@ -73,11 +81,36 @@ public static class ConfirmationCodeGenerator
 
 public static class DtoMappers
 {
-    public static Dtos.Auth.MembershipDto ToDto(TenantMembership m) =>
-        new(m.TenantId, m.Tenant.Name, m.Tenant.Slug, EnumMapper.ToApi(m.Role));
+    public static Dtos.Auth.MembershipDto ToDto(TenantMembership m, int usedBrokerSlots) =>
+        new(
+            m.TenantId,
+            m.Tenant.Name,
+            m.Tenant.Slug,
+            EnumMapper.ToApi(m.Role),
+            EnumMapper.ToApi(m.Tenant.Type),
+            NormalizePlan(m.Tenant.Plan),
+            m.Tenant.IncludedBrokerSlots,
+            m.Tenant.ExtraBrokerSlots,
+            usedBrokerSlots,
+            m.Tenant.MaxBrokerSlots,
+            m.Tenant.Type == TenantType.Agency && m.Role == MembershipRole.AgencyAdmin);
 
     public static Dtos.Tenants.TenantDto ToDto(Tenant t) =>
-        new(t.Id, t.Name, t.Slug, EnumMapper.ToApi(t.Type), EnumMapper.ToApi(t.Status), t.ThemeKey, t.CreatedAt);
+        new(
+            t.Id,
+            t.Name,
+            t.Slug,
+            EnumMapper.ToApi(t.Type),
+            EnumMapper.ToApi(t.Status),
+            t.ThemeKey,
+            NormalizePlan(t.Plan),
+            t.IncludedBrokerSlots,
+            t.ExtraBrokerSlots,
+            t.MaxBrokerSlots,
+            t.CreatedAt);
+
+    public static string NormalizePlan(string? plan) =>
+        plan is "yearly" or "anual" ? "yearly" : "monthly";
 
     public static Dtos.Properties.PropertyDto ToDto(Property p, Func<string, string> urlResolver) =>
         new(p.Id, p.TenantId, p.ResponsibleBrokerId, EnumMapper.ToApi(p.Operation), EnumMapper.ToApi(p.Status),

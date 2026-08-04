@@ -34,6 +34,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.Slug).HasMaxLength(100);
             e.Property(x => x.Name).HasMaxLength(200);
             e.Property(x => x.ThemeKey).HasMaxLength(50);
+            e.Property(x => x.Plan).HasMaxLength(20).HasDefaultValue("monthly");
+            e.Property(x => x.IncludedBrokerSlots).HasDefaultValue(5);
+            e.Property(x => x.ExtraBrokerSlots).HasDefaultValue(0);
+            e.Ignore(x => x.MaxBrokerSlots);
         });
 
         modelBuilder.Entity<TenantMembership>(e =>

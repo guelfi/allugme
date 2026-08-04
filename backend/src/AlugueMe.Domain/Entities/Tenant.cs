@@ -10,7 +10,18 @@ public class Tenant
     public TenantType Type { get; set; }
     public TenantStatus Status { get; set; } = TenantStatus.Active;
     public string ThemeKey { get; set; } = "moderno";
+    /// <summary>monthly | yearly</summary>
+    public string Plan { get; set; } = "monthly";
+    /// <summary>Assentos inclusos no plano (imobiliária: 5; independente: 1).</summary>
+    public int IncludedBrokerSlots { get; set; } = 5;
+    /// <summary>Assentos extras contratados além do incluso (só imobiliária).</summary>
+    public int ExtraBrokerSlots { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public int MaxBrokerSlots =>
+        Type == TenantType.Independent
+            ? 1
+            : Math.Max(1, IncludedBrokerSlots) + Math.Max(0, ExtraBrokerSlots);
 
     public ICollection<TenantMembership> Memberships { get; set; } = [];
     public ICollection<Property> Properties { get; set; } = [];

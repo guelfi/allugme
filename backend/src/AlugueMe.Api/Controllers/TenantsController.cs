@@ -35,14 +35,18 @@ public class TenantsController(AppDbContext db) : ControllerBase
         if (await db.Tenants.AnyAsync(t => t.Slug == request.Slug, ct))
             return Conflict(new { message = "Slug já existe." });
 
+        var isIndependent = EnumMapper.ParseTenantType(request.Type) == TenantType.Independent;
         var tenant = new Tenant
         {
             Id = Guid.NewGuid(),
             Name = request.Name,
             Slug = request.Slug,
-            Type = EnumMapper.ParseTenantType(request.Type),
+            Type = isIndependent ? TenantType.Independent : TenantType.Agency,
             ThemeKey = request.ThemeKey,
-            Status = TenantStatus.Active
+            Status = TenantStatus.Active,
+            Plan = DtoMappers.NormalizePlan(request.Plan),
+            IncludedBrokerSlots = isIndependent ? 1 : 5,
+            ExtraBrokerSlots = isIndependent ? 0 : Math.Max(0, request.ExtraBrokerSlots ?? 0)
         };
         db.Tenants.Add(tenant);
         db.TenantSettings.Add(new TenantSettings { TenantId = tenant.Id });
@@ -82,6 +86,33 @@ public class TenantsController(AppDbContext db) : ControllerBase
         return Ok(DtoMappers.ToDto(tenant));
     }
 
+    [HttpPatch("{id:guid}/plan")]
+    public async Task<ActionResult<TenantDto>> PatchPlan(Guid id, [FromBody] PatchTenantPlanRequest request, CancellationToken ct)
+    {
+        if (!User.IsSaasAdmin())
+            return Forbid();
+
+        var tenant = await db.Tenants.FindAsync([id], ct);
+        if (tenant is null)
+            return NotFound();
+
+        if (!string.IsNullOrWhiteSpace(request.Plan))
+            tenant.Plan = DtoMappers.NormalizePlan(request.Plan);
+
+        if (request.ExtraBrokerSlots is not null)
+        {
+            if (tenant.Type == TenantType.Independent)
+                return BadRequest(new { message = "Corretor independente não possui assentos extras." });
+            tenant.ExtraBrokerSlots = Math.Max(0, request.ExtraBrokerSlots.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Status))
+            tenant.Status = EnumMapper.ParseTenantStatus(request.Status);
+
+        await db.SaveChangesAsync(ct);
+        return Ok(DtoMappers.ToDto(tenant));
+    }
+
     [HttpGet("me/theme")]
     public async Task<ActionResult<ThemeResponse>> GetTheme(CancellationToken ct)
     {
@@ -104,7 +135,7 @@ public class TenantsController(AppDbContext db) : ControllerBase
             return BadRequest(new { message = "Contexto de tenant não definido." });
 
         var role = User.GetRole();
-        if (role is not ("agency_admin" or "independent_broker") && !User.IsSaasAdmin())
+        if (role is not ("agency_admin" or "independent_broker"))
             return Forbid();
 
         var tenant = await db.Tenants.FindAsync([tenantId.Value], ct);

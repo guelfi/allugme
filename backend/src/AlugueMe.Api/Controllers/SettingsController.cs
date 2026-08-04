@@ -36,7 +36,7 @@ public class SettingsController(AppDbContext db, IWhatsAppQueue whatsAppQueue) :
             return BadRequest(new { message = "Contexto de tenant não definido." });
 
         var role = User.GetRole();
-        if (role is not ("agency_admin" or "independent_broker") && !User.IsSaasAdmin())
+        if (role is not ("agency_admin" or "independent_broker"))
             return Forbid();
 
         var settings = await db.TenantSettings.FindAsync([tenantId.Value], ct);

@@ -7,6 +7,10 @@ public record TenantDto(
     string Type,
     string Status,
     string ThemeKey,
+    string Plan,
+    int IncludedBrokerSlots,
+    int ExtraBrokerSlots,
+    int MaxBrokerSlots,
     DateTime CreatedAt);
 
 public record CreateTenantRequest(
@@ -16,9 +20,16 @@ public record CreateTenantRequest(
     string ThemeKey,
     string AdminEmail,
     string AdminPassword,
-    string AdminName);
+    string AdminName,
+    string? Plan = null,
+    int? ExtraBrokerSlots = null);
 
 public record PatchTenantStatusRequest(string Status);
+
+public record PatchTenantPlanRequest(
+    string? Plan,
+    int? ExtraBrokerSlots,
+    string? Status);
 
 public record ThemeResponse(string ThemeKey);
 

@@ -27,4 +27,11 @@ public record MembershipDto(
     Guid TenantId,
     string TenantName,
     string TenantSlug,
-    string Role);
+    string Role,
+    string TenantType,
+    string Plan,
+    int IncludedBrokerSlots,
+    int ExtraBrokerSlots,
+    int UsedBrokerSlots,
+    int MaxBrokerSlots,
+    bool CanManageBrokers);

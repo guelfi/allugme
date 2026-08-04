@@ -17,6 +17,9 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   logout: () => Promise<void>
   isSaasAdmin: boolean
+  isAgencyAdmin: boolean
+  isIndependent: boolean
+  canManageBrokers: boolean
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -69,6 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       isSaasAdmin: user?.role === 'saas_admin',
+      isAgencyAdmin: user?.membershipRole === 'agency_admin',
+      isIndependent:
+        user?.membershipRole === 'independent_broker' || user?.tenantType === 'independent',
+      canManageBrokers: Boolean(user?.canManageBrokers),
     }),
     [user, isInitializing, isLoading, login, logout],
   )

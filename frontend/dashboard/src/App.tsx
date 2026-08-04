@@ -12,6 +12,8 @@ import { VisitsPage } from './pages/VisitsPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { TenantsPage } from './pages/TenantsPage'
 import { ThemePage } from './pages/ThemePage'
+import { TeamPage } from './pages/TeamPage'
+import { ClientsPage } from './pages/ClientsPage'
 
 const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/allugme'
 
@@ -31,6 +33,8 @@ export default function App() {
               <Route path="properties/new" element={<PropertyFormPage />} />
               <Route path="properties/:id" element={<PropertyFormPage />} />
               <Route path="visits" element={<VisitsPage />} />
+              <Route path="team" element={<TeamPage />} />
+              <Route path="clients" element={<ClientsPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="theme" element={<ThemePage />} />
               <Route element={<SaasAdminRoute />}>

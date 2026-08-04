@@ -45,11 +45,23 @@ public class PropertiesController(AppDbContext db, IFileStorage storage) : Contr
     [HttpPost]
     public async Task<ActionResult<PropertyDto>> Create([FromBody] CreatePropertyRequest request, CancellationToken ct)
     {
+        if (User.IsSaasAdmin() && User.GetRole() is null)
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                message = "Administrador SaaS possui apenas visualização dos dados dos tenants."
+            });
+
+        var role = User.GetRole();
+        if (role is not ("agency_admin" or "independent_broker" or "broker"))
+            return Forbid();
+
         var tenantId = User.GetTenantId();
         if (tenantId is null)
             return BadRequest(new { message = "Contexto de tenant não definido." });
 
-        var brokerId = request.ResponsibleBrokerId ?? User.GetUserId();
+        var brokerId = role == "broker"
+            ? User.GetUserId()
+            : request.ResponsibleBrokerId ?? User.GetUserId();
         var property = new Property
         {
             Id = Guid.NewGuid(),
@@ -135,6 +147,20 @@ public class PropertiesController(AppDbContext db, IFileStorage storage) : Contr
         return Ok(DtoMappers.ToDto(property, storage.GetPublicUrl));
     }
 
+    [HttpPost("{id:guid}/unpublish")]
+    public async Task<ActionResult<PropertyDto>> Unpublish(Guid id, CancellationToken ct)
+    {
+        var property = await FindPropertyAsync(id, ct);
+        if (property is null)
+            return NotFound();
+        if (!CanEdit(property))
+            return Forbid();
+
+        property.Status = PropertyStatus.Unlisted;
+        await db.SaveChangesAsync(ct);
+        return Ok(DtoMappers.ToDto(property, storage.GetPublicUrl));
+    }
+
     [HttpPost("{id:guid}/media")]
     [RequestSizeLimit(10 * 1024 * 1024)]
     public async Task<ActionResult<PropertyMediaDto>> UploadMedia(Guid id, IFormFile file, CancellationToken ct)
@@ -166,19 +192,23 @@ public class PropertiesController(AppDbContext db, IFileStorage storage) : Contr
 
     private async Task<Property?> FindPropertyAsync(Guid id, CancellationToken ct)
     {
+        var query = db.Properties.Include(p => p.Media).AsQueryable();
+
+        if (User.IsSaasAdmin() && User.GetTenantId() is null)
+            return await query.FirstOrDefaultAsync(p => p.Id == id, ct);
+
         var tenantId = User.GetTenantId();
         if (tenantId is null)
             return null;
 
-        return await db.Properties
-            .Include(p => p.Media)
-            .FirstOrDefaultAsync(p => p.Id == id && p.TenantId == tenantId, ct);
+        return await query.FirstOrDefaultAsync(p => p.Id == id && p.TenantId == tenantId, ct);
     }
 
     private bool CanEdit(Property property)
     {
-        if (User.IsSaasAdmin())
-            return true;
+        // SaaS admin puro: somente leitura sobre dados dos tenants
+        if (User.IsSaasAdmin() && string.IsNullOrEmpty(User.GetRole()))
+            return false;
 
         var role = User.GetRole();
         if (role is "agency_admin" or "independent_broker")
