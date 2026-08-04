@@ -88,7 +88,7 @@ jobs:
 
             if [ ! -f .env ]; then
               printf '%s\n' \
-                'VITE_API_URL=http://129.153.86.168/allugme/api/v1' \
+                'VITE_API_URL=https://allugme.com.br/allugme/api/v1' \
                 'VITE_BASE_PATH=/allugme/' \
                 'POSTGRES_DB=allugme' \
                 'POSTGRES_USER=allugme' \
@@ -118,12 +118,14 @@ jobs:
             if [ -f /var/www/nginx/nginx.conf ]; then
               sudo python3 deploy/apply-nginx-allugme.py \
                 /var/www/nginx/nginx.conf \
-                deploy/nginx-allugme.locations.conf
+                deploy/nginx-allugme.locations.conf \
+                deploy/nginx-allugme.domain.conf
               sudo docker exec nginx-proxy nginx -t
               sudo docker exec nginx-proxy nginx -s reload
             else
               echo "::warning::/var/www/nginx/nginx.conf não encontrado — skip reload nginx"
             fi
+
           EOF
 
       - name: Verify deployment

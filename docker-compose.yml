@@ -15,7 +15,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://129.153.86.168/allugme/api/v1}
+        VITE_API_URL: ${VITE_API_URL:-https://allugme.com.br/allugme/api/v1}
         VITE_BASE_PATH: ${VITE_BASE_PATH:-/allugme/}
     container_name: allugme-frontend
     depends_on:
@@ -85,11 +85,14 @@ services:
       Evolution__Enabled: ${Evolution__Enabled:-false}
       Themes__RootPath: /app/themes/official
       PublicBasePath: /allugme
-      Cors__Origins__0: https://batuara.org.br
-      Cors__Origins__1: https://www.batuara.org.br
+      Cors__Origins__0: https://allugme.com.br
+      Cors__Origins__1: https://www.allugme.com.br
       Cors__Origins__2: http://129.153.86.168
       Cors__Origins__3: http://192.168.15.119
-      Cors__Origins__4: http://batuara.org.br
+      Cors__Origins__4: https://batuara.org.br
+      Cors__Origins__5: https://www.batuara.org.br
+      Cors__Origins__6: http://batuara.org.br
+
     volumes:
       - ./storage/media:/app/storage/media
       - ./themes/official:/app/themes/official:ro

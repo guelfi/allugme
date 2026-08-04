@@ -27,7 +27,7 @@ git reset --hard origin/main
 
 if [ ! -f .env ]; then
   printf '%s\n' \\
-    'VITE_API_URL=http://129.153.86.168/allugme/api/v1' \\
+    'VITE_API_URL=https://allugme.com.br/allugme/api/v1' \\
     'VITE_BASE_PATH=/allugme/' \\
     'POSTGRES_DB=allugme' \\
     'POSTGRES_USER=allugme' \\
@@ -50,7 +50,10 @@ sudo docker network connect www_projetos-net allugme-frontend 2>/dev/null || tru
 sudo docker network connect allugme_allugme-net nginx-proxy 2>/dev/null || true
 
 if [ -f /var/www/nginx/nginx.conf ]; then
-  sudo python3 deploy/apply-nginx-allugme.py /var/www/nginx/nginx.conf deploy/nginx-allugme.locations.conf
+  sudo python3 deploy/apply-nginx-allugme.py \
+    /var/www/nginx/nginx.conf \
+    deploy/nginx-allugme.locations.conf \
+    deploy/nginx-allugme.domain.conf
   sudo docker exec nginx-proxy nginx -t
   sudo docker exec nginx-proxy nginx -s reload
 fi
@@ -59,7 +62,8 @@ sleep 20
 sudo docker ps --filter name=allugme --format 'table {{.Names}}\t{{.Status}}'
 curl -fsS -o /dev/null -w "front HTTP %{http_code}\n" http://127.0.0.1/allugme/ || true
 curl -fsS -o /dev/null -w "swagger HTTP %{http_code}\n" http://127.0.0.1/allugme/swagger/index.html || true
+curl -fsS -o /dev/null -w "https front %{http_code}\n" https://allugme.com.br/allugme/ || true
 cd \$APP_DIR && git log -1 --oneline
 EOF
 
-echo "OCI: http://${OCI_HOST}/allugme/"
+echo "OCI: https://allugme.com.br/allugme/"
