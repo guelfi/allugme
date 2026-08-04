@@ -3,7 +3,7 @@
 **Versão:** 1.2  
 **Data:** 2026-08-04  
 **Trilha:** A — ASP.NET Core 10 + React  
-**Referências:** [Resumo Executivo](01-resumo-executivo.md) · [RBAC](rbac-matriz.md) · [Escopo MVP](escopo-mvp-rinha.md)
+**Referências:** [Resumo Executivo](01-resumo-executivo.md) · [RBAC](../compartilhado/rbac-matriz.md) · [Escopo MVP](../compartilhado/escopo-mvp-rinha.md)
 
 ---
 

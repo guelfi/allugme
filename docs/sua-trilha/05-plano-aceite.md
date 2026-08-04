@@ -183,7 +183,7 @@ Para cada FAIL/Blocker, anexar:
 - Severidade  
 - Status correção  
 
-Pasta sugerida: `docs/handoff/checkpoints/aceite-YYYYMMDD/`
+Pasta sugerida: `docs/sua-trilha/handoff/checkpoints/aceite-YYYYMMDD/`
 
 ---
 

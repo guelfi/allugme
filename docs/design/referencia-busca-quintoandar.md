@@ -128,7 +128,7 @@ No código: `themes/official/urbano/assets/css/main.css` (`:root`).
 | Listagem resultados | `themes/official/urbano/pages/listing.html` |
 | Card reutilizável | `themes/official/urbano/partials/property-card.html` (se existir) |
 | Tokens / CSS | `themes/official/urbano/assets/css/main.css` |
-| Tenant seed deste visual | `vista-urbana` → tema `urbano` ([06-seed-demo-tenants.md](../06-seed-demo-tenants.md)) |
+| Tenant seed deste visual | `vista-urbana` → tema `urbano` ([06-seed-demo-tenants.md](../sua-trilha/06-seed-demo-tenants.md)) |
 | Preview | [index dos temas](../../themes/official/index.html) |
 
 ### Escopo MVP vs P2 nesta referência

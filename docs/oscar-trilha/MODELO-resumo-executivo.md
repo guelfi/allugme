@@ -48,7 +48,7 @@ _preencher — como se diferencia de portais de classificados e de plataformas e
 
 ## 5. Escopo MVP
 
-Alinhar com o documento compartilhado `escopo-mvp-rinha.md`.
+Alinhar com o documento compartilhado `../compartilhado/escopo-mvp-rinha.md`.
 
 **Inclui:**  
 _preencher lista — incluir WhatsApp/Evolution_
@@ -102,5 +102,5 @@ Checkpoints sugeridos: S4 / S8 / S12 / S14–16 (ver escopo compartilhado).
 ## 11. Documentos relacionados
 
 - Especificação Técnica: `MODELO-especificacao-tecnica.md` (preenchido)  
-- Escopo MVP: `../escopo-mvp-rinha.md`  
-- RBAC: `../rbac-matriz.md`  
+- Escopo MVP: `../compartilhado/escopo-mvp-rinha.md`  
+- RBAC: `../compartilhado/rbac-matriz.md`  
