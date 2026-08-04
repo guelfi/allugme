@@ -6,9 +6,9 @@ SaaS multi-tenant de vitrine imobiliária + agenda de visitas + WhatsApp (Evolut
 
 | Ambiente | Painel | API | Swagger | Vitrine |
 |----------|--------|-----|---------|---------|
-| **Local** (nginx-local) | http://192.168.15.119/allugme | http://192.168.15.119/allugme/api/v1 | http://192.168.15.119/allugme/swagger/index.html | http://192.168.15.119/allugme/t/{slug} |
-| **OCI** | http://129.153.86.168/allugme | http://129.153.86.168/allugme/api/v1 | http://129.153.86.168/allugme/swagger/index.html | http://129.153.86.168/allugme/t/{slug} |
-| **Produção** | https://allugme.com.br/allugme | https://allugme.com.br/allugme/api/v1 | https://allugme.com.br/allugme/swagger/index.html | https://allugme.com.br/allugme/t/{slug} |
+| **Local** (nginx-local) | http://192.168.15.119/allugme | http://192.168.15.119/allugme/api/v1 | http://192.168.15.119/allugme/swagger/index.html | http://192.168.15.119/{slug} |
+| **OCI** | http://129.153.86.168/allugme | http://129.153.86.168/allugme/api/v1 | http://129.153.86.168/allugme/swagger/index.html | http://129.153.86.168/{slug} |
+| **Produção** | https://www.allugme.com.br/allugme | https://www.allugme.com.br/allugme/api/v1 | https://www.allugme.com.br/allugme/swagger/index.html | https://www.allugme.com.br/{slug} |
 
 ## Estrutura
 
@@ -19,7 +19,7 @@ SaaS multi-tenant de vitrine imobiliária + agenda de visitas + WhatsApp (Evolut
 | `themes/official/` | Vitrine HTML (moderno, classico, urbano, minimal) |
 | `deploy/` | Fragmentos nginx + script de apply idempotente |
 | `storage/` | Mídia, logs e sites estáticos (dev) |
-| `docs/` | Pacote documental (`sua-trilha/`, `compartilhado/`, `oscar-trilha/`) |
+| `docs/` | Documentação do produto (PRD, DET, escopo, handoff, design) |
 
 ## Pré-requisitos
 
@@ -67,4 +67,4 @@ Deploy automatizado: workflow `.github/workflows/deploy-oci.yml` (após CI verde
 Path no servidor: `/var/www/allugme`.
 ## Documentação
 
-Comece por [`docs/00-README.md`](docs/00-README.md).
+Comece por [`docs/README.md`](docs/README.md).

@@ -5,7 +5,7 @@ version: '3.3'
 #   http://129.153.86.168/allugme/
 #   http://129.153.86.168/allugme/api/v1/...
 #   http://129.153.86.168/allugme/swagger/index.html
-#   http://129.153.86.168/allugme/t/{slug}/
+#   http://129.153.86.168/{slug}/
 #
 # Secrets: sobrescreva via /var/www/allugme/.env (não versionado).
 

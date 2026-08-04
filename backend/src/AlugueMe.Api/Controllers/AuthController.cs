@@ -184,9 +184,12 @@ public class AuthController(AppDbContext db, IJwtTokenService jwt) : ControllerB
     private async Task<string> UniqueSlugAsync(string name, CancellationToken ct)
     {
         var baseSlug = Slugify(name);
+        if (ReservedTenantSlugs.IsReserved(baseSlug))
+            baseSlug = $"imob-{baseSlug}";
+
         var slug = baseSlug;
         var i = 2;
-        while (await db.Tenants.AnyAsync(t => t.Slug == slug, ct))
+        while (ReservedTenantSlugs.IsReserved(slug) || await db.Tenants.AnyAsync(t => t.Slug == slug, ct))
         {
             slug = $"{baseSlug}-{i}";
             i++;

@@ -48,7 +48,7 @@ export function ThemePage() {
       <header className="page-header">
         <div>
           <h1>Tema da vitrine</h1>
-          <p className="muted">Layout público em /allugme/t/seu-slug</p>
+          <p className="muted">Layout público em /seu-slug (raiz do domínio)</p>
         </div>
       </header>
 

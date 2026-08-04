@@ -32,7 +32,11 @@ public class TenantsController(AppDbContext db) : ControllerBase
         if (!User.IsSaasAdmin())
             return Forbid();
 
-        if (await db.Tenants.AnyAsync(t => t.Slug == request.Slug, ct))
+        var slug = request.Slug.Trim().ToLowerInvariant();
+        if (ReservedTenantSlugs.IsReserved(slug))
+            return BadRequest(new { message = "Slug reservado pelo sistema. Escolha outro." });
+
+        if (await db.Tenants.AnyAsync(t => t.Slug == slug, ct))
             return Conflict(new { message = "Slug já existe." });
 
         var isIndependent = EnumMapper.ParseTenantType(request.Type) == TenantType.Independent;
@@ -40,7 +44,7 @@ public class TenantsController(AppDbContext db) : ControllerBase
         {
             Id = Guid.NewGuid(),
             Name = request.Name,
-            Slug = request.Slug,
+            Slug = slug,
             Type = isIndependent ? TenantType.Independent : TenantType.Agency,
             ThemeKey = request.ThemeKey,
             Status = TenantStatus.Active,

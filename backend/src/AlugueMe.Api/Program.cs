@@ -55,7 +55,9 @@ builder.Services.AddCors(options =>
                 "http://localhost:5173",
                 "http://127.0.0.1:5173",
                 "http://192.168.15.119",
-                "http://129.153.86.168")
+                "http://129.153.86.168",
+                "https://allugme.com.br",
+                "https://www.allugme.com.br")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();

@@ -90,7 +90,7 @@ export function TenantsPage() {
           <input value={name} onChange={(e) => setName(e.target.value)} required />
         </label>
         <label>
-          Slug (vitrine /allugme/t/{'{slug}'})
+          Slug (vitrine /{'{slug}'})
           <input value={slug} onChange={(e) => setSlug(e.target.value)} required />
         </label>
         <button type="submit" className="btn btn-primary">
