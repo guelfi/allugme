@@ -92,23 +92,25 @@ export function LandingPage() {
   return (
     <div className="lp">
       <header className="lp-nav">
-        <a className="lp-brand" href="#topo">
-          <span className="lp-brand-mark">A</span>
-          <span>Alugue.me</span>
-        </a>
-        <nav className="lp-nav-links">
-          <a href="#recursos">Recursos</a>
-          <a href="#layouts">Layouts</a>
-          <a href="#planos">Planos</a>
-          <a href="#whatsapp">WhatsApp</a>
-        </nav>
-        <div className="lp-nav-actions">
-          <Link to="/login" className="btn btn-ghost">
-            Entrar
-          </Link>
-          <Link to="/register" className="btn btn-primary">
-            Começar agora
-          </Link>
+        <div className="lp-nav-inner">
+          <a className="lp-brand" href="#topo">
+            <span className="lp-brand-mark">A</span>
+            <span>Alugue.me</span>
+          </a>
+          <nav className="lp-nav-links">
+            <a href="#recursos">Recursos</a>
+            <a href="#layouts">Layouts</a>
+            <a href="#planos">Planos</a>
+            <a href="#whatsapp">WhatsApp</a>
+          </nav>
+          <div className="lp-nav-actions">
+            <Link to="/login" className="btn btn-ghost">
+              Entrar
+            </Link>
+            <Link to="/register" className="btn btn-primary">
+              Começar agora
+            </Link>
+          </div>
         </div>
       </header>
 
