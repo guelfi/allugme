@@ -1,9 +1,9 @@
 # Estado atual — Allugme (Trilha A)
 
 **Última atualização:** 2026-08-04  
-**Fase:** MVP implementado (0→5 scaffold operacional)  
+**Fase:** MVP implementado (0→5 scaffold operacional) + HTTPS em produção  
 **Repo GitHub:** https://github.com/guelfi/allugme  
-**Progresso estimado MVP:** ~70% (código + CI/CD; aceite manual e Evolution real pendentes)
+**Progresso estimado MVP:** ~85% (código + CI/CD + DNS/TLS; aceite formal e Evolution real pendentes)
 
 ---
 
@@ -12,8 +12,8 @@
 | Ambiente | URL |
 |----------|-----|
 | Local | http://192.168.15.119/allugme |
-| OCI | http://129.153.86.168/allugme |
-| Domínio | Pendente registro.br |
+| OCI (IP) | http://129.153.86.168/allugme |
+| Produção | https://allugme.com.br/allugme |
 
 SSH OCI: `ssh -i /home/guelfi/Projetos/oci-key-2026-07-29 ubuntu@129.153.86.168`  
 Path no servidor: `/var/www/allugme`
@@ -25,12 +25,12 @@ Path no servidor: `/var/www/allugme`
 | Fase | Status |
 |------|--------|
 | 0 Foundation | ✅ Solution .NET 10, Vite React, Docker, health, Redis |
-| 1 Auth + Tenancy + RBAC | ✅ JWT, tenants, memberships, saas admin |
+| 1 Auth + Tenancy + RBAC | ✅ JWT, tenants, memberships, shells por papel |
 | 2 Imóveis + Busca | ✅ CRUD + public search + media |
-| 3 Visitas + Buffer | ✅ Slots + buffer + agenda (testes unitários) |
+| 3 Visitas + Buffer | ✅ Slots + buffer + agenda |
 | 3b WhatsApp (Evolution) | ✅ Cliente + fila Redis + webhook + fake mode |
 | 4 Temas + Vitrine | ✅ 5 temas + seed 5 tenants + `/t/{slug}/` |
-| 5 Polish + Aceite | 🔄 Deploy/CI prontos; executar plano de aceite |
+| 5 Polish + Aceite | 🔄 Landing/planos/HTTPS ok; executar plano de aceite formal |
 
 ---
 
@@ -47,20 +47,19 @@ Slugs: `horizon`, `vista-urbana`, `casa-tradicao`, `atlas`, `porto-lar`
 
 ## Próxima tarefa
 
-1. Subir stack local: `docker compose -f docker-compose.local.yml up -d --build`  
-2. Configurar secrets GH (`OCI_SSH_KEY`, `OCI_HOST`, `OCI_USERNAME`) e clone em `/var/www/allugme`  
-3. Registrar domínio no registro.br e apontar para OCI  
-4. Executar [05-plano-aceite.md](../05-plano-aceite.md)  
-5. Ligar Evolution API real quando disponível  
+1. Executar [05-plano-aceite.md](../05-plano-aceite.md) e registrar evidências  
+2. Ligar Evolution API real quando disponível  
+3. Renovação Let's Encrypt já com cron na OCI (`renew-allugme-cert.sh`)
 
 ## Blockers ativos
 
-_Nenhum._ Domínio e Evolution reais são próximos passos operacionais.
+_Nenhum._ Aceite formal e Evolution real são próximos passos operacionais.
 
 ## Documentação
 
 | Doc | Status |
 |-----|--------|
+| Pacote reorganizado | ✅ `sua-trilha/` · `compartilhado/` · `oscar-trilha/` |
 | Referência busca/listagem QA | ✅ `docs/design/referencia-busca-quintoandar.md` |
-| Gravação fluxo UX | ✅ `docs/design/references/quintoandar-busca-listagem-fluxo.webm` |
 | CI/CD | ✅ `.github/workflows/{ci,deploy-oci}.yml` |
+| HTTPS produção | ✅ Let's Encrypt `allugme.com.br` |

@@ -8,8 +8,7 @@ SaaS multi-tenant de vitrine imobiliária + agenda de visitas + WhatsApp (Evolut
 |----------|--------|-----|---------|---------|
 | **Local** (nginx-local) | http://192.168.15.119/allugme | http://192.168.15.119/allugme/api/v1 | http://192.168.15.119/allugme/swagger/index.html | http://192.168.15.119/allugme/t/{slug} |
 | **OCI** | http://129.153.86.168/allugme | http://129.153.86.168/allugme/api/v1 | http://129.153.86.168/allugme/swagger/index.html | http://129.153.86.168/allugme/t/{slug} |
-
-Domínio próprio pendente registro.br (batuara.org.br/allugme quando configurado).
+| **Produção** | https://allugme.com.br/allugme | https://allugme.com.br/allugme/api/v1 | https://allugme.com.br/allugme/swagger/index.html | https://allugme.com.br/allugme/t/{slug} |
 
 ## Estrutura
 
@@ -20,7 +19,7 @@ Domínio próprio pendente registro.br (batuara.org.br/allugme quando configurad
 | `themes/official/` | Vitrine HTML (moderno, classico, urbano, minimal) |
 | `deploy/` | Fragmentos nginx + script de apply idempotente |
 | `storage/` | Mídia, logs e sites estáticos (dev) |
-| `docs/` | PRD, DET, fases, aceite, handoff |
+| `docs/` | Pacote documental (`sua-trilha/`, `compartilhado/`, `oscar-trilha/`) |
 
 ## Pré-requisitos
 

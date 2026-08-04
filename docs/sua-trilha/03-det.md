@@ -3,7 +3,7 @@
 **Versão:** 1.2  
 **Data:** 2026-08-04  
 **Trilha:** A — ASP.NET Core 10 + React  
-**Referências:** [PRD](02-prd.md) · [RBAC](rbac-matriz.md)
+**Referências:** [PRD](02-prd.md) · [RBAC](../compartilhado/rbac-matriz.md)
 
 ---
 
@@ -191,7 +191,7 @@ AlugueMe/
 
 - ASP.NET Core Identity + JWT Bearer (ou cookie + antiforgery se SPA same-site).  
 - Claims: `sub` (user id), `tenant_id` (contexto ativo), `role`, `is_saas_admin`.  
-- Policies alinhadas a [rbac-matriz.md](rbac-matriz.md).  
+- Policies alinhadas a [rbac-matriz.md](../compartilhado/rbac-matriz.md).  
 - Todo handler de Application valida tenant do recurso vs claim (exceto saas_admin).
 
 ---

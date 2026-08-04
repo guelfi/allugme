@@ -54,6 +54,6 @@ Lista fechada para as duas trilhas entregarem funcionalidade comparável.
 
 ## Nomenclatura nas trilhas
 
-- **Trilha A:** .NET 10 + React (documentação na raiz de `docs/`)
-- **Trilha B:** PHP + HTML/CSS/JS (modelos em `docs/Oscar/`)
+- **Trilha A:** .NET 10 + React (documentação em `docs/sua-trilha/`)
+- **Trilha B:** PHP + HTML/CSS/JS (modelos em `docs/oscar-trilha/`)
 - Cada trilha define **marca, slug e domínio próprios**. A Trilha B não deve adotar nome nem domínio da Trilha A (nem variantes), para a comparação ser de implementação — não de marca compartilhada.

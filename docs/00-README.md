@@ -1,44 +1,66 @@
 # Documentação do Projeto — Allugme
 
-Índice do pacote documental. Arquivos da trilha **.NET 10 + React** na raiz desta pasta; material exclusivo do Oscar em [`Oscar/`](Oscar/).  
+Índice do pacote documental. Fonte da verdade para a trilha de implementação **.NET 10 + React** e modelos para a trilha paralela em PHP.
+
 MVP inclui **WhatsApp via Evolution API** e **Redis** (fila, locks, cache, idempotência).
 
 **Design:** [Referência de busca/listagem (QuintoAndar)](design/referencia-busca-quintoandar.md) — home (card) + resultados (lista+mapa); tema `urbano`.
 
 ## Estrutura
 
-| Item | Conteúdo |
-|------|----------|
-| `01`–`05` + `handoff/` | Documentos oficiais da implementação .NET 10 + React |
-| `glossario.md`, `rbac-matriz.md`, `escopo-mvp-rinha.md` | Referências comuns (linguagem neutra) |
-| [`Oscar/`](Oscar/) | Modelos (templates) para a trilha PHP — sem marca/domínio Allugme |
-| `Resumo_Executivo_Analise_Mercado_QuintoAndar.pdf` | Benchmark de mercado (contexto) |
+```
+docs/
+├── 00-README.md
+├── sua-trilha/                 # Opção 2 (.NET 10 + React)
+│   ├── 01-resumo-executivo.md
+│   ├── 02-prd.md
+│   ├── 03-det.md
+│   ├── 04-plano-implementacao-fases.md
+│   ├── 05-plano-aceite.md
+│   ├── 06-seed-demo-tenants.md
+│   └── handoff/
+├── oscar-trilha/               # Modelos para a Trilha B (PHP)
+│   ├── README.md
+│   ├── MODELO-resumo-executivo.md
+│   └── MODELO-especificacao-tecnica.md
+├── compartilhado/              # Glossário, RBAC, escopo MVP (neutro)
+├── design/                     # Referências de UX/UI da vitrine
+└── Resumo_Executivo_Analise_Mercado_QuintoAndar.pdf
+```
 
-## Documentos principais
+| Pasta | Conteúdo |
+|-------|----------|
+| [sua-trilha/](sua-trilha/) | Documentos oficiais da implementação .NET 10 + React |
+| [oscar-trilha/](oscar-trilha/) | Modelos (templates) para a trilha PHP — sem marca/domínio Allugme |
+| [compartilhado/](compartilhado/) | Glossário, RBAC e escopo MVP comum (linguagem neutra) |
+| [design/](design/) | Referências de design da vitrine |
+| `Resumo_Executivo_Analise_Mercado_QuintoAndar.pdf` | Benchmark de mercado (contexto; produto é mais enxuto) |
 
-1. [Resumo Executivo](01-resumo-executivo.md)
-2. [PRD — Product Requirements Document](02-prd.md)
-3. [DET — Detalhamento da Especificação Técnica](03-det.md)
-4. [Plano de Implementação em Fases](04-plano-implementacao-fases.md)
-5. [Plano de Aceite](05-plano-aceite.md)
-6. [Seed demo — 5 tenants × 5 temas](06-seed-demo-tenants.md)
-7. [Handoff / controle de sessão](handoff/)
+## Sua trilha (.NET 10 + React)
+
+1. [Resumo Executivo](sua-trilha/01-resumo-executivo.md)
+2. [PRD — Product Requirements Document](sua-trilha/02-prd.md)
+3. [DET — Detalhamento da Especificação Técnica](sua-trilha/03-det.md)
+4. [Plano de Implementação em Fases](sua-trilha/04-plano-implementacao-fases.md)
+5. [Plano de Aceite](sua-trilha/05-plano-aceite.md)
+6. [Seed demo — 5 tenants × 5 temas](sua-trilha/06-seed-demo-tenants.md)
+7. [Handoff / controle de sessão](sua-trilha/handoff/)
 
 ## Referências comuns
 
-- [Glossário](glossario.md)
-- [Matriz RBAC](rbac-matriz.md)
-- [Escopo MVP da rinha](escopo-mvp-rinha.md)
+- [Glossário](compartilhado/glossario.md)
+- [Matriz RBAC](compartilhado/rbac-matriz.md)
+- [Escopo MVP da rinha](compartilhado/escopo-mvp-rinha.md)
 
-## Pacote Oscar
+## Pacote Oscar (Trilha B)
 
-Ver [Oscar/README.md](Oscar/README.md).  
+Ver [oscar-trilha/README.md](oscar-trilha/README.md).
 
-**Regra:** o pacote em `Oscar/` não cita **Allugme** / `allugme.com.br`; ele define `[Nome do Projeto]`, slug e domínio próprios. Ao enviar, inclua também os três arquivos comuns da raiz (`glossario.md`, `rbac-matriz.md`, `escopo-mvp-rinha.md`) se quiser o escopo alinhado.
+**Regra:** o pacote em `oscar-trilha/` não cita **Allugme** / `allugme.com.br`; ele define `[Nome do Projeto]`, slug e domínio próprios. Ao enviar, inclua também os três arquivos de [`compartilhado/`](compartilhado/) se quiser o escopo alinhado.
 
 ## Como manter
 
-1. Ao iniciar uma sessão, use `handoff/SESSION-TEMPLATE.md` e atualize `handoff/CURRENT.md`.
-2. Ao fechar a sessão, registre decisões em `handoff/CHANGELOG-DEV.md`.
-3. Ao atingir um marco (S4, S8…), atualize `handoff/checkpoints/`.
+1. Ao iniciar uma sessão, use `sua-trilha/handoff/SESSION-TEMPLATE.md` e atualize `sua-trilha/handoff/CURRENT.md`.
+2. Ao fechar a sessão, registre decisões em `sua-trilha/handoff/CHANGELOG-DEV.md`.
+3. Ao atingir um marco (S4, S8…), atualize `sua-trilha/handoff/checkpoints/`.
 4. Alterações de escopo: atualize PRD + DET + Plano de Aceite (rastreabilidade REQ-xxx).

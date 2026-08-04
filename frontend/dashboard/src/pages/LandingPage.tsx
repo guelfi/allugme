@@ -199,6 +199,7 @@ export function LandingPage() {
             <a href="#layouts">Layouts</a>
             <a href="#whatsapp">WhatsApp</a>
             <a href="#planos">Planos</a>
+            <a href="#contato">Contato</a>
           </nav>
 
           <div className="lp-nav-actions">
@@ -442,9 +443,13 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section className="lp-close" aria-label="Começar agora">
+        <section
+          id="contato"
+          className="lp-viewport lp-close"
+          aria-label="Contato e cadastro"
+        >
           <div className="lp-close-inner">
-            <p className="lp-kicker lp-close-kicker">Próximo passo</p>
+            <p className="lp-kicker lp-close-kicker">Contato</p>
             <h2>Coloque sua carteira no ar</h2>
             <p>
               Imobiliária com equipe ou corretor independente: cadastre-se, pague via Pix e aguarde a
@@ -459,21 +464,21 @@ export function LandingPage() {
               </Link>
             </div>
           </div>
+          <footer className="lp-footer lp-footer-on-close">
+            <div>
+              <strong>Allugme</strong>
+              <span>Vitrine · Agenda · WhatsApp</span>
+            </div>
+            <div className="lp-footer-links">
+              <Link to="/login">Entrar no painel</Link>
+              <a href={`${assetBase}swagger/index.html`} target="_blank" rel="noreferrer">
+                API / Swagger
+              </a>
+              <a href="mailto:admin@allugme.com.br">admin@allugme.com.br</a>
+            </div>
+          </footer>
         </section>
       </main>
-
-      <footer className="lp-footer">
-        <div>
-          <strong>Allugme</strong>
-          <span>Vitrine · Agenda · WhatsApp</span>
-        </div>
-        <div className="lp-footer-links">
-          <Link to="/login">Entrar no painel</Link>
-          <a href={`${assetBase}swagger/index.html`} target="_blank" rel="noreferrer">
-            API / Swagger
-          </a>
-        </div>
-      </footer>
 
       {preview && (
         <div

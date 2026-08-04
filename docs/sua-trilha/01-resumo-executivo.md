@@ -44,7 +44,7 @@ Com base no benchmark QuintoAndar / OLX / Loft / redes tradicionais:
 
 ## 5. Escopo MVP
 
-Ver [escopo-mvp-rinha.md](escopo-mvp-rinha.md).
+Ver [escopo-mvp-rinha.md](../compartilhado/escopo-mvp-rinha.md).
 
 **Inclui:** multi-tenant, RBAC, imóveis, busca, visitas com buffer (padrão 1h), WhatsApp via Evolution API, **Redis**, **5 temas oficiais**, **seed com 5 tenants** (um por tema) para demo de troca de layout, painel React, API .NET 10.  
 **Exclui (MVP):** MAUI, billing, tema custom com aprovação, contratos/boletos, fintech, chat livre contínuo.
@@ -103,4 +103,4 @@ Checkpoints: S4 / S8 / S12 / S14–16 (ver plano de fases).
 - [DET](03-det.md)  
 - [Plano de Fases](04-plano-implementacao-fases.md)  
 - [Plano de Aceite](05-plano-aceite.md)  
-- [Benchmark de mercado](Resumo_Executivo_Analise_Mercado_QuintoAndar.pdf)  
+- [Benchmark de mercado](../Resumo_Executivo_Analise_Mercado_QuintoAndar.pdf)  

@@ -7,11 +7,13 @@ Registro cronológico de evolução (decisões, entregas, mudanças de escopo).
 ## 2026-08-04
 
 ### Documentação
-- Criado pacote em `docs/` (Resumo, PRD, DET, Fases, Aceite, handoff) na raiz.  
-- Referências comuns na raiz: glossário, RBAC, escopo MVP rinha.  
-- Modelos da trilha B apenas em `docs/Oscar/` (sem marca Allugme).  
+- Criado pacote em `docs/` (Resumo, PRD, DET, Fases, Aceite, handoff).  
+- **Reorganização (plano):** `docs/sua-trilha/`, `docs/compartilhado/`, `docs/oscar-trilha/`.  
+- Referências comuns em `docs/compartilhado/` (glossário, RBAC, escopo MVP rinha).  
+- Modelos da trilha B apenas em `docs/oscar-trilha/` (sem marca Allugme).  
 - **v1.1:** WhatsApp via Evolution API incluído no MVP (docs atualizados).  
-- **v1.2:** Redis incluído no MVP (fila WA, locks, cache, idempotência).
+- **v1.2:** Redis incluído no MVP (fila WA, locks, cache, idempotência).  
+- Produção HTTPS: `https://allugme.com.br/allugme/` (DNS registro.br + Let's Encrypt).
 
 ### Decisões de produto/tech
 - Stack MVP: ASP.NET Core 10 + PostgreSQL + **Redis** + React; sem MAUI.  
@@ -29,4 +31,4 @@ Registro cronológico de evolução (decisões, entregas, mudanças de escopo).
 - Scaffold `.csproj` / Vite ainda pendente.  
 - **Temas oficiais:** import do Open Design → `moderno`; **`urbano` alinhado ao design system QuintoAndar** (azul royal, card de busca, pills, tabs Alugar/Comprar); + `classico`, `minimal`, `porto`. Preview: `themes/official/index.html`.  
 - **Referência formal da busca:** `docs/design/referencia-busca-quintoandar.md` — home (card) + listagem (lista+mapa); imagens em `docs/design/references/`.  
-- **Seed planejado:** 5 tenants (um por tema) — ver `docs/06-seed-demo-tenants.md` (`REQ-SEED-*`, Fase 4).
+- **Seed:** 5 tenants (um por tema) — ver `docs/sua-trilha/06-seed-demo-tenants.md` (`REQ-SEED-*`, Fase 4).

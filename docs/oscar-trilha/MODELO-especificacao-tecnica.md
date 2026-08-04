@@ -68,7 +68,7 @@ _Ajustar livremente; manter a ideia de temas oficiais separados do painel._
 ## 4. Auth e RBAC
 
 - Mecanismo de sessão/token: _preencher_  
-- Roles suportados: alinhar com `../rbac-matriz.md`  
+- Roles suportados: alinhar com `../compartilhado/rbac-matriz.md`  
 - Como garante isolamento por tenant em **toda** query: _preencher_
 
 ## 5. Rotas / endpoints principais
