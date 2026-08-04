@@ -74,7 +74,8 @@ function thumbSrc(key: string) {
 }
 
 function demoUrl(slug: string) {
-  return `${assetBase}t/${slug}/`
+  // Vitrine pública na raiz do host: /{slug}/
+  return `/${slug}/`
 }
 
 function ThemeCarousel({

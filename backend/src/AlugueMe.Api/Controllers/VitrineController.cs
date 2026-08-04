@@ -30,8 +30,10 @@ public class VitrineController(AppDbContext db, IThemeRenderer themeRenderer, IC
         if (tenant is null)
             return NotFound();
 
+        // API/painel ficam sob /allugme; assets da vitrine na raiz (/themes/...).
         var publicBase = configuration["PublicBasePath"]?.TrimEnd('/') ?? "";
-        var apiBase = $"{publicBase}/api/v1";
+        var apiBase = string.IsNullOrEmpty(publicBase) ? "/api/v1" : $"{publicBase}/api/v1";
+        var themesBase = configuration["VitrineThemesBasePath"] ?? "";
 
         var placeholders = new Dictionary<string, string>
         {
@@ -52,7 +54,7 @@ public class VitrineController(AppDbContext db, IThemeRenderer themeRenderer, IC
         };
 
         var html = await themeRenderer.RenderPageAsync(tenant.ThemeKey, page, placeholders, ct);
-        html = ThemeAssetUrlRewriter.Rewrite(html, tenant.ThemeKey, publicBase);
+        html = ThemeAssetUrlRewriter.Rewrite(html, tenant.ThemeKey, themesBase);
         return Content(html, "text/html; charset=utf-8");
     }
 }
