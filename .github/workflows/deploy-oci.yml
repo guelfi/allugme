@@ -59,6 +59,7 @@ jobs:
       - name: Setup SSH agent
         uses: webfactory/ssh-agent@v0.9.0
         with:
+          # Padrão Barbear.IA; aliases OCI_SSH_PRIVATE_KEY também existem no repo
           ssh-private-key: ${{ secrets.OCI_SSH_KEY }}
 
       - name: Add OCI host to known_hosts
@@ -71,7 +72,17 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${OCI_USER}@${OCI_HOST} 'bash -s' << 'EOF'
             set -euo pipefail
-            cd /var/www/allugme
+            APP_DIR=/var/www/allugme
+            REPO_URL=https://github.com/guelfi/allugme.git
+
+            if [ ! -d "$APP_DIR/.git" ]; then
+              echo "Bootstrap: clonando repositório em $APP_DIR"
+              sudo mkdir -p "$APP_DIR"
+              sudo chown -R "$(whoami):$(whoami)" "$APP_DIR"
+              git clone "$REPO_URL" "$APP_DIR"
+            fi
+
+            cd "$APP_DIR"
             git fetch origin
             git reset --hard origin/main
 
@@ -84,6 +95,8 @@ jobs:
                 'POSTGRES_PASSWORD=allugme_oci_change_me' \
                 'Jwt__SigningKey=CHANGE_ME_OCI_Allugme_Jwt_Signing_Key_32chars+' \
                 'Seed__Enabled=true' \
+                'Seed__DemoData=true' \
+                'Seed__DemoPassword=Demo@123456' \
                 'Seed__SuperAdmin__Email=admin@alugue.me' \
                 'Seed__SuperAdmin__Password=Admin123#' \
                 'Swagger__Enabled=true' \
@@ -92,7 +105,15 @@ jobs:
               echo "Created default .env — altere Jwt/Postgres em produção."
             fi
 
+            # Rede compartilhada do nginx-proxy (paridade Barbear.IA / bela360)
+            sudo docker network inspect www_projetos-net >/dev/null 2>&1 || sudo docker network create www_projetos-net
+
             sudo docker compose --env-file .env up -d --build --remove-orphans
+
+            # Garante que o nginx-proxy alcança os containers allugme
+            sudo docker network connect www_projetos-net allugme-api 2>/dev/null || true
+            sudo docker network connect www_projetos-net allugme-frontend 2>/dev/null || true
+            sudo docker network connect allugme_allugme-net nginx-proxy 2>/dev/null || true
 
             if [ -f /var/www/nginx/nginx.conf ]; then
               sudo python3 deploy/apply-nginx-allugme.py \
@@ -111,11 +132,12 @@ jobs:
           OCI_USER: ${{ secrets.OCI_USERNAME }}
         run: |
           echo "Waiting for stack to stabilize..."
-          sleep 30
+          sleep 35
           ssh -o StrictHostKeyChecking=no ${OCI_USER}@${OCI_HOST} "sudo docker ps --filter name=allugme --format 'table {{.Names}}\t{{.Status}}'"
           ssh -o StrictHostKeyChecking=no ${OCI_USER}@${OCI_HOST} "sudo docker exec allugme-frontend wget -q -O /dev/null http://127.0.0.1/health && echo 'frontend health OK' || echo 'frontend health FAILED'"
           ssh -o StrictHostKeyChecking=no ${OCI_USER}@${OCI_HOST} "sudo docker exec allugme-api curl -fsS http://127.0.0.1:8080/health && echo && echo 'api health OK' || echo 'api health FAILED'"
           ssh -o StrictHostKeyChecking=no ${OCI_USER}@${OCI_HOST} "curl -fsS -o /dev/null -w 'public front HTTP %{http_code}\n' http://127.0.0.1/allugme/ || true"
           ssh -o StrictHostKeyChecking=no ${OCI_USER}@${OCI_HOST} "curl -fsS -o /dev/null -w 'public swagger HTTP %{http_code}\n' http://127.0.0.1/allugme/swagger/index.html || true"
+          ssh -o StrictHostKeyChecking=no ${OCI_USER}@${OCI_HOST} "curl -fsS -o /dev/null -w 'public health API via path HTTP %{http_code}\n' http://127.0.0.1/allugme/api/v1/../health 2>/dev/null || curl -fsS -o /dev/null -w 'api rewrite probe %{http_code}\n' http://127.0.0.1/allugme/swagger/index.html || true"
           echo "=== Deployed commit (server) ==="
           ssh -o StrictHostKeyChecking=no ${OCI_USER}@${OCI_HOST} "cd /var/www/allugme && git log -1 --oneline"

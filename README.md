@@ -48,8 +48,8 @@ VITE_BASE_PATH=/allugme/ npm run build
 ## Stack Docker local (paridade OCI)
 
 ```bash
-cp .env.example .env
-docker compose -f docker-compose.local.yml up -d --build
+./scripts/deploy-local.sh
+# ou: docker compose -f docker-compose.local.yml up -d --build
 ```
 
 Acesso via nginx-local: http://192.168.15.119/allugme
@@ -57,11 +57,15 @@ Acesso via nginx-local: http://192.168.15.119/allugme
 ## Stack Docker OCI
 
 ```bash
-docker compose up -d --build
+./scripts/deploy-oci.sh
+# ou GitHub Actions → CD - Deploy to OCI (confirm_deploy=YES)
 ```
 
-Deploy automatizado: workflow `.github/workflows/deploy-oci.yml` (secrets `OCI_SSH_KEY`, `OCI_HOST`, `OCI_USERNAME`).
+Secrets do repo (padrão Barbear.IA): `OCI_HOST`, `OCI_USERNAME`, `OCI_SSH_KEY`  
+(+ aliases `OCI_USER`, `OCI_SSH_PRIVATE_KEY` para paridade bela360/Batuara).
 
+Deploy automatizado: workflow `.github/workflows/deploy-oci.yml` (após CI verde em `main`, ou `workflow_dispatch`).
+Path no servidor: `/var/www/allugme`.
 ## Documentação
 
 Comece por [`docs/00-README.md`](docs/00-README.md).
