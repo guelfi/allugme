@@ -1,6 +1,15 @@
 namespace AlugueMe.Application.Dtos.Auth;
 
-public record RegisterRequest(string Email, string Password, string Name, string? Phone);
+public record RegisterRequest(
+    string Email,
+    string Password,
+    string Name,
+    string? Phone,
+    /// <summary>agency | independent</summary>
+    string AccountType,
+    string BusinessName,
+    /// <summary>monthly | yearly</summary>
+    string Plan);
 
 public record LoginRequest(string Email, string Password, Guid? TenantId);
 

@@ -8,17 +8,15 @@ namespace AlugueMe.Api.Controllers;
 [ApiController]
 public class VitrineController(AppDbContext db, IThemeRenderer themeRenderer, IConfiguration configuration) : ControllerBase
 {
-    [HttpGet("/t/{slug}")]
-    [HttpGet("/t/{slug}/")]
-    public Task<IActionResult> Home(string slug, CancellationToken ct) =>
-        RenderAsync(slug, "home", ct);
-
-    [HttpGet("/t/{slug}/{page}")]
-    public Task<IActionResult> Page(string slug, string page, CancellationToken ct)
+    [HttpGet("/t/{slug}/{page?}")]
+    public Task<IActionResult> Page(string slug, string? page, CancellationToken ct)
     {
+        page = string.IsNullOrWhiteSpace(page) ? "home" : page;
         page = page.EndsWith(".html", StringComparison.OrdinalIgnoreCase)
             ? page[..^5]
-            : page;
+            : page.TrimEnd('/');
+        if (string.IsNullOrWhiteSpace(page))
+            page = "home";
         return RenderAsync(slug, page, ct);
     }
 

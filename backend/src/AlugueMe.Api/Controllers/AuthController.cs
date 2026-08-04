@@ -1,3 +1,6 @@
+using System.Globalization;
+using System.Text;
+using System.Text.RegularExpressions;
 using AlugueMe.Api.Auth;
 using AlugueMe.Application.Common;
 using AlugueMe.Application.Dtos.Auth;
@@ -5,7 +8,6 @@ using AlugueMe.Application.Interfaces;
 using AlugueMe.Domain.Entities;
 using AlugueMe.Domain.Enums;
 using AlugueMe.Infrastructure.Persistence;
-using BCrypt.Net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,25 +20,70 @@ public class AuthController(AppDbContext db, IJwtTokenService jwt) : ControllerB
 {
     [HttpPost("register")]
     [AllowAnonymous]
-    public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request, CancellationToken ct)
+    public async Task<ActionResult<object>> Register([FromBody] RegisterRequest request, CancellationToken ct)
     {
-        if (await db.Users.AnyAsync(u => u.Email == request.Email, ct))
+        var email = request.Email.Trim().ToLowerInvariant();
+        if (await db.Users.AnyAsync(u => u.Email == email, ct))
             return Conflict(new { message = "E-mail já cadastrado." });
+
+        if (string.IsNullOrWhiteSpace(request.BusinessName))
+            return BadRequest(new { message = "Informe o nome da imobiliária ou do corretor." });
+
+        var accountType = (request.AccountType ?? "agency").Trim().ToLowerInvariant();
+        var isIndependent = accountType is "independent" or "corretor" or "broker";
+        var plan = (request.Plan ?? "monthly").Trim().ToLowerInvariant();
+        var planLabel = plan is "yearly" or "anual" ? "Anual (R$ 500,00)" : "Mensal (R$ 59,00)";
+
+        var slug = await UniqueSlugAsync(request.BusinessName, ct);
 
         var user = new User
         {
             Id = Guid.NewGuid(),
-            Email = request.Email.Trim().ToLowerInvariant(),
+            Email = email,
             Name = request.Name,
             Phone = request.Phone,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
         };
         db.Users.Add(user);
+
+        var tenant = new Tenant
+        {
+            Id = Guid.NewGuid(),
+            Name = request.BusinessName.Trim(),
+            Slug = slug,
+            Type = isIndependent ? TenantType.Independent : TenantType.Agency,
+            Status = TenantStatus.PendingPayment,
+            ThemeKey = "moderno"
+        };
+        db.Tenants.Add(tenant);
+        db.TenantSettings.Add(new TenantSettings
+        {
+            TenantId = tenant.Id,
+            BufferMinutes = 60,
+            VisitDurationMinutes = 60,
+            WhatsAppNotifyEnabled = false
+        });
+
+        var role = isIndependent ? MembershipRole.IndependentBroker : MembershipRole.AgencyAdmin;
+        db.TenantMemberships.Add(new TenantMembership
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            TenantId = tenant.Id,
+            Role = role
+        });
+
         await db.SaveChangesAsync(ct);
 
-        var memberships = await LoadMembershipsAsync(user.Id, ct);
-        var token = jwt.GenerateToken(user.Id, user.Email, user.Name, user.IsSaasAdmin, null, null);
-        return Ok(new AuthResponse(token, MapUser(user, memberships)));
+        return Ok(new
+        {
+            message =
+                "Cadastro recebido. Realize o pagamento via Pix e aguarde a liberação pelo administrador do Alugue.me para acessar o painel.",
+            plan = planLabel,
+            paymentMethod = "pix",
+            tenant = new { tenant.Id, tenant.Name, tenant.Slug, status = "pending_payment" },
+            nextStep = "Após o Pix, o administrador ativa sua conta. Você receberá confirmação no e-mail cadastrado."
+        });
     }
 
     [HttpPost("login")]
@@ -63,6 +110,21 @@ public class AuthController(AppDbContext db, IJwtTokenService jwt) : ControllerB
         {
             tenantId = memberships[0].TenantId;
             role = EnumMapper.ToApi(memberships[0].Role);
+        }
+
+        if (!user.IsSaasAdmin && tenantId.HasValue)
+        {
+            var tenant = await db.Tenants.AsNoTracking().FirstOrDefaultAsync(t => t.Id == tenantId, ct);
+            if (tenant?.Status == TenantStatus.PendingPayment)
+                return StatusCode(StatusCodes.Status402PaymentRequired, new
+                {
+                    message = "Conta aguardando confirmação de pagamento Pix pelo administrador."
+                });
+            if (tenant?.Status == TenantStatus.Suspended)
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    message = "Conta suspensa. Fale com o suporte Alugue.me."
+                });
         }
 
         var token = jwt.GenerateToken(user.Id, user.Email, user.Name, user.IsSaasAdmin, tenantId, role);
@@ -95,4 +157,32 @@ public class AuthController(AppDbContext db, IJwtTokenService jwt) : ControllerB
     private static UserDto MapUser(User user, List<TenantMembership> memberships) =>
         new(user.Id, user.Email, user.Name, user.Phone, user.IsSaasAdmin,
             memberships.Select(DtoMappers.ToDto).ToList());
+
+    private async Task<string> UniqueSlugAsync(string name, CancellationToken ct)
+    {
+        var baseSlug = Slugify(name);
+        var slug = baseSlug;
+        var i = 2;
+        while (await db.Tenants.AnyAsync(t => t.Slug == slug, ct))
+        {
+            slug = $"{baseSlug}-{i}";
+            i++;
+        }
+        return slug;
+    }
+
+    private static string Slugify(string value)
+    {
+        var normalized = value.Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder();
+        foreach (var c in normalized)
+        {
+            var cat = CharUnicodeInfo.GetUnicodeCategory(c);
+            if (cat != UnicodeCategory.NonSpacingMark)
+                sb.Append(c);
+        }
+        var ascii = sb.ToString().Normalize(NormalizationForm.FormC).ToLowerInvariant();
+        ascii = Regex.Replace(ascii, @"[^a-z0-9]+", "-").Trim('-');
+        return string.IsNullOrWhiteSpace(ascii) ? $"conta-{Guid.NewGuid():N}"[..12] : ascii;
+    }
 }

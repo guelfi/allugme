@@ -2,7 +2,9 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { AppShell } from './components/layout/AppShell'
 import { ProtectedRoute, SaasAdminRoute } from './components/auth/ProtectedRoute'
+import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/LoginPage'
+import { RegisterPage } from './pages/RegisterPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { PropertiesPage } from './pages/PropertiesPage'
 import { PropertyFormPage } from './pages/PropertyFormPage'
@@ -18,10 +20,13 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter basename={basename}>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+
           <Route element={<ProtectedRoute />}>
             <Route element={<AppShell />}>
-              <Route index element={<DashboardPage />} />
+              <Route path="painel" element={<DashboardPage />} />
               <Route path="properties" element={<PropertiesPage />} />
               <Route path="properties/new" element={<PropertyFormPage />} />
               <Route path="properties/:id" element={<PropertyFormPage />} />
@@ -33,6 +38,7 @@ export default function App() {
               </Route>
             </Route>
           </Route>
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

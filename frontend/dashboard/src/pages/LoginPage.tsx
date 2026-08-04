@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 export function LoginPage() {
@@ -9,7 +9,7 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null)
 
   if (!isInitializing && user) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/painel" replace />
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -25,7 +25,7 @@ export function LoginPage() {
     <div className="login-page">
       <form className="login-card card" onSubmit={(e) => void handleSubmit(e)}>
         <h1>Alugue.me</h1>
-        <p className="muted">Acesse o painel da imobiliária</p>
+        <p className="muted">Acesse o painel</p>
         {error && <div className="alert alert-error">{error}</div>}
         <label>
           E-mail
@@ -50,6 +50,11 @@ export function LoginPage() {
         <button type="submit" className="btn btn-primary" disabled={isLoading}>
           {isLoading ? 'Entrando…' : 'Entrar'}
         </button>
+        <p className="muted" style={{ textAlign: 'center', marginTop: '0.75rem' }}>
+          Novo por aqui? <Link to="/register">Cadastre-se</Link>
+          {' · '}
+          <Link to="/">Página inicial</Link>
+        </p>
       </form>
     </div>
   )

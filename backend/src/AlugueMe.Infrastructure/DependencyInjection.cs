@@ -67,6 +67,7 @@ public static class DependencyInjection
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
+                options.MapInboundClaims = false;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -75,7 +76,9 @@ public static class DependencyInjection
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = jwt.Issuer,
                     ValidAudience = jwt.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Secret))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Secret)),
+                    NameClaimType = "sub",
+                    RoleClaimType = "role"
                 };
             });
 

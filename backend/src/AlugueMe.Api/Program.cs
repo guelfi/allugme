@@ -18,7 +18,25 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "AlugueMe API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "AlugueMe API",
+        Version = "v1",
+        Description = "API do SaaS Alugue.me — Swagger exposto durante o desenvolvimento."
+    });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Bearer. Ex.: Bearer {token}",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+    c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+    });
 });
 
 builder.Services.AddCors(options =>
@@ -44,19 +62,18 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
-if (!string.IsNullOrWhiteSpace(publicBasePath))
-    app.UsePathBase(publicBasePath);
-
+// Nginx remove o prefixo /allugme antes do proxy — não usar UsePathBase.
 app.UseSwagger(c =>
 {
     c.RouteTemplate = "swagger/{documentName}/swagger.json";
 });
 app.UseSwaggerUI(c =>
 {
-    var swaggerPath = string.IsNullOrWhiteSpace(publicBasePath)
+    // Endpoint público via nginx: /allugme/swagger/v1/swagger.json
+    var swaggerJson = string.IsNullOrWhiteSpace(publicBasePath)
         ? "/swagger/v1/swagger.json"
         : $"{publicBasePath.TrimEnd('/')}/swagger/v1/swagger.json";
-    c.SwaggerEndpoint(swaggerPath, "AlugueMe API v1");
+    c.SwaggerEndpoint(swaggerJson, "AlugueMe API v1");
     c.RoutePrefix = "swagger";
 });
 

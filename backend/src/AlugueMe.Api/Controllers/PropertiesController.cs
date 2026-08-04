@@ -19,18 +19,24 @@ public class PropertiesController(AppDbContext db, IFileStorage storage) : Contr
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<PropertyDto>>> List(CancellationToken ct)
     {
-        var tenantId = User.GetTenantId();
-        if (tenantId is null)
-            return BadRequest(new { message = "Contexto de tenant não definido." });
-
         var role = User.GetRole();
         var userId = User.GetUserId();
-        var query = db.Properties
-            .Include(p => p.Media)
-            .Where(p => p.TenantId == tenantId);
+        IQueryable<Property> query = db.Properties.Include(p => p.Media);
 
-        if (role == "broker" && !User.IsSaasAdmin())
-            query = query.Where(p => p.ResponsibleBrokerId == userId);
+        if (User.IsSaasAdmin())
+        {
+            // SaaS admin vê a carteira completa (todas as imobiliárias)
+        }
+        else
+        {
+            var tenantId = User.GetTenantId();
+            if (tenantId is null)
+                return BadRequest(new { message = "Contexto de tenant não definido." });
+
+            query = query.Where(p => p.TenantId == tenantId);
+            if (role == "broker")
+                query = query.Where(p => p.ResponsibleBrokerId == userId);
+        }
 
         var items = await query.OrderByDescending(p => p.CreatedAt).ToListAsync(ct);
         return Ok(items.Select(p => DtoMappers.ToDto(p, storage.GetPublicUrl)));
