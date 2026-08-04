@@ -608,6 +608,7 @@ th {
   --lp-accent: #c45c26;
   --lp-pad-x: 1rem;
   --lp-nav-h: 6.1rem;
+  --lp-cookie-h: 0px;
   font-family: 'Source Sans 3', system-ui, sans-serif;
   color: var(--lp-ink);
   background:
@@ -763,7 +764,7 @@ th {
   padding:
     calc(var(--lp-nav-h) + env(safe-area-inset-top, 0px) + 0.75rem)
     var(--lp-pad-x)
-    calc(1.25rem + env(safe-area-inset-bottom, 0px));
+    calc(1.25rem + env(safe-area-inset-bottom, 0px) + var(--lp-cookie-h, 0px));
   box-sizing: border-box;
   overflow-x: hidden;
   overflow-y: auto;
@@ -858,26 +859,82 @@ th {
 
 .lp-hero-visual {
   position: relative;
-  min-height: 140px;
-  max-height: 28svh;
+  min-height: 160px;
+  max-height: 30svh;
   border-radius: 22px;
   background:
-    linear-gradient(145deg, rgba(15, 118, 110, 0.92), rgba(11, 90, 84, 0.85)),
+    linear-gradient(145deg, rgba(15, 118, 110, 0.94), rgba(11, 90, 84, 0.88)),
     url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   box-shadow: 0 18px 40px rgba(15, 40, 36, 0.2);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.lp-hero-carousel {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  padding: 0.85rem 0 0.35rem;
+}
+
+.lp-hero-carousel-track {
+  display: flex;
+  gap: 0.65rem;
+  width: max-content;
+  animation: lp-hero-marquee 28s linear infinite;
+  padding-inline: 0.85rem;
+}
+
+.lp-hero-carousel-track.is-paused {
+  animation-play-state: paused;
+}
+
+@keyframes lp-hero-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.lp-hero-carousel-card {
+  margin: 0;
+  width: 7.25rem;
+  flex: 0 0 auto;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.lp-hero-carousel-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.lp-hero-carousel-card figcaption {
+  padding: 0.35rem 0.45rem 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: #fff;
+  text-align: center;
 }
 
 .lp-hero-panel {
-  position: absolute;
-  left: 1rem;
-  right: 1rem;
-  bottom: 1rem;
+  position: relative;
+  margin: 0.55rem 0.85rem 0.85rem;
   background: rgba(255, 255, 255, 0.95);
   border-radius: 16px;
-  padding: 1rem 1.15rem;
+  padding: 0.85rem 1.05rem;
   display: grid;
-  gap: 0.2rem;
+  gap: 0.15rem;
 }
 
 .lp-hero-panel span {
@@ -1067,6 +1124,10 @@ th {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .lp-hero-carousel-track {
+    animation: none;
+  }
+
   .lp-carousel-track {
     animation: none;
     transform: none;
@@ -1237,12 +1298,33 @@ th {
   color: var(--lp-muted);
 }
 
+.lp-plan-layout {
+  display: grid;
+  gap: 1.15rem;
+  align-items: start;
+}
+
+.lp-plan-audience {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 28rem;
+}
+
+.lp-plan-audience-label {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lp-sea-deep);
+}
+
 .lp-plan-switch {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.3rem;
   padding: 0.3rem;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0;
   max-width: 28rem;
   border-radius: 14px;
   background: rgba(20, 32, 28, 0.05);
@@ -1275,8 +1357,102 @@ th {
 .lp-plan-audience-note {
   color: var(--lp-muted);
   font-size: 0.92rem;
-  margin: 0 0 1rem;
+  margin: 0;
   max-width: 36rem;
+}
+
+.lp-close-contact {
+  display: grid;
+  gap: 0.65rem;
+  justify-items: center;
+  margin-top: 1.15rem;
+}
+
+.lp-close-contact .lp-wa-btn {
+  width: min(100%, 22rem);
+}
+
+.lp-close-mail {
+  color: rgba(255, 255, 255, 0.88);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  font-weight: 600;
+}
+
+.lp-close-mail:hover {
+  color: #fff;
+}
+
+.lp-privacy-inner {
+  max-width: 48rem;
+}
+
+.lp-privacy-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.lp-privacy-grid article {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(20, 32, 28, 0.08);
+  border-radius: 16px;
+  padding: 1rem 1.1rem;
+}
+
+.lp-privacy-grid h3 {
+  margin: 0 0 0.4rem;
+  font-family: Fraunces, serif;
+  font-size: 1.05rem;
+}
+
+.lp-privacy-grid p {
+  margin: 0;
+  color: var(--lp-muted);
+  font-size: 0.92rem;
+}
+
+.lp-privacy-grid a {
+  color: var(--lp-sea-deep);
+  font-weight: 650;
+}
+
+.lp-cookie {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 80;
+  padding: 0.75rem var(--lp-pad-x) calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid rgba(20, 32, 28, 0.1);
+  box-shadow: 0 -10px 30px rgba(15, 40, 36, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.lp-cookie-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.lp-cookie-inner p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--lp-muted);
+  line-height: 1.45;
+}
+
+.lp-cookie-inner a {
+  color: var(--lp-sea-deep);
+  font-weight: 650;
+}
+
+.lp-cookie-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .lp-pricing {
@@ -1699,8 +1875,39 @@ th {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .lp-plan-layout {
+    grid-template-columns: minmax(14rem, 0.9fr) minmax(0, 1.2fr);
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .lp-cookie-inner {
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+  }
+
   .lp-hero-visual {
     min-height: 280px;
+    max-height: none;
+  }
+
+  .lp-hero-carousel-card {
+    width: 8.5rem;
+  }
+
+  .lp-privacy-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .lp-close-contact {
+    grid-template-columns: auto auto;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .lp-close-contact .lp-wa-btn {
+    width: auto;
   }
 
   .lp-close-cta {
@@ -1780,9 +1987,17 @@ th {
   }
 
   .lp-hero-visual {
-    min-height: 340px;
+    min-height: 380px;
     max-height: none;
     border-radius: 28px;
+  }
+
+  .lp-hero-carousel-card {
+    width: 9.5rem;
+  }
+
+  .lp-hero-carousel-track {
+    animation-duration: 32s;
   }
 
   .lp-feature-grid {

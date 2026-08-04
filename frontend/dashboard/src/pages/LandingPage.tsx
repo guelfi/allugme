@@ -1,5 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { CookieConsent } from '../components/CookieConsent'
+import {
+  contactEmail,
+  contactMailto,
+  contactWhatsAppDisplay,
+  contactWhatsAppUrl,
+} from '../contact'
 import { agencyPricing, independentPricing } from '../pricing'
 
 type CarouselDirection = 'forward' | 'reverse'
@@ -74,8 +81,31 @@ function thumbSrc(key: string) {
 }
 
 function demoUrl(slug: string) {
-  // Vitrine pública na raiz do host: /{slug}/
   return `/${slug}/`
+}
+
+function HeroLayoutCarousel({ items }: { items: readonly ThemeItem[] }) {
+  const [paused, setPaused] = useState(false)
+  const loop = [...items, ...items]
+
+  return (
+    <div
+      className="lp-hero-carousel"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onTouchStart={() => setPaused(true)}
+      onTouchEnd={() => setPaused(false)}
+    >
+      <div className={`lp-hero-carousel-track${paused ? ' is-paused' : ''}`}>
+        {loop.map((t, index) => (
+          <figure key={`${t.key}-${index}`} className="lp-hero-carousel-card" aria-hidden={index >= items.length}>
+            <img src={thumbSrc(t.key)} alt="" loading="lazy" draggable={false} />
+            <figcaption>{t.name}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 function ThemeCarousel({
@@ -167,9 +197,95 @@ function ThemeCarousel({
   )
 }
 
+function PricingCards({ audience }: { audience: PlanAudience }) {
+  const isAgency = audience === 'agency'
+
+  if (isAgency) {
+    return (
+      <>
+        <article className="lp-price-card">
+          <h3>Mensal</h3>
+          <p className="lp-price">
+            R$&nbsp;{agencyPricing.monthly.amount}
+            <span>/mês</span>
+          </p>
+          <ul>
+            <li>Até {agencyPricing.monthly.includedBrokers} corretores inclusos</li>
+            <li>Corretor extra: {agencyPricing.extraBrokerMonthly}/mês</li>
+            <li>Vitrine, agenda com buffer e WhatsApp</li>
+            <li>Ativação após Pix</li>
+          </ul>
+          <Link to="/register?type=agency&plan=monthly" className="btn btn-primary btn-block">
+            Assinar mensal
+          </Link>
+        </article>
+        <article className="lp-price-card lp-price-card-featured">
+          <p className="lp-badge">Melhor custo</p>
+          <h3>Anual</h3>
+          <p className="lp-price">
+            R$&nbsp;{agencyPricing.yearly.amount}
+            <span>/ano</span>
+          </p>
+          <ul>
+            <li>Até {agencyPricing.yearly.includedBrokers} corretores inclusos</li>
+            <li>Corretor extra: {agencyPricing.extraBrokerYearly}/mês</li>
+            <li>Economia vs. 12× mensal</li>
+            <li>Liberação pelo administrador</li>
+          </ul>
+          <Link to="/register?type=agency&plan=yearly" className="btn btn-primary btn-block">
+            Assinar anual
+          </Link>
+        </article>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <article className="lp-price-card">
+        <h3>Mensal</h3>
+        <p className="lp-price">
+          R$&nbsp;{independentPricing.monthly.amount}
+          <span>/mês</span>
+        </p>
+        <ul>
+          <li>Conta individual (1 corretor)</li>
+          <li>Vitrine pública com layouts oficiais</li>
+          <li>Agenda com buffer e WhatsApp</li>
+          <li>Ativação após Pix</li>
+        </ul>
+        <Link to="/register?type=independent&plan=monthly" className="btn btn-primary btn-block">
+          Assinar mensal
+        </Link>
+      </article>
+      <article className="lp-price-card lp-price-card-featured">
+        <p className="lp-badge">Melhor custo</p>
+        <h3>Anual</h3>
+        <p className="lp-price">
+          R$&nbsp;{independentPricing.yearly.amount}
+          <span>/ano</span>
+        </p>
+        <ul>
+          <li>Conta individual (1 corretor)</li>
+          <li>Mesmos recursos do plano mensal</li>
+          <li>Economia vs. 12× mensal</li>
+          <li>Liberação pelo administrador</li>
+        </ul>
+        <Link to="/register?type=independent&plan=yearly" className="btn btn-primary btn-block">
+          Assinar anual
+        </Link>
+      </article>
+    </>
+  )
+}
+
 export function LandingPage() {
   const [preview, setPreview] = useState<ThemeItem | null>(null)
   const [planAudience, setPlanAudience] = useState<PlanAudience>('agency')
+  const [planInView, setPlanInView] = useState(false)
+  const [planAutoPaused, setPlanAutoPaused] = useState(false)
+  const planSectionRef = useRef<HTMLElement | null>(null)
+  const manualPauseUntil = useRef(0)
 
   useEffect(() => {
     if (!preview) return
@@ -183,6 +299,34 @@ export function LandingPage() {
       window.removeEventListener('keydown', onKey)
     }
   }, [preview])
+
+  useEffect(() => {
+    const el = planSectionRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setPlanInView(entry.isIntersecting && entry.intersectionRatio >= 0.35),
+      { threshold: [0.35, 0.5, 0.7] },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!planInView || planAutoPaused) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const id = window.setInterval(() => {
+      if (Date.now() < manualPauseUntil.current) return
+      setPlanAudience((prev) => (prev === 'agency' ? 'independent' : 'agency'))
+    }, 4000)
+
+    return () => window.clearInterval(id)
+  }, [planInView, planAutoPaused])
+
+  function selectAudience(audience: PlanAudience) {
+    manualPauseUntil.current = Date.now() + 12000
+    setPlanAudience(audience)
+  }
 
   const isAgency = planAudience === 'agency'
 
@@ -235,7 +379,8 @@ export function LandingPage() {
               Cadastro em minutos. Pagamento via Pix. Ativação pelo administrador.
             </p>
           </div>
-          <div className="lp-hero-visual" aria-hidden="true">
+          <div className="lp-hero-visual">
+            <HeroLayoutCarousel items={themes} />
             <div className="lp-hero-panel">
               <span>Vitrine pública</span>
               <strong>5 layouts oficiais</strong>
@@ -273,11 +418,7 @@ export function LandingPage() {
                 layouts: a ferramenta se adapta à imobiliária ou ao corretor independente.
               </p>
             </header>
-            <ThemeCarousel
-              items={themes}
-              onSelect={setPreview}
-              paused={Boolean(preview)}
-            />
+            <ThemeCarousel items={themes} onSelect={setPreview} paused={Boolean(preview)} />
             <p className="lp-section-foot">
               Precisa de um visual exclusivo? Gere novos layouts sob demanda — a vitrine acompanha a
               identidade do seu negócio.
@@ -312,7 +453,23 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section id="planos" className="lp-viewport lp-section lp-section-alt">
+        <section
+          id="planos"
+          ref={planSectionRef}
+          className="lp-viewport lp-section lp-section-alt"
+          onMouseEnter={() => setPlanAutoPaused(true)}
+          onMouseLeave={() => setPlanAutoPaused(false)}
+          onFocusCapture={() => setPlanAutoPaused(true)}
+          onBlurCapture={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+              setPlanAutoPaused(false)
+            }
+          }}
+          onTouchStart={() => {
+            setPlanAutoPaused(true)
+            manualPauseUntil.current = Date.now() + 12000
+          }}
+        >
           <div className="lp-section-inner">
             <header className="lp-section-head">
               <h2>Planos claros. Pagamento via Pix.</h2>
@@ -322,119 +479,39 @@ export function LandingPage() {
               </p>
             </header>
 
-            <div className="lp-plan-switch" role="tablist" aria-label="Tipo de plano">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={isAgency}
-                className={isAgency ? 'is-active' : undefined}
-                onClick={() => setPlanAudience('agency')}
-              >
-                Imobiliária
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={!isAgency}
-                className={!isAgency ? 'is-active' : undefined}
-                onClick={() => setPlanAudience('independent')}
-              >
-                Corretor independente
-              </button>
-            </div>
+            <div className="lp-plan-layout">
+              <aside className="lp-plan-audience">
+                <p className="lp-plan-audience-label">Perfil da conta</p>
+                <div className="lp-plan-switch" role="tablist" aria-label="Tipo de plano">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={isAgency}
+                    className={isAgency ? 'is-active' : undefined}
+                    onClick={() => selectAudience('agency')}
+                  >
+                    Imobiliária
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={!isAgency}
+                    className={!isAgency ? 'is-active' : undefined}
+                    onClick={() => selectAudience('independent')}
+                  >
+                    Corretor independente
+                  </button>
+                </div>
+                <p className="lp-plan-audience-note">
+                  {isAgency
+                    ? `Até ${agencyPricing.monthly.includedBrokers} corretores inclusos. Extra: ${agencyPricing.extraBrokerMonthly}/mês (mensal) ou ${agencyPricing.extraBrokerYearly}/mês (anual).`
+                    : 'Conta individual: vitrine, agenda e WhatsApp só seus — sem assentos de equipe.'}
+                </p>
+              </aside>
 
-            <p className="lp-plan-audience-note">
-              {isAgency
-                ? `Até ${agencyPricing.monthly.includedBrokers} corretores inclusos. Extra: ${agencyPricing.extraBrokerMonthly}/mês (mensal) ou ${agencyPricing.extraBrokerYearly}/mês (anual).`
-                : 'Conta individual: vitrine, agenda e WhatsApp só seus — sem assentos de equipe.'}
-            </p>
-
-            <div className="lp-pricing" key={planAudience}>
-              {isAgency ? (
-                <>
-                  <article className="lp-price-card">
-                    <h3>Mensal</h3>
-                    <p className="lp-price">
-                      R$&nbsp;{agencyPricing.monthly.amount}
-                      <span>/mês</span>
-                    </p>
-                    <ul>
-                      <li>Até {agencyPricing.monthly.includedBrokers} corretores inclusos</li>
-                      <li>Corretor extra: {agencyPricing.extraBrokerMonthly}/mês</li>
-                      <li>Vitrine, agenda com buffer e WhatsApp</li>
-                      <li>Ativação após Pix</li>
-                    </ul>
-                    <Link
-                      to="/register?type=agency&plan=monthly"
-                      className="btn btn-primary btn-block"
-                    >
-                      Assinar mensal
-                    </Link>
-                  </article>
-                  <article className="lp-price-card lp-price-card-featured">
-                    <p className="lp-badge">Melhor custo</p>
-                    <h3>Anual</h3>
-                    <p className="lp-price">
-                      R$&nbsp;{agencyPricing.yearly.amount}
-                      <span>/ano</span>
-                    </p>
-                    <ul>
-                      <li>Até {agencyPricing.yearly.includedBrokers} corretores inclusos</li>
-                      <li>Corretor extra: {agencyPricing.extraBrokerYearly}/mês</li>
-                      <li>Economia vs. 12× mensal</li>
-                      <li>Liberação pelo administrador</li>
-                    </ul>
-                    <Link
-                      to="/register?type=agency&plan=yearly"
-                      className="btn btn-primary btn-block"
-                    >
-                      Assinar anual
-                    </Link>
-                  </article>
-                </>
-              ) : (
-                <>
-                  <article className="lp-price-card">
-                    <h3>Mensal</h3>
-                    <p className="lp-price">
-                      R$&nbsp;{independentPricing.monthly.amount}
-                      <span>/mês</span>
-                    </p>
-                    <ul>
-                      <li>Conta individual (1 corretor)</li>
-                      <li>Vitrine pública com layouts oficiais</li>
-                      <li>Agenda com buffer e WhatsApp</li>
-                      <li>Ativação após Pix</li>
-                    </ul>
-                    <Link
-                      to="/register?type=independent&plan=monthly"
-                      className="btn btn-primary btn-block"
-                    >
-                      Assinar mensal
-                    </Link>
-                  </article>
-                  <article className="lp-price-card lp-price-card-featured">
-                    <p className="lp-badge">Melhor custo</p>
-                    <h3>Anual</h3>
-                    <p className="lp-price">
-                      R$&nbsp;{independentPricing.yearly.amount}
-                      <span>/ano</span>
-                    </p>
-                    <ul>
-                      <li>Conta individual (1 corretor)</li>
-                      <li>Mesmos recursos do plano mensal</li>
-                      <li>Economia vs. 12× mensal</li>
-                      <li>Liberação pelo administrador</li>
-                    </ul>
-                    <Link
-                      to="/register?type=independent&plan=yearly"
-                      className="btn btn-primary btn-block"
-                    >
-                      Assinar anual
-                    </Link>
-                  </article>
-                </>
-              )}
+              <div className="lp-pricing" key={planAudience}>
+                <PricingCards audience={planAudience} />
+              </div>
             </div>
 
             <p className="lp-section-foot">
@@ -444,17 +521,13 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section
-          id="contato"
-          className="lp-viewport lp-close"
-          aria-label="Contato e cadastro"
-        >
+        <section id="contato" className="lp-viewport lp-close" aria-label="Contato e cadastro">
           <div className="lp-close-inner">
             <p className="lp-kicker lp-close-kicker">Contato</p>
             <h2>Coloque sua carteira no ar</h2>
             <p>
               Imobiliária com equipe ou corretor independente: cadastre-se, pague via Pix e aguarde a
-              ativação.
+              ativação. Ou fale conosco agora.
             </p>
             <div className="lp-close-cta">
               <Link to="/register?type=agency" className="btn btn-primary btn-lg">
@@ -464,6 +537,19 @@ export function LandingPage() {
                 Cadastrar corretor
               </Link>
             </div>
+            <div className="lp-close-contact">
+              <a
+                className="btn btn-secondary btn-lg lp-wa-btn"
+                href={contactWhatsAppUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                WhatsApp {contactWhatsAppDisplay}
+              </a>
+              <a className="lp-close-mail" href={contactMailto}>
+                {contactEmail}
+              </a>
+            </div>
           </div>
           <footer className="lp-footer lp-footer-on-close">
             <div>
@@ -472,14 +558,65 @@ export function LandingPage() {
             </div>
             <div className="lp-footer-links">
               <Link to="/login">Entrar no painel</Link>
-              <a href={`${assetBase}swagger/index.html`} target="_blank" rel="noreferrer">
-                API / Swagger
-              </a>
-              <a href="mailto:admin@allugme.com.br">admin@allugme.com.br</a>
+              <a href="#privacidade">Política de Privacidade</a>
+              <a href="#privacidade">Cookies</a>
+              <a href={contactMailto}>{contactEmail}</a>
             </div>
           </footer>
         </section>
+
+        <section id="privacidade" className="lp-viewport lp-section lp-privacy" aria-label="Privacidade">
+          <div className="lp-section-inner lp-privacy-inner">
+            <header className="lp-section-head">
+              <p className="lp-kicker">LGPD</p>
+              <h2>Política de Privacidade e Cookies</h2>
+              <p>
+                Esta política descreve, de forma resumida, como o Allugme trata dados pessoais na
+                landing e no uso inicial da plataforma, em conformidade com a Lei Geral de Proteção
+                de Dados (LGPD).
+              </p>
+            </header>
+            <div className="lp-privacy-grid">
+              <article>
+                <h3>Controlador</h3>
+                <p>
+                  Allugme — contato: <a href={contactMailto}>{contactEmail}</a> · WhatsApp{' '}
+                  <a href={contactWhatsAppUrl} target="_blank" rel="noopener noreferrer">
+                    {contactWhatsAppDisplay}
+                  </a>
+                  .
+                </p>
+              </article>
+              <article>
+                <h3>Dados e finalidades</h3>
+                <p>
+                  Dados de cadastro (nome, e-mail, telefone, dados da imobiliária/corretor) são usados
+                  para criar conta, comunicação operacional e ativação após Pix. Dados de navegação
+                  e cookies ajudam a manter sessão e preferências.
+                </p>
+              </article>
+              <article>
+                <h3>Cookies</h3>
+                <p>
+                  Utilizamos cookies necessários ao funcionamento do site. Com o seu consentimento,
+                  podemos usar cookies para melhorar a experiência. Você pode aceitar ou recusar no
+                  banner exibido na primeira visita; a escolha fica salva neste navegador.
+                </p>
+              </article>
+              <article>
+                <h3>Seus direitos</h3>
+                <p>
+                  Você pode solicitar acesso, correção, eliminação ou informações sobre o tratamento
+                  dos seus dados pelos canais acima. Em dúvidas sobre LGPD, fale conosco por e-mail
+                  ou WhatsApp.
+                </p>
+              </article>
+            </div>
+          </div>
+        </section>
       </main>
+
+      <CookieConsent />
 
       {preview && (
         <div
