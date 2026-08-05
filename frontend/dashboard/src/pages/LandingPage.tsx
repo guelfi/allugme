@@ -440,7 +440,7 @@ export function LandingPage() {
         <section id="layouts" className="lp-viewport lp-section lp-section-alt">
           <div className="lp-section-inner">
             <header className="lp-section-head">
-              <h2>Layouts que vestem a marca — e espaço para criar os seus.</h2>
+              <h2>Layouts que vestem a marca.</h2>
               <p>
                 Clique na miniatura para ver o modelo em ação. Depois, personalize ou solicite novos
                 layouts: a ferramenta se adapta à imobiliária ou ao corretor independente.
