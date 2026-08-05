@@ -9,12 +9,20 @@ import {
   isSaasReadOnly,
 } from '../../permissions'
 import { BrandMark } from '../BrandMark'
+import { Icon, type IconName } from '../Icon'
 
-type NavItem = { to: string; label: string; end?: boolean }
+type NavItem = { to: string; label: string; icon: IconName; end?: boolean }
+
+const SIDEBAR_PIN_KEY = 'allugme:sidebarPinned'
 
 export function AppShell() {
   const { user, logout, isSaasAdmin } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [sidebarPinned, setSidebarPinned] = useState<boolean>(() => {
+    const stored = localStorage.getItem(SIDEBAR_PIN_KEY)
+    return stored === null ? true : stored === 'true'
+  })
+  const [sidebarHover, setSidebarHover] = useState(false)
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : ''
@@ -23,41 +31,45 @@ export function AppShell() {
     }
   }, [menuOpen])
 
+  useEffect(() => {
+    localStorage.setItem(SIDEBAR_PIN_KEY, String(sidebarPinned))
+  }, [sidebarPinned])
+
   const navItems = useMemo(() => {
-    const items: NavItem[] = [{ to: '/painel', label: 'Início', end: true }]
+    const items: NavItem[] = [{ to: '/painel', label: 'Início', icon: 'dashboard', end: true }]
 
     if (isSaasReadOnly(user)) {
       items.push(
-        { to: '/admin/tenants', label: 'Tenants' },
-        { to: '/properties', label: 'Imóveis' },
-        { to: '/visits', label: 'Visitas' },
-        { to: '/clients', label: 'Clientes' },
+        { to: '/admin/tenants', label: 'Tenants', icon: 'building' },
+        { to: '/properties', label: 'Imóveis', icon: 'home' },
+        { to: '/visits', label: 'Visitas', icon: 'calendar' },
+        { to: '/clients', label: 'Clientes', icon: 'users' },
       )
       return items
     }
 
     if (isBroker(user)) {
       items.push(
-        { to: '/properties', label: 'Imóveis' },
-        { to: '/visits', label: 'Agenda' },
-        { to: '/clients', label: 'Clientes' },
-        { to: '/settings', label: 'Configurações' },
+        { to: '/properties', label: 'Imóveis', icon: 'home' },
+        { to: '/visits', label: 'Agenda', icon: 'calendar' },
+        { to: '/clients', label: 'Clientes', icon: 'users' },
+        { to: '/settings', label: 'Configurações', icon: 'settings' },
       )
       return items
     }
 
     // Admin imobiliária / corretor independente
     items.push(
-      { to: '/properties', label: 'Imóveis' },
-      { to: '/visits', label: 'Visitas' },
-      { to: '/clients', label: 'Clientes' },
+      { to: '/properties', label: 'Imóveis', icon: 'home' },
+      { to: '/visits', label: 'Visitas', icon: 'calendar' },
+      { to: '/clients', label: 'Clientes', icon: 'users' },
     )
-    if (canManageTeam(user)) items.push({ to: '/team', label: 'Equipe' })
+    if (canManageTeam(user)) items.push({ to: '/team', label: 'Equipe', icon: 'team' })
     if (canEditTenantSettings(user) || isBroker(user)) {
-      items.push({ to: '/settings', label: 'Configurações' })
+      items.push({ to: '/settings', label: 'Configurações', icon: 'settings' })
     }
-    if (canEditTheme(user)) items.push({ to: '/theme', label: 'Tema' })
-    if (isSaasAdmin) items.push({ to: '/admin/tenants', label: 'Tenants' })
+    if (canEditTheme(user)) items.push({ to: '/theme', label: 'Tema', icon: 'palette' })
+    if (isSaasAdmin) items.push({ to: '/admin/tenants', label: 'Tenants', icon: 'building' })
     return items
   }, [user, isSaasAdmin])
 
@@ -68,10 +80,12 @@ export function AppShell() {
           key={item.to}
           to={item.to}
           end={item.end}
+          title={item.label}
           className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
           onClick={() => setMenuOpen(false)}
         >
-          {item.label}
+          <Icon name={item.icon} />
+          <span className="nav-label">{item.label}</span>
         </NavLink>
       ))}
     </>
@@ -86,8 +100,18 @@ export function AppShell() {
         ? 'Corretor independente'
         : 'Imobiliária'
 
+  const sidebarClassName = [
+    'sidebar',
+    !sidebarPinned && 'sidebar-rail',
+    !sidebarPinned && sidebarHover && 'sidebar-hover',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <div className={`app-shell${menuOpen ? ' menu-open' : ''}`}>
+    <div
+      className={`app-shell${menuOpen ? ' menu-open' : ''}${!sidebarPinned ? ' sidebar-rail-mode' : ''}`}
+    >
       <header className="app-topbar">
         <button
           type="button"
@@ -130,12 +154,27 @@ export function AppShell() {
         />
       )}
 
-      <aside id="app-sidebar" className="sidebar">
+      <aside
+        id="app-sidebar"
+        className={sidebarClassName}
+        onMouseEnter={() => setSidebarHover(true)}
+        onMouseLeave={() => setSidebarHover(false)}
+      >
         <div className="brand brand-sidebar" aria-label="Allugme">
           <BrandMark className="brand-mark" />
-          <strong aria-hidden="true">llugme</strong>
+          <strong aria-hidden="true" className="nav-label">
+            llugme
+          </strong>
         </div>
         <nav className="nav">{links}</nav>
+        <label className="sidebar-pin-toggle">
+          <input
+            type="checkbox"
+            checked={sidebarPinned}
+            onChange={(e) => setSidebarPinned(e.target.checked)}
+          />
+          <span className="nav-label">Manter sidebar fixo</span>
+        </label>
       </aside>
 
       <div className="main-column">
@@ -152,7 +191,8 @@ export function AppShell() {
             end={item.end}
             className={({ isActive }) => (isActive ? 'bottom-nav-link active' : 'bottom-nav-link')}
           >
-            {item.label}
+            <Icon name={item.icon} />
+            <span>{item.label}</span>
           </NavLink>
         ))}
       </nav>

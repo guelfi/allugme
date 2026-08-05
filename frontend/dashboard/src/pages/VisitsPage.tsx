@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { createBlock, deleteBlock, listBlocks, type CalendarBlock } from '../api/agenda'
 import { listVisits, updateVisitStatus } from '../api/visits'
+import { Tabs } from '../components/Tabs'
 import { useAuth } from '../contexts/AuthContext'
 import { canManageVisits, isBroker, isSaasReadOnly } from '../permissions'
 import type { Visit } from '../types'
@@ -33,6 +34,7 @@ export function VisitsPage() {
   const [blockStart, setBlockStart] = useState('')
   const [blockEnd, setBlockEnd] = useState('')
   const [blockReason, setBlockReason] = useState('')
+  const [tab, setTab] = useState<'agenda' | 'blocks'>('agenda')
 
   async function reload() {
     setLoading(true)
@@ -90,17 +92,11 @@ export function VisitsPage() {
     }
   }
 
-  return (
-    <div>
-      <header className="page-header">
-        <div>
-          <h1>{isBroker(user) ? 'Minha agenda' : 'Agenda de visitas'}</h1>
-          <p className="muted">
-            {readOnly
-              ? 'Visão global (somente leitura)'
-              : 'Confirme ou recuse solicitações da vitrine'}
-          </p>
-        </div>
+  const showBlockTab = showAgendaBlocks && canManage
+
+  const agendaContent = (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.75rem' }}>
         <select value={filter} onChange={(e) => setFilter(e.target.value)}>
           <option value="">Todos</option>
           <option value="pending">Pendentes</option>
@@ -108,72 +104,7 @@ export function VisitsPage() {
           <option value="declined">Recusadas</option>
           <option value="cancelled">Canceladas</option>
         </select>
-      </header>
-
-      {error && <div className="alert alert-error">{error}</div>}
-
-      {showAgendaBlocks && canManage && (
-        <form className="card form-grid" style={{ marginBottom: '1rem' }} onSubmit={(e) => void handleCreateBlock(e)}>
-          <h2>Bloquear horário</h2>
-          <label>
-            Início
-            <input
-              type="datetime-local"
-              value={blockStart}
-              onChange={(e) => setBlockStart(e.target.value)}
-              required
-            />
-          </label>
-          <label>
-            Fim
-            <input
-              type="datetime-local"
-              value={blockEnd}
-              onChange={(e) => setBlockEnd(e.target.value)}
-              required
-            />
-          </label>
-          <label>
-            Motivo (opcional)
-            <input value={blockReason} onChange={(e) => setBlockReason(e.target.value)} />
-          </label>
-          <button type="submit" className="btn btn-secondary">
-            Adicionar bloqueio
-          </button>
-          {blocks.length > 0 && (
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Início</th>
-                    <th>Fim</th>
-                    <th>Motivo</th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  {blocks.map((b) => (
-                    <tr key={b.id}>
-                      <td data-label="Início">{formatDateTime(b.startAt)}</td>
-                      <td data-label="Fim">{formatDateTime(b.endAt)}</td>
-                      <td data-label="Motivo">{b.reason || '—'}</td>
-                      <td className="actions-cell">
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-ghost"
-                          onClick={() => void handleDeleteBlock(b.id)}
-                        >
-                          Remover
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </form>
-      )}
+      </div>
 
       {loading ? (
         <p className="muted">Carregando…</p>
@@ -233,6 +164,112 @@ export function VisitsPage() {
             </tbody>
           </table>
         </div>
+      )}
+    </>
+  )
+
+  return (
+    <div>
+      <header className="page-header">
+        <div>
+          <div className="page-title-row">
+            <h1>{isBroker(user) ? 'Minha agenda' : 'Agenda de visitas'}</h1>
+            {readOnly && (
+              <>
+                <span className="page-title-sep" aria-hidden="true">
+                  -
+                </span>
+                <span className="page-title-hint">somente leitura</span>
+              </>
+            )}
+          </div>
+          <p className="muted">
+            {readOnly ? 'Visão global' : 'Confirme ou recuse solicitações da vitrine'}
+          </p>
+        </div>
+      </header>
+
+      {error && <div className="alert alert-error">{error}</div>}
+
+      {showBlockTab ? (
+        <>
+          <Tabs
+            tabs={[
+              { id: 'agenda', label: 'Agenda' },
+              { id: 'blocks', label: 'Bloquear horário' },
+            ]}
+            active={tab}
+            onChange={(id) => setTab(id as 'agenda' | 'blocks')}
+          />
+
+          {tab === 'agenda' && agendaContent}
+
+          {tab === 'blocks' && (
+            <form className="card form-grid form-grid-2col" onSubmit={(e) => void handleCreateBlock(e)}>
+              <label>
+                Início
+                <input
+                  type="datetime-local"
+                  value={blockStart}
+                  onChange={(e) => setBlockStart(e.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                Fim
+                <input
+                  type="datetime-local"
+                  value={blockEnd}
+                  onChange={(e) => setBlockEnd(e.target.value)}
+                  required
+                />
+              </label>
+              <label className="full-row">
+                Motivo (opcional)
+                <input value={blockReason} onChange={(e) => setBlockReason(e.target.value)} />
+              </label>
+              <div className="full-row">
+                <button type="submit" className="btn btn-secondary">
+                  Adicionar bloqueio
+                </button>
+              </div>
+              {blocks.length > 0 && (
+                <div className="table-wrap full-row">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Início</th>
+                        <th>Fim</th>
+                        <th>Motivo</th>
+                        <th />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {blocks.map((b) => (
+                        <tr key={b.id}>
+                          <td data-label="Início">{formatDateTime(b.startAt)}</td>
+                          <td data-label="Fim">{formatDateTime(b.endAt)}</td>
+                          <td data-label="Motivo">{b.reason || '—'}</td>
+                          <td className="actions-cell">
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-ghost"
+                              onClick={() => void handleDeleteBlock(b.id)}
+                            >
+                              Remover
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </form>
+          )}
+        </>
+      ) : (
+        agendaContent
       )}
     </div>
   )

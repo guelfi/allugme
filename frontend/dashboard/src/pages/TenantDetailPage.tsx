@@ -52,10 +52,15 @@ export function TenantDetailPage() {
     <div>
       <header className="page-header">
         <div>
-          <h1>{tenant.name}</h1>
-          <Link to="/admin/tenants" className="muted">
-            ← Voltar
-          </Link>
+          <div className="page-title-row">
+            <Link to="/admin/tenants" className="page-back-link">
+              ← Voltar
+            </Link>
+            <span className="page-title-sep" aria-hidden="true">
+              -
+            </span>
+            <h1>{tenant.name}</h1>
+          </div>
         </div>
       </header>
 

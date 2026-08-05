@@ -1,6 +1,6 @@
-import { type FormEvent, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { createTenant, listTenants, updateTenantPlan, updateTenantStatus } from '../api/tenants'
+import { listTenants, updateTenantPlan, updateTenantStatus } from '../api/tenants'
 import type { Tenant } from '../types'
 
 const statusLabel: Record<string, string> = {
@@ -12,8 +12,6 @@ const statusLabel: Record<string, string> = {
 
 export function TenantsPage() {
   const [items, setItems] = useState<Tenant[]>([])
-  const [name, setName] = useState('')
-  const [slug, setSlug] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -23,18 +21,6 @@ export function TenantsPage() {
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false))
   }, [])
-
-  async function handleCreate(event: FormEvent) {
-    event.preventDefault()
-    try {
-      const tenant = await createTenant({ name, slug })
-      setItems((prev) => [...prev, tenant])
-      setName('')
-      setSlug('')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao criar tenant')
-    }
-  }
 
   async function toggleStatus(tenant: Tenant) {
     const next = tenant.status === 'active' ? 'suspended' : 'active'
@@ -76,28 +62,6 @@ export function TenantsPage() {
       </header>
 
       {error && <div className="alert alert-error">{error}</div>}
-
-      <div className="card" style={{ marginBottom: '1rem' }}>
-        <p className="muted" style={{ margin: 0 }}>
-          Visão SaaS: ative contas após Pix e ajuste assentos extras. Dados de imóveis, visitas e
-          clientes são somente leitura nos respectivos menus.
-        </p>
-      </div>
-
-      <form className="card form-grid" onSubmit={(e) => void handleCreate(e)} hidden>
-        <h2>Nova imobiliária</h2>
-        <label>
-          Nome
-          <input value={name} onChange={(e) => setName(e.target.value)} required />
-        </label>
-        <label>
-          Slug (vitrine /{'{slug}'})
-          <input value={slug} onChange={(e) => setSlug(e.target.value)} required />
-        </label>
-        <button type="submit" className="btn btn-primary">
-          Criar tenant
-        </button>
-      </form>
 
       {loading ? (
         <p className="muted">Carregando…</p>

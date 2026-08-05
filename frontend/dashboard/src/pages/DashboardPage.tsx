@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getAdminStats, type AdminStats } from '../api/admin'
+import { fetchTeam } from '../api/brokers'
+import { listClients } from '../api/clients'
+import { listProperties } from '../api/properties'
+import { listVisits } from '../api/visits'
 import { useAuth } from '../contexts/AuthContext'
 import {
   canEditTheme,
@@ -15,11 +19,22 @@ function formatCount(n: number | undefined): string {
   return n.toLocaleString('pt-BR')
 }
 
+type TenantCounts = {
+  properties: number
+  visits: number
+  clients: number
+  teamUsed?: number
+  teamMax?: number
+  brokersMissingAvatar: number
+}
+
 export function DashboardPage() {
   const { user } = useAuth()
   const saas = isSaasReadOnly(user)
   const broker = isBroker(user)
+  const manageTeam = canManageTeam(user)
   const [stats, setStats] = useState<AdminStats | null>(null)
+  const [counts, setCounts] = useState<TenantCounts | null>(null)
 
   useEffect(() => {
     if (!saas) return
@@ -36,6 +51,33 @@ export function DashboardPage() {
     }
   }, [saas])
 
+  useEffect(() => {
+    if (saas) return
+    let active = true
+    Promise.all([
+      listProperties().catch(() => []),
+      listVisits().catch(() => []),
+      listClients().catch(() => []),
+      manageTeam ? fetchTeam().catch(() => null) : Promise.resolve(null),
+    ]).then(([properties, visits, clients, team]) => {
+      if (!active) return
+      setCounts({
+        properties: properties.length,
+        visits: visits.length,
+        clients: clients.length,
+        teamUsed: team?.quota.usedBrokerSlots,
+        teamMax: team?.quota.maxBrokerSlots,
+        brokersMissingAvatar: team ? team.members.filter((m) => !m.avatarUrl).length : 0,
+      })
+    })
+    return () => {
+      active = false
+    }
+  }, [saas, manageTeam])
+
+  const showOwnAvatarWarning = !saas && !manageTeam && !user?.avatarUrl
+  const showTeamAvatarWarning = !saas && manageTeam && (counts?.brokersMissingAvatar ?? 0) > 0
+
   return (
     <div>
       <header className="page-header">
@@ -50,11 +92,21 @@ export function DashboardPage() {
           </p>
         </div>
       </header>
-      {!saas && !user?.avatarUrl && (
+      {showOwnAvatarWarning && (
         <div className="alert alert-warning">
           Você ainda não tem uma foto de rosto cadastrada. Ela é exibida ao visitante ao agendar
           uma visita e é obrigatória para publicar imóveis.{' '}
           <Link to="/settings">Enviar foto agora</Link>
+        </div>
+      )}
+      {showTeamAvatarWarning && (
+        <div className="alert alert-warning">
+          {counts!.brokersMissingAvatar === 1
+            ? '1 corretor afiliado ainda não cadastrou a foto de rosto.'
+            : `${counts!.brokersMissingAvatar} corretores afiliados ainda não cadastraram a foto de rosto.`}{' '}
+          A foto é obrigatória para que o corretor afiliado possa usar o sistema (agendar visitas e
+          ter imóveis publicados).{' '}
+          <Link to="/team">Ver equipe</Link>
         </div>
       )}
       <div className="grid-cards">
@@ -86,26 +138,32 @@ export function DashboardPage() {
           <>
             <Link to="/properties" className="card stat-card">
               <span className="stat-label">Imóveis</span>
-              <strong>{broker ? 'Meus imóveis' : 'Vitrine'}</strong>
-              <p className="muted">Cadastro e publicação</p>
+              <strong className="stat-number">{formatCount(counts?.properties)}</strong>
+              <p className="muted">
+                {broker ? 'Imóveis sob sua responsabilidade' : 'Cadastro e publicação na vitrine'}
+              </p>
             </Link>
             <Link to="/visits" className="card stat-card">
               <span className="stat-label">Visitas</span>
-              <strong>{broker ? 'Minha agenda' : 'Agenda'}</strong>
-              <p className="muted">Confirmar e organizar horários</p>
+              <strong className="stat-number">{formatCount(counts?.visits)}</strong>
+              <p className="muted">{broker ? 'Minha agenda' : 'Confirmar e organizar horários'}</p>
             </Link>
             <Link to="/clients" className="card stat-card">
               <span className="stat-label">Clientes</span>
-              <strong>Visitantes</strong>
+              <strong className="stat-number">{formatCount(counts?.clients)}</strong>
               <p className="muted">Leads gerados pela vitrine</p>
             </Link>
           </>
         )}
-        {canManageTeam(user) && (
+        {manageTeam && (
           <Link to="/team" className="card stat-card">
             <span className="stat-label">Equipe</span>
-            <strong>Corretores</strong>
-            <p className="muted">Limite do plano e cadastros</p>
+            <strong className="stat-number">
+              {counts?.teamUsed !== undefined && counts?.teamMax !== undefined
+                ? `${counts.teamUsed}/${counts.teamMax}`
+                : '—'}
+            </strong>
+            <p className="muted">Corretores · limite do plano e cadastros</p>
           </Link>
         )}
         {canEditTenantSettings(user) && (

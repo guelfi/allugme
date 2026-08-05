@@ -20,10 +20,20 @@ export function ClientsPage() {
     <div>
       <header className="page-header">
         <div>
-          <h1>Clientes</h1>
+          <div className="page-title-row">
+            <h1>Clientes</h1>
+            {isSaasReadOnly(user) && (
+              <>
+                <span className="page-title-sep" aria-hidden="true">
+                  -
+                </span>
+                <span className="page-title-hint">somente leitura</span>
+              </>
+            )}
+          </div>
           <p className="muted">
             {isSaasReadOnly(user)
-              ? 'Visitantes agregados de todas as imobiliárias (somente leitura)'
+              ? 'Visitantes agregados de todas as imobiliárias'
               : 'Visitantes que solicitaram agenda na vitrine'}
           </p>
         </div>

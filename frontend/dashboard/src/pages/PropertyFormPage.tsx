@@ -10,6 +10,7 @@ import {
   updateProperty,
   uploadPropertyMedia,
 } from '../api/properties'
+import { Tabs } from '../components/Tabs'
 import { useAuth } from '../contexts/AuthContext'
 import { canWriteProperties, isSaasReadOnly } from '../permissions'
 import type { PropertyMediaItem } from '../types'
@@ -46,6 +47,7 @@ export function PropertyFormPage() {
   const [uploadingVideo, setUploadingVideo] = useState(false)
   const photoInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
+  const [tab, setTab] = useState<'data' | 'media'>('data')
 
   useEffect(() => {
     if (isNew) return
@@ -192,151 +194,165 @@ export function PropertyFormPage() {
     <div>
       <header className="page-header">
         <div>
-          <h1>{isNew ? 'Novo imóvel' : readOnly ? 'Detalhe do imóvel' : 'Editar imóvel'}</h1>
-          <Link to="/properties" className="muted">
-            ← Voltar
-          </Link>
+          <div className="page-title-row">
+            <Link to="/properties" className="page-back-link">
+              ← Voltar
+            </Link>
+            <span className="page-title-sep" aria-hidden="true">
+              -
+            </span>
+            <h1>{isNew ? 'Novo imóvel' : readOnly ? 'Detalhe do imóvel' : 'Editar imóvel'}</h1>
+            {readOnly && !isNew && (
+              <>
+                <span className="page-title-sep" aria-hidden="true">
+                  -
+                </span>
+                <span className="page-title-hint">Modo visualização — sem permissão de edição.</span>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
       {error && <div className="alert alert-error">{error}</div>}
-      {readOnly && !isNew && (
-        <div className="alert alert-success">Modo visualização — sem permissão de edição.</div>
+
+      {!isNew && (
+        <Tabs
+          tabs={[
+            { id: 'data', label: 'Dados do imóvel' },
+            { id: 'media', label: `Fotos e vídeo (${photos.length}/${MAX_PHOTOS}${video ? '+1' : ''})` },
+          ]}
+          active={tab}
+          onChange={(id) => setTab(id as 'data' | 'media')}
+        />
       )}
 
-      <form className="card form-grid" onSubmit={(e) => void handleSubmit(e)}>
-        <label>
-          Título
-          <input
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            required
-            disabled={readOnly}
-          />
-        </label>
-        <label>
-          Bairro
-          <input
-            value={form.neighborhood}
-            onChange={(e) => setForm({ ...form, neighborhood: e.target.value })}
-            required
-            disabled={readOnly}
-          />
-        </label>
-        <label>
-          Cidade
-          <input
-            value={form.city}
-            onChange={(e) => setForm({ ...form, city: e.target.value })}
-            required
-            disabled={readOnly}
-          />
-        </label>
-        <label>
-          Descrição
-          <textarea
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            rows={4}
-            disabled={readOnly}
-          />
-        </label>
-        <label>
-          Operação
-          <select
-            value={form.operation}
-            onChange={(e) =>
-              setForm({ ...form, operation: e.target.value as 'rent' | 'sale' })
-            }
-            disabled={readOnly}
-          >
-            <option value="rent">Aluguel</option>
-            <option value="sale">Venda</option>
-          </select>
-        </label>
-        <label>
-          Tipo
-          <select
-            value={form.propertyType}
-            onChange={(e) => setForm({ ...form, propertyType: e.target.value })}
-            disabled={readOnly}
-          >
-            <option value="apartment">Apartamento</option>
-            <option value="house">Casa</option>
-            <option value="commercial">Comercial</option>
-            <option value="land">Terreno</option>
-          </select>
-        </label>
-        <label>
-          Quartos
-          <input
-            type="number"
-            min={0}
-            value={form.bedrooms}
-            onChange={(e) => setForm({ ...form, bedrooms: Number(e.target.value) })}
-            disabled={readOnly}
-          />
-        </label>
-        <label>
-          Área (m²)
-          <input
-            type="number"
-            min={0}
-            value={form.areaSqm}
-            onChange={(e) => setForm({ ...form, areaSqm: Number(e.target.value) })}
-            disabled={readOnly}
-          />
-        </label>
-        <label>
-          Preço (R$)
-          <input
-            type="number"
-            min={0}
-            value={form.price}
-            onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
-            required
-            disabled={readOnly}
-          />
-        </label>
-        {!readOnly && (
-          <div className="form-actions">
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Salvando…' : isNew ? 'Criar imóvel' : 'Salvar'}
-            </button>
-            {!isNew && (
-              <>
-                {status !== 'published' ? (
-                  <button type="button" className="btn btn-secondary" onClick={() => void handlePublish()}>
-                    Publicar
+      {(isNew || tab === 'data') && (
+        <form className="card form-grid form-grid-2col" onSubmit={(e) => void handleSubmit(e)}>
+          <label className="full-row">
+            Título
+            <input
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              required
+              disabled={readOnly}
+            />
+          </label>
+          <label>
+            Bairro
+            <input
+              value={form.neighborhood}
+              onChange={(e) => setForm({ ...form, neighborhood: e.target.value })}
+              required
+              disabled={readOnly}
+            />
+          </label>
+          <label>
+            Cidade
+            <input
+              value={form.city}
+              onChange={(e) => setForm({ ...form, city: e.target.value })}
+              required
+              disabled={readOnly}
+            />
+          </label>
+          <label>
+            Operação
+            <select
+              value={form.operation}
+              onChange={(e) =>
+                setForm({ ...form, operation: e.target.value as 'rent' | 'sale' })
+              }
+              disabled={readOnly}
+            >
+              <option value="rent">Aluguel</option>
+              <option value="sale">Venda</option>
+            </select>
+          </label>
+          <label>
+            Tipo
+            <select
+              value={form.propertyType}
+              onChange={(e) => setForm({ ...form, propertyType: e.target.value })}
+              disabled={readOnly}
+            >
+              <option value="apartment">Apartamento</option>
+              <option value="house">Casa</option>
+              <option value="commercial">Comercial</option>
+              <option value="land">Terreno</option>
+            </select>
+          </label>
+          <label>
+            Quartos
+            <input
+              type="number"
+              min={0}
+              value={form.bedrooms}
+              onChange={(e) => setForm({ ...form, bedrooms: Number(e.target.value) })}
+              disabled={readOnly}
+            />
+          </label>
+          <label>
+            Área (m²)
+            <input
+              type="number"
+              min={0}
+              value={form.areaSqm}
+              onChange={(e) => setForm({ ...form, areaSqm: Number(e.target.value) })}
+              disabled={readOnly}
+            />
+          </label>
+          <label>
+            Preço (R$)
+            <input
+              type="number"
+              min={0}
+              value={form.price}
+              onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+              required
+              disabled={readOnly}
+            />
+          </label>
+          <label className="full-row">
+            Descrição
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              rows={3}
+              disabled={readOnly}
+            />
+          </label>
+          {!readOnly && (
+            <div className="form-actions full-row">
+              <button type="submit" className="btn btn-primary" disabled={saving}>
+                {saving ? 'Salvando…' : isNew ? 'Criar imóvel' : 'Salvar'}
+              </button>
+              {!isNew && (
+                <>
+                  {status !== 'published' ? (
+                    <button type="button" className="btn btn-secondary" onClick={() => void handlePublish()}>
+                      Publicar
+                    </button>
+                  ) : (
+                    <button type="button" className="btn btn-secondary" onClick={() => void handleUnpublish()}>
+                      Despublicar
+                    </button>
+                  )}
+                  <button type="button" className="btn btn-danger" onClick={() => void handleDelete()}>
+                    Excluir
                   </button>
-                ) : (
-                  <button type="button" className="btn btn-secondary" onClick={() => void handleUnpublish()}>
-                    Despublicar
-                  </button>
-                )}
-                <button type="button" className="btn btn-danger" onClick={() => void handleDelete()}>
-                  Excluir
-                </button>
-              </>
-            )}
-          </div>
-        )}
-      </form>
-
-      {isNew ? (
-        <p className="muted" style={{ marginTop: '1rem' }}>
-          Salve o imóvel para poder adicionar fotos e vídeo.
-        </p>
-      ) : (
-        <div className="card" style={{ marginTop: '1rem' }}>
-          <div className="page-header" style={{ marginBottom: '0.75rem' }}>
-            <div>
-              <h2 style={{ margin: 0 }}>Fotos e vídeo</h2>
-              <p className="muted" style={{ margin: 0 }}>
-                Até {MAX_PHOTOS} fotos e 1 vídeo curto por imóvel.
-              </p>
+                </>
+              )}
             </div>
-          </div>
+          )}
+        </form>
+      )}
+
+      {!isNew && tab === 'media' && (
+        <div className="card">
+          <p className="muted" style={{ margin: '0 0 0.75rem' }}>
+            Até {MAX_PHOTOS} fotos e 1 vídeo curto por imóvel.
+          </p>
 
           {mediaError && <div className="alert alert-error">{mediaError}</div>}
 
