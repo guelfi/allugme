@@ -532,8 +532,8 @@ export function LandingPage() {
                 </div>
                 <p className="lp-plan-audience-note">
                   {isAgency
-                    ? `Até ${agencyPricing.monthly.includedBrokers} corretores inclusos. Extra: ${agencyPricing.extraBrokerMonthly} (mensal) ou ${agencyPricing.extraBrokerYearly} (anual).`
-                    : 'Conta individual: vitrine, agenda e WhatsApp só seus — sem assentos de equipe.'}
+                    ? `Até ${agencyPricing.monthly.includedBrokers} corretores inclusos. Extra: ${agencyPricing.extraBrokerMonthly} (mensal) ou ${agencyPricing.extraBrokerYearly}.`
+                    : 'Conta individual: vitrine, agenda e WhatsApp só seus — sem opção de equipe.'}
                 </p>
               </aside>
 
@@ -605,7 +605,6 @@ export function LandingPage() {
         <section id="privacidade" className="lp-viewport lp-section lp-privacy" aria-label="Privacidade">
           <div className="lp-section-inner lp-privacy-inner">
             <header className="lp-section-head">
-              <p className="lp-kicker">LGPD</p>
               <h2>Política de Privacidade e Cookies</h2>
               <p>
                 Esta política descreve, de forma resumida, como o Allugme trata dados pessoais na
