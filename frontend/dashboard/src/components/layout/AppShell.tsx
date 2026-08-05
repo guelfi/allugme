@@ -8,6 +8,7 @@ import {
   isBroker,
   isSaasReadOnly,
 } from '../../permissions'
+import { BrandMark } from '../BrandMark'
 
 type NavItem = { to: string; label: string; end?: boolean }
 
@@ -98,9 +99,9 @@ export function AppShell() {
           <span className="menu-toggle-bars" aria-hidden="true" />
           <span className="sr-only">{menuOpen ? 'Fechar menu' : 'Abrir menu'}</span>
         </button>
-        <div className="brand brand-compact">
-          <span className="brand-mark">A</span>
-          <strong>Allugme</strong>
+        <div className="brand brand-compact" aria-label="Allugme">
+          <BrandMark className="brand-mark" />
+          <strong aria-hidden="true">llugme</strong>
         </div>
         <div className="user-menu">
           <span className="user-name">
@@ -125,10 +126,10 @@ export function AppShell() {
       )}
 
       <aside id="app-sidebar" className="sidebar">
-        <div className="brand brand-sidebar">
-          <span className="brand-mark">A</span>
+        <div className="brand brand-sidebar" aria-label="Allugme">
+          <BrandMark className="brand-mark" />
           <div>
-            <strong>Allugme</strong>
+            <strong aria-hidden="true">llugme</strong>
             <small>{roleHint}</small>
           </div>
         </div>

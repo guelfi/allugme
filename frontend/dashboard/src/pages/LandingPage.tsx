@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CookieConsent } from '../components/CookieConsent'
+import { BrandMark } from '../components/BrandMark'
 import {
   contactEmail,
   contactMailto,
@@ -192,9 +193,11 @@ function ThemeCarousel({
                     loading="lazy"
                     draggable={false}
                   />
-                  <span className="lp-theme-thumb-label">Ver modelo</span>
                 </button>
-                <h3>{t.name}</h3>
+                <div className="lp-theme-head">
+                  <h3>{t.name}</h3>
+                  <span className="lp-theme-thumb-label">Ver modelo</span>
+                </div>
                 <p>{t.blurb}</p>
               </article>
             ))}
@@ -352,9 +355,9 @@ export function LandingPage() {
     <div className="lp">
       <header className="lp-nav">
         <div className="lp-nav-bar">
-          <a className="lp-brand" href="#topo">
-            <span className="lp-brand-mark">A</span>
-            <span>Allugme</span>
+          <a className="lp-brand" href="#topo" aria-label="Allugme">
+            <BrandMark className="lp-brand-mark" />
+            <span aria-hidden="true">llugme</span>
           </a>
 
           <nav className="lp-section-nav" aria-label="Seções da página">
@@ -551,7 +554,7 @@ export function LandingPage() {
 
         <section id="contato" className="lp-viewport lp-close" aria-label="Contato e cadastro">
           <div className="lp-close-inner">
-            <h2>Coloque sua carteira de imóveis no ar</h2>
+            <h2>Coloque sua carteira de imóveis na nuvem</h2>
             <p>
               Imobiliária com equipe ou corretor independente: cadastre-se, pague via Pix e aguarde a
               ativação. Ou fale conosco agora.
@@ -573,9 +576,6 @@ export function LandingPage() {
               >
                 <WhatsAppIcon className="lp-close-wa-icon" />
                 <span>{contactWhatsAppDisplay}</span>
-              </a>
-              <a className="lp-close-channel" href={contactMailto}>
-                <span>{contactEmail}</span>
               </a>
             </div>
           </div>
