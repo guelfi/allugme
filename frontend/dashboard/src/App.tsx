@@ -11,6 +11,7 @@ import { PropertyFormPage } from './pages/PropertyFormPage'
 import { VisitsPage } from './pages/VisitsPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { TenantsPage } from './pages/TenantsPage'
+import { TenantDetailPage } from './pages/TenantDetailPage'
 import { ThemePage } from './pages/ThemePage'
 import { TeamPage } from './pages/TeamPage'
 import { ClientsPage } from './pages/ClientsPage'
@@ -39,6 +40,7 @@ export default function App() {
               <Route path="theme" element={<ThemePage />} />
               <Route element={<SaasAdminRoute />}>
                 <Route path="admin/tenants" element={<TenantsPage />} />
+                <Route path="admin/tenants/:id" element={<TenantDetailPage />} />
               </Route>
             </Route>
           </Route>

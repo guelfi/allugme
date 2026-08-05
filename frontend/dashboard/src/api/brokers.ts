@@ -1,4 +1,4 @@
-import { del, get, post } from './http'
+import { del, get, post, upload } from './http'
 
 export type BrokerSeat = {
   userId: string
@@ -8,6 +8,7 @@ export type BrokerSeat = {
   role: string
   createdAt: string
   isCurrentUser: boolean
+  avatarUrl?: string | null
 }
 
 export type BrokerQuota = {
@@ -26,8 +27,8 @@ export type TeamResponse = {
   members: BrokerSeat[]
 }
 
-export async function fetchTeam(): Promise<TeamResponse> {
-  return get<TeamResponse>('/brokers')
+export async function fetchTeam(tenantId?: string): Promise<TeamResponse> {
+  return get<TeamResponse>('/brokers', { query: tenantId ? { tenantId } : undefined })
 }
 
 export async function createBroker(payload: {
@@ -41,4 +42,10 @@ export async function createBroker(payload: {
 
 export async function removeBroker(userId: string): Promise<void> {
   await del(`/brokers/${userId}`)
+}
+
+export async function uploadMyAvatar(file: File): Promise<{ avatarUrl: string }> {
+  const formData = new FormData()
+  formData.append('file', file)
+  return upload<{ avatarUrl: string }>('/brokers/me/avatar', formData)
 }

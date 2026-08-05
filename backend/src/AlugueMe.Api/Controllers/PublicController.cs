@@ -65,6 +65,7 @@ public class PublicController(
         var query = db.Properties
             .Include(p => p.Tenant)
             .Include(p => p.Media)
+            .Include(p => p.ResponsibleBroker)
             .Where(p => p.Status == PropertyStatus.Published && p.Tenant.Status == TenantStatus.Active);
 
         if (!string.IsNullOrWhiteSpace(city))
@@ -85,7 +86,10 @@ public class PublicController(
             p.Id, p.Title, p.Description, p.City, p.Neighborhood, p.Price, p.Bedrooms, p.AreaSqm,
             EnumMapper.ToApi(p.Operation), EnumMapper.ToApi(p.PropertyType),
             p.Tenant.Name, p.Tenant.Slug,
-            p.Media.OrderBy(m => m.SortOrder).Select(m => storage.GetPublicUrl(m.Path)).ToList())).ToList();
+            p.Media.Where(m => m.MediaType == PropertyMediaType.Photo).OrderBy(m => m.SortOrder).Select(m => storage.GetPublicUrl(m.Path)).ToList(),
+            p.Media.Where(m => m.MediaType == PropertyMediaType.Video).Select(m => storage.GetPublicUrl(m.Path)).FirstOrDefault(),
+            p.ResponsibleBroker.Name,
+            string.IsNullOrEmpty(p.ResponsibleBroker.AvatarPath) ? null : storage.GetPublicUrl(p.ResponsibleBroker.AvatarPath))).ToList();
 
         return Ok(new PublicPropertySearchResult(dtos, dtos.Count));
     }
@@ -96,6 +100,7 @@ public class PublicController(
         var p = await db.Properties
             .Include(x => x.Tenant)
             .Include(x => x.Media)
+            .Include(x => x.ResponsibleBroker)
             .FirstOrDefaultAsync(x => x.Id == id && x.Status == PropertyStatus.Published && x.Tenant.Status == TenantStatus.Active, ct);
 
         if (p is null)
@@ -105,7 +110,10 @@ public class PublicController(
             p.Id, p.Title, p.Description, p.City, p.Neighborhood, p.Price, p.Bedrooms, p.AreaSqm,
             EnumMapper.ToApi(p.Operation), EnumMapper.ToApi(p.PropertyType),
             p.Tenant.Name, p.Tenant.Slug,
-            p.Media.OrderBy(m => m.SortOrder).Select(m => storage.GetPublicUrl(m.Path)).ToList()));
+            p.Media.Where(m => m.MediaType == PropertyMediaType.Photo).OrderBy(m => m.SortOrder).Select(m => storage.GetPublicUrl(m.Path)).ToList(),
+            p.Media.Where(m => m.MediaType == PropertyMediaType.Video).Select(m => storage.GetPublicUrl(m.Path)).FirstOrDefault(),
+            p.ResponsibleBroker.Name,
+            string.IsNullOrEmpty(p.ResponsibleBroker.AvatarPath) ? null : storage.GetPublicUrl(p.ResponsibleBroker.AvatarPath)));
     }
 
     [HttpGet("properties/{id:guid}/visit-slots")]

@@ -6,6 +6,10 @@ export async function listTenants(): Promise<Tenant[]> {
   return Array.isArray(data) ? data : (data.items ?? [])
 }
 
+export async function getTenant(id: string): Promise<Tenant> {
+  return get<Tenant>(`/tenants/${id}`)
+}
+
 export async function createTenant(payload: { name: string; slug: string }): Promise<Tenant> {
   return post<Tenant>('/tenants', payload)
 }

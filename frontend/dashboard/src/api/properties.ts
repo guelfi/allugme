@@ -1,5 +1,5 @@
-import { del, get, post, put } from './http'
-import type { Property } from '../types'
+import { del, get, post, put, upload } from './http'
+import type { Property, PropertyMediaItem } from '../types'
 
 export type PropertyPayload = {
   operation: 'rent' | 'sale'
@@ -30,6 +30,7 @@ type ApiProperty = {
   status: string
   createdAt?: string
   publishedAt?: string | null
+  media?: PropertyMediaItem[]
 }
 
 function mapProperty(p: ApiProperty): Property {
@@ -54,6 +55,7 @@ function mapProperty(p: ApiProperty): Property {
     description: p.description,
     neighborhood: p.neighborhood,
     tenantId: p.tenantId,
+    media: p.media ?? [],
   }
 }
 
@@ -85,4 +87,14 @@ export async function publishProperty(id: string): Promise<Property> {
 
 export async function unpublishProperty(id: string): Promise<Property> {
   return mapProperty(await post<ApiProperty>(`/properties/${id}/unpublish`))
+}
+
+export async function uploadPropertyMedia(id: string, file: File): Promise<PropertyMediaItem> {
+  const formData = new FormData()
+  formData.append('file', file)
+  return upload<PropertyMediaItem>(`/properties/${id}/media`, formData)
+}
+
+export async function deletePropertyMedia(id: string, mediaId: string): Promise<void> {
+  await del<void>(`/properties/${id}/media/${mediaId}`)
 }

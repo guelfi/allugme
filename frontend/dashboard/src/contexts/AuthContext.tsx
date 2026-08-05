@@ -16,6 +16,7 @@ interface AuthContextValue {
   isLoading: boolean
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   logout: () => Promise<void>
+  refreshUser: () => Promise<void>
   isSaasAdmin: boolean
   isAgencyAdmin: boolean
   isIndependent: boolean
@@ -64,6 +65,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }, [])
 
+  const refreshUser = useCallback(async () => {
+    if (!authApi.readToken()) return
+    try {
+      setUser(await authApi.fetchMe())
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
   const value = useMemo(
     () => ({
       user,
@@ -71,13 +81,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       login,
       logout,
+      refreshUser,
       isSaasAdmin: user?.role === 'saas_admin',
       isAgencyAdmin: user?.membershipRole === 'agency_admin',
       isIndependent:
         user?.membershipRole === 'independent_broker' || user?.tenantType === 'independent',
       canManageBrokers: Boolean(user?.canManageBrokers),
     }),
-    [user, isInitializing, isLoading, login, logout],
+    [user, isInitializing, isLoading, login, logout, refreshUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -154,10 +154,10 @@ export function VisitsPage() {
                 <tbody>
                   {blocks.map((b) => (
                     <tr key={b.id}>
-                      <td>{formatDateTime(b.startAt)}</td>
-                      <td>{formatDateTime(b.endAt)}</td>
-                      <td>{b.reason || '—'}</td>
-                      <td>
+                      <td data-label="Início">{formatDateTime(b.startAt)}</td>
+                      <td data-label="Fim">{formatDateTime(b.endAt)}</td>
+                      <td data-label="Motivo">{b.reason || '—'}</td>
+                      <td className="actions-cell">
                         <button
                           type="button"
                           className="btn btn-sm btn-ghost"
@@ -198,12 +198,12 @@ export function VisitsPage() {
             <tbody>
               {items.map((visit) => (
                 <tr key={visit.id}>
-                  <td>{visit.propertyTitle}</td>
-                  <td>{visit.visitorName}</td>
-                  <td>{visit.visitorPhone}</td>
-                  <td>{visit.brokerName || '—'}</td>
-                  <td>{formatDateTime(visit.startAt)}</td>
-                  <td>
+                  <td data-label="Imóvel">{visit.propertyTitle}</td>
+                  <td data-label="Visitante">{visit.visitorName}</td>
+                  <td data-label="Telefone">{visit.visitorPhone}</td>
+                  <td data-label="Corretor">{visit.brokerName || '—'}</td>
+                  <td data-label="Horário">{formatDateTime(visit.startAt)}</td>
+                  <td data-label="Status">
                     <span className={`badge badge-${visit.status}`}>
                       {statusLabel[visit.status] ?? visit.status}
                     </span>

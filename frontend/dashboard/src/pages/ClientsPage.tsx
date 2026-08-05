@@ -52,12 +52,12 @@ export function ClientsPage() {
             <tbody>
               {items.map((client, index) => (
                 <tr key={`${client.visitorPhone}-${client.tenantId ?? ''}-${index}`}>
-                  <td>{client.visitorName}</td>
-                  <td>{client.visitorPhone}</td>
-                  <td>{client.visitorEmail || '—'}</td>
-                  {isSaasReadOnly(user) && <td>{client.tenantName || '—'}</td>}
-                  <td>{client.visitCount}</td>
-                  <td>{new Date(client.lastVisitAt).toLocaleString('pt-BR')}</td>
+                  <td data-label="Nome">{client.visitorName}</td>
+                  <td data-label="Telefone">{client.visitorPhone}</td>
+                  <td data-label="E-mail">{client.visitorEmail || '—'}</td>
+                  {isSaasReadOnly(user) && <td data-label="Tenant">{client.tenantName || '—'}</td>}
+                  <td data-label="Visitas">{client.visitCount}</td>
+                  <td data-label="Última visita">{new Date(client.lastVisitAt).toLocaleString('pt-BR')}</td>
                 </tr>
               ))}
             </tbody>

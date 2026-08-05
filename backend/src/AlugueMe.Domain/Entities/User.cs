@@ -7,6 +7,8 @@ public class User
     public string PasswordHash { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string? Phone { get; set; }
+    /// <summary>Caminho da foto de rosto (armazenada via IFileStorage), exibida ao visitante no agendamento de visita.</summary>
+    public string? AvatarPath { get; set; }
     public bool IsSaasAdmin { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

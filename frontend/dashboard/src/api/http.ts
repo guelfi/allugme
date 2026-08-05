@@ -112,6 +112,37 @@ export async function http<T>(
   return parsed as T
 }
 
+export async function upload<T>(path: string, formData: FormData, options?: HttpOptions): Promise<T> {
+  const token = options?.token ?? readToken()
+  const headers: Record<string, string> = { Accept: 'application/json' }
+  if (!options?.skipAuth && token) {
+    headers.Authorization = `Bearer ${token}`
+  }
+
+  const response = await fetch(buildUrl(path, options?.query), {
+    method: 'POST',
+    headers,
+    body: formData,
+  })
+
+  const text = await response.text()
+  let parsed: unknown = null
+  if (text) {
+    try {
+      parsed = JSON.parse(text)
+    } catch {
+      parsed = text
+    }
+  }
+
+  if (!response.ok) {
+    if (response.status === 401) clearToken()
+    throw new ApiHttpError(response.status, parsed, errorMessage(response.status, parsed))
+  }
+
+  return parsed as T
+}
+
 export const get = <T>(path: string, options?: HttpOptions) =>
   http<T>('GET', path, undefined, options)
 export const post = <T>(path: string, body?: unknown, options?: HttpOptions) =>

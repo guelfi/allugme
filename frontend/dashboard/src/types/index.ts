@@ -7,8 +7,10 @@ export interface User {
   name: string
   email: string
   role: UserRole
+  avatarUrl?: string
   membershipRole?: MembershipRole
   tenantId?: string
+  tenantName?: string
   tenantType?: TenantType
   plan?: 'monthly' | 'yearly'
   includedBrokerSlots?: number
@@ -32,6 +34,13 @@ export interface Tenant {
   pixReferenceCode?: string | null
 }
 
+export interface PropertyMediaItem {
+  id: string
+  url: string
+  mediaType: 'photo' | 'video'
+  sortOrder: number
+}
+
 export interface Property {
   id: string
   title: string
@@ -47,6 +56,7 @@ export interface Property {
   description?: string
   neighborhood?: string
   tenantId?: string
+  media?: PropertyMediaItem[]
 }
 
 export interface Visit {
@@ -56,6 +66,7 @@ export interface Visit {
   visitorName: string
   visitorPhone: string
   visitorEmail?: string
+  brokerId?: string
   brokerName?: string
   startAt: string
   endAt: string

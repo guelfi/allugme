@@ -26,6 +26,7 @@ public class AuthController(
     IOptions<PixOptions> pixOptions,
     IQrCodeGenerator qrCodeGenerator,
     IEmailSender emailSender,
+    IFileStorage storage,
     ILogger<AuthController> logger) : ControllerBase
 {
     [HttpPost("register")]
@@ -260,6 +261,7 @@ public class AuthController(
             user.Name,
             user.Phone,
             user.IsSaasAdmin,
+            string.IsNullOrEmpty(user.AvatarPath) ? null : storage.GetPublicUrl(user.AvatarPath),
             memberships.Select(m => DtoMappers.ToDto(m, usage.GetValueOrDefault(m.TenantId))).ToList());
     }
 

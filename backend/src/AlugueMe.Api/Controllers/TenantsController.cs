@@ -26,6 +26,19 @@ public class TenantsController(AppDbContext db) : ControllerBase
         return Ok(tenants.Select(DtoMappers.ToDto));
     }
 
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<TenantDto>> Get(Guid id, CancellationToken ct)
+    {
+        if (!User.IsSaasAdmin())
+            return Forbid();
+
+        var tenant = await db.Tenants.FirstOrDefaultAsync(t => t.Id == id, ct);
+        if (tenant is null)
+            return NotFound();
+
+        return Ok(DtoMappers.ToDto(tenant));
+    }
+
     [HttpPost]
     public async Task<ActionResult<TenantDto>> Create([FromBody] CreateTenantRequest request, CancellationToken ct)
     {

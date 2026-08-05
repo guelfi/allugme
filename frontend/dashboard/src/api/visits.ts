@@ -5,6 +5,7 @@ type ApiVisit = {
   id: string
   propertyId: string
   propertyTitle: string
+  brokerId?: string
   visitorName: string
   visitorPhone: string
   visitorEmail?: string | null
@@ -28,6 +29,7 @@ function mapVisit(v: ApiVisit): Visit {
     visitorName: v.visitorName,
     visitorPhone: v.visitorPhone,
     visitorEmail: v.visitorEmail ?? undefined,
+    brokerId: v.brokerId,
     brokerName: v.brokerName,
     startAt: v.startAt,
     endAt: v.endAt,
@@ -37,7 +39,11 @@ function mapVisit(v: ApiVisit): Visit {
   }
 }
 
-export async function listVisits(params?: { status?: string; date?: string }): Promise<Visit[]> {
+export async function listVisits(params?: {
+  status?: string
+  date?: string
+  brokerId?: string
+}): Promise<Visit[]> {
   const query = params?.status === 'declined' ? { ...params, status: 'rejected' } : params
   const data = await get<ApiVisit[] | { items: ApiVisit[] }>('/visits', { query })
   const items = Array.isArray(data) ? data : (data.items ?? [])

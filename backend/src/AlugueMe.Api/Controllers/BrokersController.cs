@@ -2,6 +2,7 @@ using System.Security.Claims;
 using AlugueMe.Api.Auth;
 using AlugueMe.Application.Common;
 using AlugueMe.Application.Dtos.Brokers;
+using AlugueMe.Application.Interfaces;
 using AlugueMe.Domain.Entities;
 using AlugueMe.Domain.Enums;
 using AlugueMe.Infrastructure.Persistence;
@@ -14,8 +15,37 @@ namespace AlugueMe.Api.Controllers;
 [ApiController]
 [Route("api/v1/brokers")]
 [Authorize]
-public class BrokersController(AppDbContext db) : ControllerBase
+public class BrokersController(AppDbContext db, IFileStorage storage) : ControllerBase
 {
+    private static readonly string[] AllowedAvatarContentTypes = ["image/jpeg", "image/png", "image/webp"];
+
+    [HttpPost("me/avatar")]
+    [RequestSizeLimit(5 * 1024 * 1024)]
+    public async Task<ActionResult<object>> UploadMyAvatar(IFormFile file, CancellationToken ct)
+    {
+        if (User.IsSaasAdmin() && string.IsNullOrEmpty(User.GetRole()))
+            return Forbid();
+
+        if (file.Length == 0 || file.Length > 5 * 1024 * 1024 ||
+            !AllowedAvatarContentTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
+            return BadRequest(new { message = "Envie uma foto JPG, PNG ou WEBP de até 5MB." });
+
+        var userId = User.GetUserId();
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
+        if (user is null)
+            return NotFound();
+
+        var previousPath = user.AvatarPath;
+        await using var stream = file.OpenReadStream();
+        user.AvatarPath = await storage.SaveAsync(stream, file.FileName, file.ContentType, ct);
+        await db.SaveChangesAsync(ct);
+
+        if (!string.IsNullOrEmpty(previousPath))
+            await storage.DeleteAsync(previousPath, ct);
+
+        return Ok(new { avatarUrl = storage.GetPublicUrl(user.AvatarPath) });
+    }
+
     [HttpGet]
     public async Task<ActionResult<TeamResponse>> List([FromQuery] Guid? tenantId, CancellationToken ct)
     {
@@ -46,7 +76,8 @@ public class BrokersController(AppDbContext db) : ControllerBase
             m.User.Phone,
             EnumMapper.ToApi(m.Role),
             m.CreatedAt,
-            m.UserId == currentUserId)).ToList();
+            m.UserId == currentUserId,
+            string.IsNullOrEmpty(m.User.AvatarPath) ? null : storage.GetPublicUrl(m.User.AvatarPath))).ToList();
 
         var quota = BuildQuota(tenant, seats.Count, User);
         // SaaS nunca gerencia equipe do tenant
@@ -120,7 +151,8 @@ public class BrokersController(AppDbContext db) : ControllerBase
             user.Phone,
             EnumMapper.ToApi(membership.Role),
             membership.CreatedAt,
-            false));
+            false,
+            null));
     }
 
     [HttpDelete("{userId:guid}")]

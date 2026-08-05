@@ -23,6 +23,7 @@ public record UserDto(
     string Name,
     string? Phone,
     bool IsSaasAdmin,
+    string? AvatarUrl,
     IReadOnlyList<MembershipDto> Memberships);
 
 public record MembershipDto(

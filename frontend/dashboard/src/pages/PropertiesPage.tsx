@@ -74,16 +74,16 @@ export function PropertiesPage() {
             <tbody>
               {items.map((item) => (
                 <tr key={item.id}>
-                  <td>{item.title}</td>
-                  <td>{item.city}</td>
-                  <td>{item.operation === 'rent' ? 'Aluguel' : 'Venda'}</td>
-                  <td>
+                  <td data-label="Título">{item.title}</td>
+                  <td data-label="Cidade">{item.city}</td>
+                  <td data-label="Operação">{item.operation === 'rent' ? 'Aluguel' : 'Venda'}</td>
+                  <td data-label="Preço">
                     {item.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </td>
-                  <td>
+                  <td data-label="Status">
                     <span className={`badge badge-${item.status}`}>{statusLabel[item.status]}</span>
                   </td>
-                  <td>
+                  <td className="actions-cell">
                     <Link to={`/properties/${item.id}`} className="btn btn-ghost btn-sm">
                       {canWrite ? 'Editar' : 'Ver'}
                     </Link>

@@ -161,6 +161,10 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("MediaType")
+                        .HasDefaultValue(0)
+                        .HasColumnType("integer");
+
                     b.Property<string>("Path")
                         .IsRequired()
                         .HasColumnType("text");
@@ -295,6 +299,10 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<string>("AvatarPath")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");

@@ -25,6 +25,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(x => x.Email).IsUnique();
             e.Property(x => x.Email).HasMaxLength(256);
             e.Property(x => x.Name).HasMaxLength(200);
+            e.Property(x => x.AvatarPath).HasMaxLength(300);
         });
 
         modelBuilder.Entity<Tenant>(e =>
@@ -63,6 +64,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<PropertyMedia>(e =>
         {
             e.HasKey(x => x.Id);
+            e.Property(x => x.MediaType).HasDefaultValue(Domain.Enums.PropertyMediaType.Photo);
             e.HasOne(x => x.Property).WithMany(p => p.Media).HasForeignKey(x => x.PropertyId);
         });
 

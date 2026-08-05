@@ -1,4 +1,5 @@
 import { type FormEvent, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { createTenant, listTenants, updateTenantPlan, updateTenantStatus } from '../api/tenants'
 import type { Tenant } from '../types'
 
@@ -116,13 +117,15 @@ export function TenantsPage() {
             <tbody>
               {items.map((tenant) => (
                 <tr key={tenant.id}>
-                  <td>
-                    <strong>{tenant.name}</strong>
+                  <td data-label="Nome">
+                    <Link to={`/admin/tenants/${tenant.id}`}>
+                      <strong>{tenant.name}</strong>
+                    </Link>
                     <div className="muted">{tenant.slug}</div>
                   </td>
-                  <td>{tenant.type === 'independent' ? 'Independente' : 'Imobiliária'}</td>
-                  <td>{tenant.plan === 'yearly' ? 'Anual' : 'Mensal'}</td>
-                  <td>
+                  <td data-label="Tipo">{tenant.type === 'independent' ? 'Independente' : 'Imobiliária'}</td>
+                  <td data-label="Plano">{tenant.plan === 'yearly' ? 'Anual' : 'Mensal'}</td>
+                  <td data-label="Assentos">
                     {tenant.type === 'independent' ? (
                       '1 (fixo)'
                     ) : (
@@ -152,7 +155,7 @@ export function TenantsPage() {
                       </div>
                     )}
                   </td>
-                  <td>
+                  <td data-label="Status">
                     <span className={`badge badge-${tenant.status === 'pending_payment' ? 'pending' : tenant.status}`}>
                       {statusLabel[tenant.status] ?? tenant.status}
                     </span>
@@ -163,6 +166,9 @@ export function TenantsPage() {
                     )}
                   </td>
                   <td className="actions-cell">
+                    <Link to={`/admin/tenants/${tenant.id}`} className="btn btn-sm btn-ghost">
+                      Ver detalhes
+                    </Link>
                     {(tenant.status === 'pending_payment' || tenant.status === 'pending') && (
                       <button
                         type="button"

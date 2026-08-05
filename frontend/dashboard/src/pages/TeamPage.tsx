@@ -7,6 +7,7 @@ import {
   type BrokerQuota,
   type BrokerSeat,
 } from '../api/brokers'
+import { Modal } from '../components/Modal'
 import { PasswordInput } from '../components/PasswordInput'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -27,6 +28,7 @@ export function TeamPage() {
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [saving, setSaving] = useState(false)
+  const [showAddModal, setShowAddModal] = useState(false)
 
   useEffect(() => {
     if (!canManageBrokers) return
@@ -68,6 +70,7 @@ export function TeamPage() {
       setEmail('')
       setPhone('')
       setPassword('')
+      setShowAddModal(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha ao cadastrar corretor')
     } finally {
@@ -106,6 +109,15 @@ export function TeamPage() {
             Cadastre corretores até o limite do plano da imobiliária.
           </p>
         </div>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() => setShowAddModal(true)}
+          disabled={loading || atLimit}
+          title={atLimit ? 'Limite de assentos atingido' : undefined}
+        >
+          + Adicionar corretor
+        </button>
       </header>
 
       {error && <div className="alert alert-error">{error}</div>}
@@ -133,8 +145,54 @@ export function TeamPage() {
             </div>
           )}
 
-          <form className="card form-grid" onSubmit={(e) => void handleCreate(e)}>
-            <h2>Novo corretor</h2>
+          <div className="table-wrap card">
+            <table>
+              <thead>
+                <tr>
+                  <th />
+                  <th>Nome</th>
+                  <th>E-mail</th>
+                  <th>Papel</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {members.map((member) => (
+                  <tr key={member.userId}>
+                    <td data-label="Foto">
+                      <div className="avatar-preview avatar-preview-sm" title={member.avatarUrl ? '' : 'Sem foto de rosto cadastrada'}>
+                        {member.avatarUrl ? (
+                          <img src={member.avatarUrl} alt={member.name} />
+                        ) : (
+                          <span aria-hidden="true">{member.name.trim().charAt(0).toUpperCase()}</span>
+                        )}
+                      </div>
+                    </td>
+                    <td data-label="Nome">{member.name}</td>
+                    <td data-label="E-mail">{member.email}</td>
+                    <td data-label="Papel">{roleLabel[member.role] ?? member.role}</td>
+                    <td className="actions-cell">
+                      {member.role === 'broker' && !member.isCurrentUser && (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-danger"
+                          onClick={() => void handleRemove(member)}
+                        >
+                          Remover
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {showAddModal && (
+        <Modal title="Adicionar corretor" onClose={() => setShowAddModal(false)}>
+          <form className="form-grid" onSubmit={(e) => void handleCreate(e)}>
             <label>
               Nome
               <input value={name} onChange={(e) => setName(e.target.value)} required disabled={atLimit} />
@@ -168,40 +226,7 @@ export function TeamPage() {
               {saving ? 'Salvando…' : 'Cadastrar corretor'}
             </button>
           </form>
-
-          <div className="table-wrap card" style={{ marginTop: '1rem' }}>
-            <table>
-              <thead>
-                <tr>
-                  <th>Nome</th>
-                  <th>E-mail</th>
-                  <th>Papel</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {members.map((member) => (
-                  <tr key={member.userId}>
-                    <td>{member.name}</td>
-                    <td>{member.email}</td>
-                    <td>{roleLabel[member.role] ?? member.role}</td>
-                    <td className="actions-cell">
-                      {member.role === 'broker' && !member.isCurrentUser && (
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-danger"
-                          onClick={() => void handleRemove(member)}
-                        >
-                          Remover
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
+        </Modal>
       )}
     </div>
   )

@@ -18,7 +18,7 @@ public record PropertyDto(
     DateTime? PublishedAt,
     IReadOnlyList<PropertyMediaDto> Media);
 
-public record PropertyMediaDto(Guid Id, string Url, int SortOrder);
+public record PropertyMediaDto(Guid Id, string Url, string MediaType, int SortOrder);
 
 public record CreatePropertyRequest(
     string Operation,
@@ -57,7 +57,10 @@ public record PublicPropertyDto(
     string PropertyType,
     string TenantName,
     string TenantSlug,
-    IReadOnlyList<string> ImageUrls);
+    IReadOnlyList<string> ImageUrls,
+    string? VideoUrl,
+    string BrokerName,
+    string? BrokerAvatarUrl);
 
 public record PublicPropertySearchResult(
     IReadOnlyList<PublicPropertyDto> Items,

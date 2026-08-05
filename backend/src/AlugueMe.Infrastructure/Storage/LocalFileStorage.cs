@@ -24,4 +24,12 @@ public class LocalFileStorage(IOptions<StorageOptions> options) : IFileStorage
 
     public string GetPublicUrl(string path) =>
         $"{_options.PublicBaseUrl.TrimEnd('/')}/{path.TrimStart('/')}";
+
+    public Task DeleteAsync(string path, CancellationToken cancellationToken = default)
+    {
+        var fullPath = Path.Combine(Path.GetFullPath(_options.MediaPath), path);
+        if (File.Exists(fullPath))
+            File.Delete(fullPath);
+        return Task.CompletedTask;
+    }
 }

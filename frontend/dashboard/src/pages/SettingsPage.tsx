@@ -1,5 +1,6 @@
-import { type FormEvent, useEffect, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
+import { uploadMyAvatar } from '../api/brokers'
 import {
   getBrokerSettings,
   getTenantSettings,
@@ -17,9 +18,12 @@ import {
 import type { TenantSettings } from '../types'
 
 export function SettingsPage() {
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
   const tenantMode = canEditTenantSettings(user)
   const brokerMode = canEditBrokerSettings(user) && !tenantMode
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const [avatarError, setAvatarError] = useState<string | null>(null)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
 
   const [tenantForm, setTenantForm] = useState<TenantSettings>({
     visitDurationMinutes: 60,
@@ -83,6 +87,22 @@ export function SettingsPage() {
     }
   }
 
+  async function handleAvatarSelect(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    setAvatarError(null)
+    setAvatarUploading(true)
+    try {
+      await uploadMyAvatar(file)
+      await refreshUser()
+    } catch (err) {
+      setAvatarError(err instanceof Error ? err.message : 'Erro ao enviar foto')
+    } finally {
+      setAvatarUploading(false)
+    }
+  }
+
   if (loading) return <p className="muted">Carregando…</p>
 
   return (
@@ -100,6 +120,41 @@ export function SettingsPage() {
 
       {error && <div className="alert alert-error">{error}</div>}
       {message && <div className="alert alert-success">{message}</div>}
+
+      <section className="card" style={{ marginBottom: '1rem' }}>
+        <h2>Minha foto de rosto</h2>
+        <p className="muted">
+          Exibida ao visitante quando ele agenda uma visita com você. Obrigatória para publicar
+          imóveis.
+        </p>
+        {avatarError && <div className="alert alert-error">{avatarError}</div>}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className="avatar-preview">
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt={user?.name ?? 'Foto de perfil'} />
+            ) : (
+              <span aria-hidden="true">
+                {(user?.name ?? '?').trim().charAt(0).toUpperCase()}
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => avatarInputRef.current?.click()}
+            disabled={avatarUploading}
+          >
+            {avatarUploading ? 'Enviando…' : user?.avatarUrl ? 'Trocar foto' : 'Enviar foto'}
+          </button>
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            style={{ display: 'none' }}
+            onChange={(e) => void handleAvatarSelect(e)}
+          />
+        </div>
+      </section>
 
       <form className="card form-grid" onSubmit={(e) => void handleSubmit(e)}>
         <h2>Agenda</h2>

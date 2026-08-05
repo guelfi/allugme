@@ -7,7 +7,8 @@ public record BrokerSeatDto(
     string? Phone,
     string Role,
     DateTime CreatedAt,
-    bool IsCurrentUser);
+    bool IsCurrentUser,
+    string? AvatarUrl);
 
 public record BrokerQuotaDto(
     string TenantType,

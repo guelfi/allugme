@@ -65,6 +65,8 @@ public static class EnumMapper
     public static VisitStatus ParseVisitStatus(string value) =>
         Enum.Parse<VisitStatus>(value, true);
 
+    public static string ToApi(PropertyMediaType type) => type == PropertyMediaType.Video ? "video" : "photo";
+
     public static string? ToApi(ConfirmedVia? via) => via?.ToString().ToLowerInvariant();
 }
 
@@ -117,7 +119,9 @@ public static class DtoMappers
         new(p.Id, p.TenantId, p.ResponsibleBrokerId, EnumMapper.ToApi(p.Operation), EnumMapper.ToApi(p.Status),
             EnumMapper.ToApi(p.PropertyType), p.Title, p.Description, p.City, p.Neighborhood, p.Price,
             p.Bedrooms, p.AreaSqm, p.CreatedAt, p.PublishedAt,
-            p.Media.OrderBy(m => m.SortOrder).Select(m => new Dtos.Properties.PropertyMediaDto(m.Id, urlResolver(m.Path), m.SortOrder)).ToList());
+            p.Media.OrderBy(m => m.SortOrder)
+                .Select(m => new Dtos.Properties.PropertyMediaDto(m.Id, urlResolver(m.Path), EnumMapper.ToApi(m.MediaType), m.SortOrder))
+                .ToList());
 
     public static Dtos.Visits.VisitDto ToDto(Visit v) =>
         new(v.Id, v.PropertyId, v.Property.Title, v.TenantId, v.BrokerId, v.Broker.Name,

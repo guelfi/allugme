@@ -1,3 +1,5 @@
+using AlugueMe.Domain.Enums;
+
 namespace AlugueMe.Domain.Entities;
 
 public class PropertyMedia
@@ -5,6 +7,7 @@ public class PropertyMedia
     public Guid Id { get; set; }
     public Guid PropertyId { get; set; }
     public string Path { get; set; } = string.Empty;
+    public PropertyMediaType MediaType { get; set; } = PropertyMediaType.Photo;
     public int SortOrder { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

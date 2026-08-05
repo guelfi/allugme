@@ -21,6 +21,7 @@ type ApiUser = {
   name: string
   phone?: string | null
   isSaasAdmin?: boolean
+  avatarUrl?: string | null
   memberships?: ApiMembership[]
 }
 
@@ -45,8 +46,10 @@ export function mapUser(dto: ApiUser): User {
     email: dto.email,
     name: dto.name,
     role: mapRole(dto),
+    avatarUrl: dto.avatarUrl ?? undefined,
     membershipRole,
     tenantId: membership?.tenantId,
+    tenantName: membership?.tenantName,
     tenantType: (membership?.tenantType as TenantType | undefined) ?? undefined,
     plan: membership?.plan === 'yearly' ? 'yearly' : membership?.plan ? 'monthly' : undefined,
     includedBrokerSlots: membership?.includedBrokerSlots,

@@ -16,6 +16,11 @@ namespace AlugueMe.Api.Controllers;
 [Authorize]
 public class PropertiesController(AppDbContext db, IFileStorage storage) : ControllerBase
 {
+    private const int MaxPhotos = 13;
+    private const int MaxVideos = 1;
+    private static readonly string[] AllowedVideoContentTypes =
+        ["video/mp4", "video/webm", "video/quicktime"];
+
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<PropertyDto>>> List(CancellationToken ct)
     {
@@ -141,6 +146,13 @@ public class PropertiesController(AppDbContext db, IFileStorage storage) : Contr
         if (!CanEdit(property))
             return Forbid();
 
+        var broker = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == property.ResponsibleBrokerId, ct);
+        if (string.IsNullOrEmpty(broker?.AvatarPath))
+            return BadRequest(new
+            {
+                message = "O corretor responsável por este imóvel precisa cadastrar uma foto de rosto antes de publicar. Peça para ele acessar Equipe/Configurações e enviar a foto."
+            });
+
         property.Status = PropertyStatus.Published;
         property.PublishedAt = DateTime.UtcNow;
         await db.SaveChangesAsync(ct);
@@ -162,7 +174,7 @@ public class PropertiesController(AppDbContext db, IFileStorage storage) : Contr
     }
 
     [HttpPost("{id:guid}/media")]
-    [RequestSizeLimit(10 * 1024 * 1024)]
+    [RequestSizeLimit(50 * 1024 * 1024)]
     public async Task<ActionResult<PropertyMediaDto>> UploadMedia(Guid id, IFormFile file, CancellationToken ct)
     {
         var property = await FindPropertyAsync(id, ct);
@@ -171,8 +183,29 @@ public class PropertiesController(AppDbContext db, IFileStorage storage) : Contr
         if (!CanEdit(property))
             return Forbid();
 
-        if (file.Length == 0 || !file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
-            return BadRequest(new { message = "Arquivo de imagem inválido." });
+        if (file.Length == 0)
+            return BadRequest(new { message = "Arquivo inválido." });
+
+        var isImage = file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase);
+        var isVideo = AllowedVideoContentTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase);
+
+        if (!isImage && !isVideo)
+            return BadRequest(new { message = "Envie uma foto (JPG/PNG/WEBP) ou um vídeo (MP4/WEBM/MOV)." });
+
+        var mediaType = isVideo ? PropertyMediaType.Video : PropertyMediaType.Photo;
+
+        if (mediaType == PropertyMediaType.Photo && file.Length > 10 * 1024 * 1024)
+            return BadRequest(new { message = "Cada foto deve ter no máximo 10MB." });
+        if (mediaType == PropertyMediaType.Video && file.Length > 50 * 1024 * 1024)
+            return BadRequest(new { message = "O vídeo deve ter no máximo 50MB." });
+
+        var existingCount = property.Media.Count(m => m.MediaType == mediaType);
+        var limit = mediaType == PropertyMediaType.Video ? MaxVideos : MaxPhotos;
+        if (existingCount >= limit)
+        {
+            var what = mediaType == PropertyMediaType.Video ? "1 vídeo" : $"{MaxPhotos} fotos";
+            return BadRequest(new { message = $"Limite de {what} por imóvel já foi atingido." });
+        }
 
         await using var stream = file.OpenReadStream();
         var path = await storage.SaveAsync(stream, file.FileName, file.ContentType, ct);
@@ -182,12 +215,33 @@ public class PropertiesController(AppDbContext db, IFileStorage storage) : Contr
             Id = Guid.NewGuid(),
             PropertyId = property.Id,
             Path = path,
+            MediaType = mediaType,
             SortOrder = sortOrder
         };
         db.PropertyMedia.Add(media);
         await db.SaveChangesAsync(ct);
 
-        return Ok(new PropertyMediaDto(media.Id, storage.GetPublicUrl(media.Path), media.SortOrder));
+        return Ok(new PropertyMediaDto(media.Id, storage.GetPublicUrl(media.Path), EnumMapper.ToApi(media.MediaType), media.SortOrder));
+    }
+
+    [HttpDelete("{id:guid}/media/{mediaId:guid}")]
+    public async Task<IActionResult> DeleteMedia(Guid id, Guid mediaId, CancellationToken ct)
+    {
+        var property = await FindPropertyAsync(id, ct);
+        if (property is null)
+            return NotFound();
+        if (!CanEdit(property))
+            return Forbid();
+
+        var media = property.Media.FirstOrDefault(m => m.Id == mediaId);
+        if (media is null)
+            return NotFound();
+
+        db.PropertyMedia.Remove(media);
+        await db.SaveChangesAsync(ct);
+        await storage.DeleteAsync(media.Path, ct);
+
+        return NoContent();
     }
 
     private async Task<Property?> FindPropertyAsync(Guid id, CancellationToken ct)

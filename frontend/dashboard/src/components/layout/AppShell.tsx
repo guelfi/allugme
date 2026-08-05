@@ -103,6 +103,11 @@ export function AppShell() {
           <BrandMark className="brand-mark" />
           <strong aria-hidden="true">llugme</strong>
         </div>
+        {!isSaasReadOnly(user) && user?.tenantName && (
+          <div className="topbar-tenant" title={user.tenantName}>
+            {user.tenantName}
+          </div>
+        )}
         <div className="user-menu">
           <span className="user-name">
             {user?.name ?? user?.email}
@@ -128,10 +133,7 @@ export function AppShell() {
       <aside id="app-sidebar" className="sidebar">
         <div className="brand brand-sidebar" aria-label="Allugme">
           <BrandMark className="brand-mark" />
-          <div>
-            <strong aria-hidden="true">llugme</strong>
-            <small>{roleHint}</small>
-          </div>
+          <strong aria-hidden="true">llugme</strong>
         </div>
         <nav className="nav">{links}</nav>
       </aside>
