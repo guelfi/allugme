@@ -2,7 +2,7 @@ import { type FormEvent, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { registerAccount } from '../api/auth'
 import { PasswordInput } from '../components/PasswordInput'
-import { agencyPricing, independentPricing, planFullLabel } from '../pricing'
+import { agencyPricing, independentPricing, planFullLabel, yearlySavingsLabel } from '../pricing'
 
 type AccountType = 'agency' | 'independent'
 type Plan = 'monthly' | 'yearly'
@@ -164,7 +164,7 @@ export function RegisterPage() {
                   {isAgency ? (
                     <>
                       <li>Até {agencyPricing.monthly.includedBrokers} corretores inclusos</li>
-                      <li>Extra: {agencyPricing.extraBrokerMonthly}/mês</li>
+                      <li>Extra: {agencyPricing.extraBrokerMonthly}</li>
                       <li>Vitrine, agenda e WhatsApp</li>
                     </>
                   ) : (
@@ -197,14 +197,14 @@ export function RegisterPage() {
                   {isAgency ? (
                     <>
                       <li>Até {agencyPricing.yearly.includedBrokers} corretores inclusos</li>
-                      <li>Extra: {agencyPricing.extraBrokerYearly}/mês</li>
-                      <li>Economia vs. 12× mensal</li>
+                      <li>Extra: {agencyPricing.extraBrokerYearly}</li>
+                      <li>{yearlySavingsLabel('agency')}</li>
                     </>
                   ) : (
                     <>
                       <li>Conta individual (1 corretor)</li>
                       <li>Mesmos recursos do mensal</li>
-                      <li>Economia vs. 12× mensal</li>
+                      <li>{yearlySavingsLabel('independent')}</li>
                     </>
                   )}
                 </ul>

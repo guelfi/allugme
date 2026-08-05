@@ -25,7 +25,7 @@ function WhatsAppIcon({ className }: { className?: string }) {
     </svg>
   )
 }
-import { agencyPricing, independentPricing } from '../pricing'
+import { agencyPricing, independentPricing, yearlySavingsLabel } from '../pricing'
 
 type CarouselDirection = 'forward' | 'reverse'
 type PlanAudience = 'agency' | 'independent'
@@ -229,7 +229,7 @@ function PricingCards({ audience }: { audience: PlanAudience }) {
           </p>
           <ul>
             <li>Até {agencyPricing.monthly.includedBrokers} corretores inclusos</li>
-            <li>Corretor extra: {agencyPricing.extraBrokerMonthly}/mês</li>
+            <li>Corretor extra: {agencyPricing.extraBrokerMonthly}</li>
             <li>Vitrine, agenda com buffer e WhatsApp</li>
             <li>Ativação após Pix</li>
           </ul>
@@ -246,8 +246,8 @@ function PricingCards({ audience }: { audience: PlanAudience }) {
           </p>
           <ul>
             <li>Até {agencyPricing.yearly.includedBrokers} corretores inclusos</li>
-            <li>Corretor extra: {agencyPricing.extraBrokerYearly}/mês</li>
-            <li>Economia vs. 12× mensal</li>
+            <li>Corretor extra: {agencyPricing.extraBrokerYearly}</li>
+            <li>{yearlySavingsLabel('agency')}</li>
             <li>Liberação pelo administrador</li>
           </ul>
           <Link to="/register?type=agency&plan=yearly" className="btn btn-primary btn-block">
@@ -286,7 +286,7 @@ function PricingCards({ audience }: { audience: PlanAudience }) {
         <ul>
           <li>Conta individual (1 corretor)</li>
           <li>Mesmos recursos do plano mensal</li>
-          <li>Economia vs. 12× mensal</li>
+          <li>{yearlySavingsLabel('independent')}</li>
           <li>Liberação pelo administrador</li>
         </ul>
         <Link to="/register?type=independent&plan=yearly" className="btn btn-primary btn-block">
@@ -336,7 +336,7 @@ export function LandingPage() {
     const id = window.setInterval(() => {
       if (Date.now() < manualPauseUntil.current) return
       setPlanAudience((prev) => (prev === 'agency' ? 'independent' : 'agency'))
-    }, 4000)
+    }, 7000)
 
     return () => window.clearInterval(id)
   }, [planInView, planAutoPaused])
@@ -533,7 +533,7 @@ export function LandingPage() {
                 </div>
                 <p className="lp-plan-audience-note">
                   {isAgency
-                    ? `Até ${agencyPricing.monthly.includedBrokers} corretores inclusos. Extra: ${agencyPricing.extraBrokerMonthly}/mês (mensal) ou ${agencyPricing.extraBrokerYearly}/mês (anual).`
+                    ? `Até ${agencyPricing.monthly.includedBrokers} corretores inclusos. Extra: ${agencyPricing.extraBrokerMonthly} (mensal) ou ${agencyPricing.extraBrokerYearly} (anual).`
                     : 'Conta individual: vitrine, agenda e WhatsApp só seus — sem assentos de equipe.'}
                 </p>
               </aside>
@@ -552,7 +552,6 @@ export function LandingPage() {
 
         <section id="contato" className="lp-viewport lp-close" aria-label="Contato e cadastro">
           <div className="lp-close-inner">
-            <p className="lp-kicker lp-close-kicker">Contato</p>
             <h2>Coloque sua carteira de imóveis no ar</h2>
             <p>
               Imobiliária com equipe ou corretor independente: cadastre-se, pague via Pix e aguarde a

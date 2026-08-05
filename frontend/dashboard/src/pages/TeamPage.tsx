@@ -127,7 +127,7 @@ export function TeamPage() {
               {atLimit && (
                 <p className="muted" style={{ margin: '0.5rem 0 0' }}>
                   Limite atingido. Para mais corretores, solicite assentos extras ao administrador
-                  Allugme (R$ 39,00/mês no mensal ou R$ 29,00/mês no anual).
+                  Allugme (R$ 39,00/mês no mensal ou R$ 190,00/ano no anual).
                 </p>
               )}
             </div>
