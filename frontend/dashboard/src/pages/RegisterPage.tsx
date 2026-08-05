@@ -1,10 +1,13 @@
 import { useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
-import { quotePix, registerAccount, type PixQuote } from '../api/auth'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { mapUser, quotePix, registerAccount, type PixQuote } from '../api/auth'
 import { PasswordInput } from '../components/PasswordInput'
+import { useAuth } from '../contexts/AuthContext'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { agencyPricing, independentPricing, planFullLabel, yearlySavingsLabel } from '../pricing'
 import { formatBrPhone, isValidBrPhone, phoneToE164 } from '../utils/phone'
+
+const TRIAL_DAYS = 7
 
 type AccountType = 'agency' | 'independent'
 type Plan = 'monthly' | 'yearly'
@@ -21,6 +24,8 @@ function parsePlan(value: string | null): Plan {
 export function RegisterPage() {
   const [params, setParams] = useSearchParams()
   const isMobile = useIsMobile()
+  const navigate = useNavigate()
+  const { applySession } = useAuth()
   const accountType = parseAccountType(params.get('type'))
   const plan = parsePlan(params.get('plan'))
 
@@ -37,7 +42,9 @@ export function RegisterPage() {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [done, setDone] = useState<{ message: string; plan: string } | null>(null)
+  const [done, setDone] = useState<{ message: string; plan: string; trialEndsAt: string } | null>(
+    null,
+  )
 
   const planLabel = useMemo(() => planFullLabel(plan, accountType), [plan, accountType])
   const isAgency = accountType === 'agency'
@@ -118,7 +125,8 @@ export function RegisterPage() {
         plan,
         pixReferenceCode: pixQuote?.txId,
       })
-      setDone({ message: result.message, plan: result.plan })
+      applySession(result.accessToken, mapUser(result.user))
+      setDone({ message: result.message, plan: result.plan, trialEndsAt: result.trialEndsAt })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha no cadastro')
     } finally {
@@ -141,14 +149,16 @@ export function RegisterPage() {
               Allugme
             </Link>
           </div>
-          <h1>Cadastro recebido</h1>
+          <h1>Cadastro concluído</h1>
           <p className="muted">{done.message}</p>
           <div className="alert" style={{ background: '#ecfdf5', color: '#065f46' }}>
             Plano: <strong>{done.plan || planLabel}</strong>
             <br />
-            Pagamento: <strong>Pix</strong> — liberação pelo administrador Allugme.
+            Teste grátis: <strong>{TRIAL_DAYS} dias</strong>, até{' '}
+            <strong>{new Date(done.trialEndsAt).toLocaleDateString('pt-BR')}</strong>.
             <br />
-            Enviamos os detalhes e o QR Code do Pix para o seu e-mail.
+            Pague o Pix abaixo quando quiser para manter o acesso depois desse prazo. Também
+            enviamos os detalhes e o QR Code para o seu e-mail.
           </div>
           {pixQuote && (
             <div className="register-pix register-pix-done">
@@ -166,9 +176,9 @@ export function RegisterPage() {
               </div>
             </div>
           )}
-          <Link to="/login" className="btn btn-primary">
-            Ir para o login
-          </Link>
+          <button type="button" className="btn btn-primary" onClick={() => navigate('/painel')}>
+            Ir para o Dashboard
+          </button>
           <Link to="/" className="btn btn-ghost">
             Voltar à página inicial
           </Link>
@@ -203,7 +213,7 @@ export function RegisterPage() {
             inputMode="tel"
             value={phone}
             onChange={(e) => setPhone(formatBrPhone(e.target.value))}
-            placeholder="(11) 97574-7470"
+            placeholder="(99) 99999-9999"
             required
           />
         </label>
@@ -313,10 +323,13 @@ export function RegisterPage() {
             </span>
             <span className="register-lead-inline muted">
               {isAgency
-                ? 'Equipe, vitrine e agenda — ativação após Pix.'
+                ? `Equipe, vitrine e agenda — ${TRIAL_DAYS} dias grátis para testar.`
                 : 'Conta individual, vitrine e agenda só suas.'}
             </span>
           </h1>
+          {!isAgency && (
+            <p className="register-trial-note muted">{TRIAL_DAYS} dias grátis para testar.</p>
+          )}
 
           {!showConfirm && (
             <div className="register-context" role="group" aria-label="Tipo de conta">
@@ -428,6 +441,11 @@ export function RegisterPage() {
                 <p className="muted register-pix-ref">Referência: {pixQuote.txId}</p>
               </div>
             </div>
+
+            <p className="register-trial-note muted">
+              Você terá {TRIAL_DAYS} dias grátis para usar o Allugme a partir do cadastro. Pague o
+              Pix agora ou quando quiser dentro desse prazo.
+            </p>
 
             {error && <div className="alert alert-error">{error}</div>}
 

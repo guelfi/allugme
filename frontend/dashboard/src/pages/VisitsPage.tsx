@@ -174,18 +174,21 @@ export function VisitsPage() {
         <div>
           <div className="page-title-row">
             <h1>{isBroker(user) ? 'Minha agenda' : 'Agenda de visitas'}</h1>
+            <span className="page-title-sep" aria-hidden="true">
+              -
+            </span>
+            <span className="page-title-hint">
+              {readOnly ? 'somente leitura' : 'Confirme ou recuse solicitações da vitrine'}
+            </span>
             {readOnly && (
               <>
                 <span className="page-title-sep" aria-hidden="true">
                   -
                 </span>
-                <span className="page-title-hint">somente leitura</span>
+                <span className="page-title-hint">Visão global</span>
               </>
             )}
           </div>
-          <p className="muted">
-            {readOnly ? 'Visão global' : 'Confirme ou recuse solicitações da vitrine'}
-          </p>
         </div>
       </header>
 

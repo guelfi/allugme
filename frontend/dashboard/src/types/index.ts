@@ -18,13 +18,15 @@ export interface User {
   usedBrokerSlots?: number
   maxBrokerSlots?: number
   canManageBrokers?: boolean
+  tenantStatus?: 'active' | 'suspended' | 'pending_payment' | 'trial'
+  trialEndsAt?: string
 }
 
 export interface Tenant {
   id: string
   name: string
   slug: string
-  status: 'active' | 'suspended' | 'pending' | 'pending_payment'
+  status: 'active' | 'suspended' | 'pending' | 'pending_payment' | 'trial'
   type: string
   plan?: string
   includedBrokerSlots?: number
@@ -32,6 +34,7 @@ export interface Tenant {
   maxBrokerSlots?: number
   createdAt: string
   pixReferenceCode?: string | null
+  trialEndsAt?: string | null
 }
 
 export interface PropertyMediaItem {

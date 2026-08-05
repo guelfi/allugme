@@ -66,7 +66,8 @@ public class PublicController(
             .Include(p => p.Tenant)
             .Include(p => p.Media)
             .Include(p => p.ResponsibleBroker)
-            .Where(p => p.Status == PropertyStatus.Published && p.Tenant.Status == TenantStatus.Active);
+            .Where(p => p.Status == PropertyStatus.Published &&
+                        (p.Tenant.Status == TenantStatus.Active || p.Tenant.Status == TenantStatus.Trial));
 
         if (!string.IsNullOrWhiteSpace(city))
             query = query.Where(p => EF.Functions.ILike(p.City, $"%{city}%"));
@@ -101,7 +102,8 @@ public class PublicController(
             .Include(x => x.Tenant)
             .Include(x => x.Media)
             .Include(x => x.ResponsibleBroker)
-            .FirstOrDefaultAsync(x => x.Id == id && x.Status == PropertyStatus.Published && x.Tenant.Status == TenantStatus.Active, ct);
+            .FirstOrDefaultAsync(x => x.Id == id && x.Status == PropertyStatus.Published &&
+                (x.Tenant.Status == TenantStatus.Active || x.Tenant.Status == TenantStatus.Trial), ct);
 
         if (p is null)
             return NotFound();
@@ -121,7 +123,8 @@ public class PublicController(
     {
         var property = await db.Properties
             .Include(p => p.Tenant).ThenInclude(t => t.Settings)
-            .FirstOrDefaultAsync(p => p.Id == id && p.Status == PropertyStatus.Published && p.Tenant.Status == TenantStatus.Active, ct);
+            .FirstOrDefaultAsync(p => p.Id == id && p.Status == PropertyStatus.Published &&
+                (p.Tenant.Status == TenantStatus.Active || p.Tenant.Status == TenantStatus.Trial), ct);
 
         if (property is null)
             return NotFound();
@@ -161,7 +164,8 @@ public class PublicController(
     {
         var property = await db.Properties
             .Include(p => p.Tenant).ThenInclude(t => t.Settings)
-            .FirstOrDefaultAsync(p => p.Id == request.PropertyId && p.Status == PropertyStatus.Published && p.Tenant.Status == TenantStatus.Active, ct);
+            .FirstOrDefaultAsync(p => p.Id == request.PropertyId && p.Status == PropertyStatus.Published &&
+                (p.Tenant.Status == TenantStatus.Active || p.Tenant.Status == TenantStatus.Trial), ct);
 
         if (property is null)
             return NotFound(new { message = "Imóvel não disponível." });

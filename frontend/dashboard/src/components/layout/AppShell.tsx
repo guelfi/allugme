@@ -99,6 +99,7 @@ export function AppShell() {
       : user?.tenantType === 'independent'
         ? 'Corretor independente'
         : 'Imobiliária'
+  const tenantProfileLabel = user?.tenantType === 'independent' ? 'Corretor independente' : 'Imobiliária'
 
   const sidebarClassName = [
     'sidebar',
@@ -130,6 +131,14 @@ export function AppShell() {
         {!isSaasReadOnly(user) && user?.tenantName && (
           <div className="topbar-tenant" title={user.tenantName}>
             {user.tenantName}
+            {tenantProfileLabel && (
+              <>
+                <span className="page-title-sep" aria-hidden="true">
+                  -
+                </span>
+                <span className="topbar-tenant-profile">{tenantProfileLabel}</span>
+              </>
+            )}
           </div>
         )}
         <div className="user-menu">

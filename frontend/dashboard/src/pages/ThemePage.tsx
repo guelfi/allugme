@@ -47,8 +47,13 @@ export function ThemePage() {
     <div>
       <header className="page-header">
         <div>
-          <h1>Tema da vitrine</h1>
-          <p className="muted">Layout público em /seu-slug (raiz do domínio)</p>
+          <div className="page-title-row">
+            <h1>Tema da vitrine</h1>
+            <span className="page-title-sep" aria-hidden="true">
+              -
+            </span>
+            <span className="page-title-hint">Layout público em /seu-slug (raiz do domínio)</span>
+          </div>
         </div>
       </header>
 

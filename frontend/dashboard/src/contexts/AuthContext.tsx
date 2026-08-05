@@ -17,6 +17,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
+  applySession: (token: string, user: User) => void
   isSaasAdmin: boolean
   isAgencyAdmin: boolean
   isIndependent: boolean
@@ -59,6 +60,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const applySession = useCallback((token: string, nextUser: User) => {
+    authApi.persistToken(token)
+    setUser(nextUser)
+  }, [])
+
   const logout = useCallback(async () => {
     await authApi.logout()
     authApi.clearToken()
@@ -82,13 +88,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       refreshUser,
+      applySession,
       isSaasAdmin: user?.role === 'saas_admin',
       isAgencyAdmin: user?.membershipRole === 'agency_admin',
       isIndependent:
         user?.membershipRole === 'independent_broker' || user?.tenantType === 'independent',
       canManageBrokers: Boolean(user?.canManageBrokers),
     }),
-    [user, isInitializing, isLoading, login, logout, refreshUser],
+    [user, isInitializing, isLoading, login, logout, refreshUser, applySession],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

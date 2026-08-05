@@ -109,12 +109,17 @@ export function SettingsPage() {
     <div>
       <header className="page-header">
         <div>
-          <h1>Configurações</h1>
-          <p className="muted">
-            {tenantMode
-              ? 'Buffer entre visitas e WhatsApp da imobiliária'
-              : 'Preferências de agenda e WhatsApp do corretor'}
-          </p>
+          <div className="page-title-row">
+            <h1>Configurações</h1>
+            <span className="page-title-sep" aria-hidden="true">
+              -
+            </span>
+            <span className="page-title-hint">
+              {tenantMode
+                ? 'Buffer entre visitas e WhatsApp da imobiliária'
+                : 'Preferências de agenda e WhatsApp do corretor'}
+            </span>
+          </div>
         </div>
       </header>
 

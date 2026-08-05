@@ -29,6 +29,8 @@ public class AuthController(
     IFileStorage storage,
     ILogger<AuthController> logger) : ControllerBase
 {
+    private const int TrialDays = 7;
+
     [HttpPost("register")]
     [AllowAnonymous]
     public async Task<ActionResult<object>> Register([FromBody] RegisterRequest request, CancellationToken ct)
@@ -55,6 +57,7 @@ public class AuthController(
             : request.PixReferenceCode.Trim().ToUpperInvariant();
 
         var slug = await UniqueSlugAsync(request.BusinessName, ct);
+        var trialEndsAt = DateTime.UtcNow.AddDays(TrialDays);
 
         var user = new User
         {
@@ -72,12 +75,13 @@ public class AuthController(
             Name = request.BusinessName.Trim(),
             Slug = slug,
             Type = isIndependent ? TenantType.Independent : TenantType.Agency,
-            Status = TenantStatus.PendingPayment,
+            Status = TenantStatus.Trial,
             ThemeKey = "moderno",
             Plan = plan,
             IncludedBrokerSlots = isIndependent ? 1 : 5,
             ExtraBrokerSlots = 0,
-            PixReferenceCode = pixReferenceCode
+            PixReferenceCode = pixReferenceCode,
+            TrialEndsAt = trialEndsAt
         };
         db.Tenants.Add(tenant);
         db.TenantSettings.Add(new TenantSettings
@@ -116,22 +120,29 @@ public class AuthController(
                 qrCodePngBase64 = Convert.ToBase64String(qrPng)
             };
 
-            await SendRegistrationEmailAsync(user, tenant.Name, planLabel, amount, pixReferenceCode, copyPaste, qrPng, ct);
+            await SendRegistrationEmailAsync(user, tenant.Name, planLabel, amount, pixReferenceCode, copyPaste, qrPng, trialEndsAt, ct);
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Falha ao gerar Pix/QR ou preparar e-mail para o cadastro de {Email}.", user.Email);
         }
 
+        var token = jwt.GenerateToken(user.Id, user.Email, user.Name, false, tenant.Id, EnumMapper.ToApi(role));
+        var memberships = await LoadMembershipsAsync(user.Id, ct);
+        var userDto = await MapUserAsync(user, memberships, ct);
+
         return Ok(new
         {
             message =
-                "Cadastro recebido. Realize o pagamento via Pix e aguarde a liberação pelo administrador do Allugme para acessar o painel.",
+                $"Cadastro concluído! Você já pode acessar o Allugme com {TrialDays} dias grátis. Pague via Pix quando quiser para manter o acesso depois do período de teste.",
             plan = planLabel,
             paymentMethod = "pix",
-            tenant = new { tenant.Id, tenant.Name, tenant.Slug, status = "pending_payment" },
-            nextStep = "Após o Pix, o administrador ativa sua conta. Você receberá confirmação no e-mail cadastrado.",
-            pix = pixInfo
+            tenant = new { tenant.Id, tenant.Name, tenant.Slug, status = "trial", trialEndsAt },
+            nextStep = $"Seu período de teste termina em {trialEndsAt:dd/MM/yyyy}. Pague via Pix a qualquer momento para continuar usando o Allugme depois dessa data.",
+            pix = pixInfo,
+            accessToken = token,
+            user = userDto,
+            trialEndsAt
         });
     }
 
@@ -143,16 +154,18 @@ public class AuthController(
         string txId,
         string copyPaste,
         byte[] qrPng,
+        DateTime trialEndsAt,
         CancellationToken ct)
     {
         try
         {
             var amountLabel = amount.ToString("N2", new CultureInfo("pt-BR"));
+            var trialLabel = trialEndsAt.ToString("dd/MM/yyyy", new CultureInfo("pt-BR"));
             var html = $$"""
                 <div style="font-family: Arial, Helvetica, sans-serif; max-width: 520px; margin: 0 auto; color: #1f2937;">
-                  <h2 style="color: #0f766e;">Cadastro recebido — Allugme</h2>
+                  <h2 style="color: #0f766e;">Cadastro concluído — Allugme</h2>
                   <p>Olá, {{System.Net.WebUtility.HtmlEncode(user.Name)}}!</p>
-                  <p>Recebemos o cadastro de <strong>{{System.Net.WebUtility.HtmlEncode(businessName)}}</strong>. Para ativar sua conta, realize o pagamento via Pix abaixo. Assim que confirmado pelo administrador Allugme, o acesso é liberado.</p>
+                  <p>Recebemos o cadastro de <strong>{{System.Net.WebUtility.HtmlEncode(businessName)}}</strong>. Você já pode acessar o painel com <strong>7 dias grátis</strong>, válidos até <strong>{{trialLabel}}</strong>. Pague o Pix abaixo quando quiser para manter o acesso depois do período de teste.</p>
                   <table style="width:100%; border-collapse: collapse; margin: 16px 0;">
                     <tr><td style="padding:4px 0; color:#6b7280;">Plano</td><td style="padding:4px 0; text-align:right;"><strong>{{System.Net.WebUtility.HtmlEncode(planLabel)}}</strong></td></tr>
                     <tr><td style="padding:4px 0; color:#6b7280;">Valor</td><td style="padding:4px 0; text-align:right;"><strong>R$ {{amountLabel}}</strong></td></tr>
@@ -161,13 +174,13 @@ public class AuthController(
                   <p style="text-align:center;"><img src="cid:pixqrcode" alt="QR Code Pix" style="width:220px;height:220px;" /></p>
                   <p>Pix copia e cola:</p>
                   <p style="word-break: break-all; background:#f3f4f6; padding:10px; border-radius:8px; font-family: monospace; font-size: 12px;">{{copyPaste}}</p>
-                  <p style="color:#6b7280; font-size: 13px;">Após o pagamento, aguarde a liberação pelo administrador do Allugme. Você receberá acesso no e-mail cadastrado.</p>
+                  <p style="color:#6b7280; font-size: 13px;">Após {{trialLabel}}, o acesso fica pausado até a confirmação do pagamento. Qualquer dúvida, é só responder este e-mail.</p>
                 </div>
                 """;
 
             await emailSender.SendAsync(
                 user.Email,
-                "Allugme — Cadastro recebido, finalize com o Pix",
+                "Allugme — Cadastro concluído, 7 dias grátis para testar",
                 html,
                 [new EmailAttachment("pix-qrcode.png", qrPng, "image/png", "pixqrcode")],
                 ct);
@@ -206,11 +219,21 @@ public class AuthController(
 
         if (!user.IsSaasAdmin && tenantId.HasValue)
         {
-            var tenant = await db.Tenants.AsNoTracking().FirstOrDefaultAsync(t => t.Id == tenantId, ct);
+            var tenant = await db.Tenants.FirstOrDefaultAsync(t => t.Id == tenantId, ct);
+            if (tenant?.Status == TenantStatus.Trial
+                && tenant.TrialEndsAt.HasValue
+                && tenant.TrialEndsAt.Value < DateTime.UtcNow)
+            {
+                tenant.Status = TenantStatus.PendingPayment;
+                await db.SaveChangesAsync(ct);
+            }
+
             if (tenant?.Status == TenantStatus.PendingPayment)
                 return StatusCode(StatusCodes.Status402PaymentRequired, new
                 {
-                    message = "Conta aguardando confirmação de pagamento Pix pelo administrador."
+                    message = tenant.TrialEndsAt.HasValue
+                        ? "Seu período de teste gratuito de 7 dias terminou. Realize o pagamento via Pix para continuar usando o Allugme."
+                        : "Conta aguardando confirmação de pagamento Pix pelo administrador."
                 });
             if (tenant?.Status == TenantStatus.Suspended)
                 return StatusCode(StatusCodes.Status403Forbidden, new

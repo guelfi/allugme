@@ -230,6 +230,9 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<DateTime?>("TrialEndsAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 

@@ -25,7 +25,8 @@ public class VitrineController(AppDbContext db, IThemeRenderer themeRenderer, IC
     {
         var tenant = await db.Tenants
             .Include(t => t.Settings)
-            .FirstOrDefaultAsync(t => t.Slug == slug && t.Status == Domain.Enums.TenantStatus.Active, ct);
+            .FirstOrDefaultAsync(t => t.Slug == slug &&
+                (t.Status == Domain.Enums.TenantStatus.Active || t.Status == Domain.Enums.TenantStatus.Trial), ct);
 
         if (tenant is null)
             return NotFound();

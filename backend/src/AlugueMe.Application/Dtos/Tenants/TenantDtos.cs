@@ -12,7 +12,8 @@ public record TenantDto(
     int ExtraBrokerSlots,
     int MaxBrokerSlots,
     DateTime CreatedAt,
-    string? PixReferenceCode);
+    string? PixReferenceCode,
+    DateTime? TrialEndsAt);
 
 public record CreateTenantRequest(
     string Name,

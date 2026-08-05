@@ -37,4 +37,6 @@ public record MembershipDto(
     int ExtraBrokerSlots,
     int UsedBrokerSlots,
     int MaxBrokerSlots,
-    bool CanManageBrokers);
+    bool CanManageBrokers,
+    string TenantStatus,
+    DateTime? TrialEndsAt);

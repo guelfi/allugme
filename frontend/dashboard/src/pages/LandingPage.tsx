@@ -196,7 +196,15 @@ function ThemeCarousel({
                 </button>
                 <div className="lp-theme-head">
                   <h3>{t.name}</h3>
-                  <span className="lp-theme-thumb-label">Ver modelo</span>
+                  <button
+                    type="button"
+                    className="lp-theme-thumb-label"
+                    tabIndex={index >= items.length ? -1 : 0}
+                    onClick={() => onSelect(t)}
+                    aria-label={`Ver preview do layout ${t.name}`}
+                  >
+                    Ver modelo
+                  </button>
                 </div>
                 <p>{t.blurb}</p>
               </article>
@@ -396,7 +404,7 @@ export function LandingPage() {
               </Link>
             </div>
             <p className="lp-hero-note lp-hero-note-inline">
-              Cadastro em minutos. Pagamento via Pix. Ativação pelo administrador.
+              Cadastro em minutos. 7 dias grátis para testar, pague via Pix quando quiser.
             </p>
           </div>
           <div className="lp-hero-visual">
@@ -416,7 +424,7 @@ export function LandingPage() {
             </Link>
           </div>
           <p className="lp-hero-note lp-hero-note-after">
-            Cadastro em minutos. Pagamento via Pix. Ativação pelo administrador.
+            Cadastro em minutos. 7 dias grátis para testar, pague via Pix quando quiser.
           </p>
         </section>
 
@@ -503,10 +511,12 @@ export function LandingPage() {
         >
           <div className="lp-section-inner">
             <header className="lp-section-head">
+              <span className="lp-trial-badge">7 dias grátis para testar</span>
               <h2>Planos claros. Pagamento via Pix.</h2>
               <p className="lp-planos-lead">
                 Escolha o perfil da sua conta. Imobiliária inclui equipe; corretor independente é
-                conta individual.
+                conta individual. Comece a usar agora e pague quando quiser, dentro do período de
+                teste.
               </p>
             </header>
 
@@ -546,18 +556,19 @@ export function LandingPage() {
             </div>
 
             <p className="lp-section-foot">
-              Após o cadastro, envie o comprovante Pix conforme as instruções. O administrador ativa
-              a conta — aí o painel e a vitrine ficam liberados.
+              Após o cadastro, o painel e a vitrine ficam liberados na hora, com 7 dias grátis para
+              testar. Pague via Pix quando quiser dentro desse prazo para manter o acesso.
             </p>
           </div>
         </section>
 
         <section id="contato" className="lp-viewport lp-close" aria-label="Contato e cadastro">
           <div className="lp-close-inner">
+            <span className="lp-trial-badge lp-trial-badge-light">7 dias grátis para testar</span>
             <h2>Coloque sua carteira de imóveis na nuvem</h2>
             <p>
-              Imobiliária com equipe ou corretor independente: cadastre-se, pague via Pix e aguarde a
-              ativação. Ou fale conosco agora.
+              Imobiliária com equipe ou corretor independente: cadastre-se e use o Allugme agora
+              mesmo, de graça, por 7 dias. Pague via Pix quando quiser. Ou fale conosco agora.
             </p>
             <div className="lp-close-cta">
               <Link to="/register?type=agency" className="btn btn-primary btn-lg">

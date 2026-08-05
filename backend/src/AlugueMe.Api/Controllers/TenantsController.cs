@@ -1,20 +1,28 @@
 using AlugueMe.Api.Auth;
 using AlugueMe.Application.Common;
+using AlugueMe.Application.Dtos.Payments;
 using AlugueMe.Application.Dtos.Tenants;
+using AlugueMe.Application.Interfaces;
+using AlugueMe.Application.Payments;
 using AlugueMe.Domain.Entities;
 using AlugueMe.Domain.Enums;
+using AlugueMe.Infrastructure.Options;
 using AlugueMe.Infrastructure.Persistence;
 using BCrypt.Net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace AlugueMe.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/tenants")]
 [Authorize]
-public class TenantsController(AppDbContext db) : ControllerBase
+public class TenantsController(
+    AppDbContext db,
+    IOptions<PixOptions> pixOptions,
+    IQrCodeGenerator qrCodeGenerator) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<TenantDto>>> List(CancellationToken ct)
@@ -128,6 +136,34 @@ public class TenantsController(AppDbContext db) : ControllerBase
 
         await db.SaveChangesAsync(ct);
         return Ok(DtoMappers.ToDto(tenant));
+    }
+
+    [HttpGet("me/pix")]
+    public async Task<ActionResult<PixQuoteResponse>> GetMyPix(CancellationToken ct)
+    {
+        var tenantId = User.GetTenantId();
+        if (tenantId is null || User.IsSaasAdmin())
+            return BadRequest(new { message = "Contexto de tenant não definido." });
+
+        var tenant = await db.Tenants.FindAsync([tenantId.Value], ct);
+        if (tenant is null)
+            return NotFound();
+
+        var accountType = tenant.Type == TenantType.Independent ? "independent" : "agency";
+        var plan = DtoMappers.NormalizePlan(tenant.Plan);
+        var amount = PlanCatalog.GetAmount(accountType, plan);
+        var planLabel = PlanCatalog.GetLabel(accountType, plan);
+        var txId = string.IsNullOrWhiteSpace(tenant.PixReferenceCode)
+            ? PixReferenceGenerator.Generate()
+            : tenant.PixReferenceCode;
+
+        var pix = pixOptions.Value;
+        var copyPaste = PixBrCodeBuilder.Build(pix.Key, pix.MerchantName, pix.MerchantCity, amount, txId);
+        var qrPng = qrCodeGenerator.GeneratePng(copyPaste);
+
+        return Ok(new PixQuoteResponse(
+            amount, planLabel, pix.Key, pix.MerchantName, pix.MerchantCity, txId, copyPaste,
+            Convert.ToBase64String(qrPng)));
     }
 
     [HttpGet("me/theme")]

@@ -32,21 +32,25 @@ export function PropertiesPage() {
         <div>
           <div className="page-title-row">
             <h1>Imóveis</h1>
+            <span className="page-title-sep" aria-hidden="true">
+              -
+            </span>
+            <span className="page-title-hint">
+              {readOnly
+                ? 'somente leitura'
+                : isBroker(user)
+                  ? 'Imóveis sob sua responsabilidade'
+                  : 'Cadastro e publicação na vitrine'}
+            </span>
             {readOnly && (
               <>
                 <span className="page-title-sep" aria-hidden="true">
                   -
                 </span>
-                <span className="page-title-hint">somente leitura</span>
+                <span className="page-title-hint">Visão global</span>
               </>
             )}
           </div>
-          {!readOnly && (
-            <p className="muted">
-              {isBroker(user) ? 'Imóveis sob sua responsabilidade' : 'Cadastro e publicação na vitrine'}
-            </p>
-          )}
-          {readOnly && <p className="muted">Visão global</p>}
         </div>
         {canWrite && (
           <Link to="/properties/new" className="btn btn-primary">

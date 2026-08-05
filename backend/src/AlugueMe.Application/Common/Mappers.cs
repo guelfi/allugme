@@ -29,6 +29,7 @@ public static class EnumMapper
     {
         TenantStatus.Active => "active",
         TenantStatus.PendingPayment => "pending_payment",
+        TenantStatus.Trial => "trial",
         _ => "suspended"
     };
 
@@ -36,6 +37,7 @@ public static class EnumMapper
     {
         "suspended" => TenantStatus.Suspended,
         "pending" or "pending_payment" => TenantStatus.PendingPayment,
+        "trial" => TenantStatus.Trial,
         _ => TenantStatus.Active
     };
 
@@ -95,7 +97,9 @@ public static class DtoMappers
             m.Tenant.ExtraBrokerSlots,
             usedBrokerSlots,
             m.Tenant.MaxBrokerSlots,
-            m.Tenant.Type == TenantType.Agency && m.Role == MembershipRole.AgencyAdmin);
+            m.Tenant.Type == TenantType.Agency && m.Role == MembershipRole.AgencyAdmin,
+            EnumMapper.ToApi(m.Tenant.Status),
+            m.Tenant.TrialEndsAt);
 
     public static Dtos.Tenants.TenantDto ToDto(Tenant t) =>
         new(
@@ -110,7 +114,8 @@ public static class DtoMappers
             t.ExtraBrokerSlots,
             t.MaxBrokerSlots,
             t.CreatedAt,
-            t.PixReferenceCode);
+            t.PixReferenceCode,
+            t.TrialEndsAt);
 
     public static string NormalizePlan(string? plan) =>
         plan is "yearly" or "anual" ? "yearly" : "monthly";

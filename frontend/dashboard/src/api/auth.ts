@@ -13,6 +13,8 @@ type ApiMembership = {
   usedBrokerSlots?: number
   maxBrokerSlots?: number
   canManageBrokers?: boolean
+  tenantStatus?: string
+  trialEndsAt?: string | null
 }
 
 type ApiUser = {
@@ -57,6 +59,8 @@ export function mapUser(dto: ApiUser): User {
     usedBrokerSlots: membership?.usedBrokerSlots,
     maxBrokerSlots: membership?.maxBrokerSlots,
     canManageBrokers: Boolean(membership?.canManageBrokers),
+    tenantStatus: membership?.tenantStatus as User['tenantStatus'],
+    trialEndsAt: membership?.trialEndsAt ?? undefined,
   }
 }
 
@@ -107,9 +111,16 @@ export type PixQuote = {
   qrCodePngBase64: string
 }
 
-export async function registerAccount(
-  payload: RegisterPayload,
-): Promise<{ message: string; plan: string; pix?: PixQuote }> {
+export type RegisterResult = {
+  message: string
+  plan: string
+  pix?: PixQuote
+  accessToken: string
+  user: ApiUser
+  trialEndsAt: string
+}
+
+export async function registerAccount(payload: RegisterPayload): Promise<RegisterResult> {
   return post('/auth/register', payload, { skipAuth: true })
 }
 

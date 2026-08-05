@@ -12,6 +12,7 @@ const statusLabel: Record<string, string> = {
   suspended: 'Suspenso',
   pending: 'Pendente',
   pending_payment: 'Aguardando Pix',
+  trial: 'Em teste',
 }
 
 const roleLabel: Record<string, string> = {
@@ -103,6 +104,12 @@ export function TenantDetailPage() {
                     {statusLabel[tenant.status] ?? tenant.status}
                   </span>
                 </dd>
+                {tenant.status === 'trial' && tenant.trialEndsAt && (
+                  <>
+                    <dt>Teste grátis expira em</dt>
+                    <dd>{new Date(tenant.trialEndsAt).toLocaleDateString('pt-BR')}</dd>
+                  </>
+                )}
                 {tenant.status === 'pending_payment' && tenant.pixReferenceCode && (
                   <>
                     <dt>Pix ref.</dt>

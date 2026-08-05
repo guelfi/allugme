@@ -1,4 +1,5 @@
 import { get, patch, post } from './http'
+import type { PixQuote } from './auth'
 import type { Tenant } from '../types'
 
 export async function listTenants(): Promise<Tenant[]> {
@@ -26,4 +27,8 @@ export async function updateTenantPlan(
   payload: { plan?: string; extraBrokerSlots?: number; status?: string },
 ): Promise<Tenant> {
   return patch<Tenant>(`/tenants/${id}/plan`, payload)
+}
+
+export async function getMyPix(): Promise<PixQuote> {
+  return get<PixQuote>('/tenants/me/pix')
 }

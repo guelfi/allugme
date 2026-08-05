@@ -8,6 +8,7 @@ const statusLabel: Record<string, string> = {
   suspended: 'Suspenso',
   pending: 'Pendente',
   pending_payment: 'Aguardando Pix',
+  trial: 'Em teste',
 }
 
 export function TenantsPage() {
@@ -23,7 +24,7 @@ export function TenantsPage() {
   }, [])
 
   async function toggleStatus(tenant: Tenant) {
-    const next = tenant.status === 'active' ? 'suspended' : 'active'
+    const next = tenant.status === 'suspended' ? 'active' : 'suspended'
     try {
       const updated = await updateTenantStatus(tenant.id, next)
       setItems((prev) => prev.map((t) => (t.id === tenant.id ? updated : t)))
@@ -56,8 +57,15 @@ export function TenantsPage() {
     <div>
       <header className="page-header">
         <div>
-          <h1>Tenants</h1>
-          <p className="muted">Administração SaaS — imobiliárias e limites de corretores</p>
+          <div className="page-title-row">
+            <h1>Tenants</h1>
+            <span className="page-title-sep" aria-hidden="true">
+              -
+            </span>
+            <span className="page-title-hint">
+              Administração SaaS — imobiliárias e limites de corretores
+            </span>
+          </div>
         </div>
       </header>
 
@@ -123,6 +131,11 @@ export function TenantsPage() {
                     <span className={`badge badge-${tenant.status === 'pending_payment' ? 'pending' : tenant.status}`}>
                       {statusLabel[tenant.status] ?? tenant.status}
                     </span>
+                    {tenant.status === 'trial' && tenant.trialEndsAt && (
+                      <div className="muted">
+                        Expira em {new Date(tenant.trialEndsAt).toLocaleDateString('pt-BR')}
+                      </div>
+                    )}
                     {tenant.status === 'pending_payment' && tenant.pixReferenceCode && (
                       <div className="muted" title="Código exibido no Pix copia e cola do cadastro — use para conciliar com o extrato.">
                         Pix ref.: <code>{tenant.pixReferenceCode}</code>
@@ -133,7 +146,7 @@ export function TenantsPage() {
                     <Link to={`/admin/tenants/${tenant.id}`} className="btn btn-sm btn-ghost">
                       Ver detalhes
                     </Link>
-                    {(tenant.status === 'pending_payment' || tenant.status === 'pending') && (
+                    {tenant.status === 'pending_payment' || tenant.status === 'pending' ? (
                       <button
                         type="button"
                         className="btn btn-sm btn-primary"
@@ -141,14 +154,15 @@ export function TenantsPage() {
                       >
                         Ativar
                       </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-ghost"
+                        onClick={() => void toggleStatus(tenant)}
+                      >
+                        {tenant.status === 'suspended' ? 'Reativar' : 'Suspender'}
+                      </button>
                     )}
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-ghost"
-                      onClick={() => void toggleStatus(tenant)}
-                    >
-                      {tenant.status === 'active' ? 'Suspender' : 'Ativar/Reativar'}
-                    </button>
                   </td>
                 </tr>
               ))}

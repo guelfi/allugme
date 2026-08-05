@@ -7,6 +7,7 @@ import {
   type BrokerQuota,
   type BrokerSeat,
 } from '../api/brokers'
+import { BrokerDetail } from '../components/BrokerDetail'
 import { Modal } from '../components/Modal'
 import { PasswordInput } from '../components/PasswordInput'
 import { useAuth } from '../contexts/AuthContext'
@@ -29,6 +30,7 @@ export function TeamPage() {
   const [password, setPassword] = useState('')
   const [saving, setSaving] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [selectedMember, setSelectedMember] = useState<BrokerSeat | null>(null)
 
   useEffect(() => {
     if (!canManageBrokers) return
@@ -99,15 +101,21 @@ export function TeamPage() {
   }
 
   const atLimit = (quota?.remainingBrokerSlots ?? 0) <= 0
+  const missingAvatarCount = members.filter((m) => !m.avatarUrl).length
 
   return (
     <div>
       <header className="page-header">
         <div>
-          <h1>Equipe</h1>
-          <p className="muted">
-            Cadastre corretores até o limite do plano da imobiliária.
-          </p>
+          <div className="page-title-row">
+            <h1>Equipe</h1>
+            <span className="page-title-sep" aria-hidden="true">
+              -
+            </span>
+            <span className="page-title-hint">
+              Cadastre corretores até o limite do plano da imobiliária
+            </span>
+          </div>
         </div>
         <button
           type="button"
@@ -121,6 +129,16 @@ export function TeamPage() {
       </header>
 
       {error && <div className="alert alert-error">{error}</div>}
+
+      {missingAvatarCount > 0 && (
+        <div className="alert alert-warning">
+          {missingAvatarCount === 1
+            ? '1 corretor está sem foto de rosto cadastrada.'
+            : `${missingAvatarCount} corretores estão sem foto de rosto cadastrada.`}{' '}
+          A foto é obrigatória para que o corretor afiliado possa usar o sistema (agendar visitas e
+          ter imóveis publicados).
+        </div>
+      )}
 
       {loading ? (
         <p className="muted">Carregando…</p>
@@ -158,7 +176,11 @@ export function TeamPage() {
               </thead>
               <tbody>
                 {members.map((member) => (
-                  <tr key={member.userId}>
+                  <tr
+                    key={member.userId}
+                    className="clickable-row"
+                    onClick={() => setSelectedMember(member)}
+                  >
                     <td data-label="Foto">
                       <div className="avatar-preview avatar-preview-sm" title={member.avatarUrl ? '' : 'Sem foto de rosto cadastrada'}>
                         {member.avatarUrl ? (
@@ -168,7 +190,14 @@ export function TeamPage() {
                         )}
                       </div>
                     </td>
-                    <td data-label="Nome">{member.name}</td>
+                    <td data-label="Nome">
+                      {member.name}
+                      {!member.avatarUrl && (
+                        <span className="badge badge-pending" style={{ marginLeft: '0.5rem' }}>
+                          Sem foto
+                        </span>
+                      )}
+                    </td>
                     <td data-label="E-mail">{member.email}</td>
                     <td data-label="Papel">{roleLabel[member.role] ?? member.role}</td>
                     <td className="actions-cell">
@@ -176,7 +205,10 @@ export function TeamPage() {
                         <button
                           type="button"
                           className="btn btn-sm btn-danger"
-                          onClick={() => void handleRemove(member)}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            void handleRemove(member)
+                          }}
                         >
                           Remover
                         </button>
@@ -226,6 +258,12 @@ export function TeamPage() {
               {saving ? 'Salvando…' : 'Cadastrar corretor'}
             </button>
           </form>
+        </Modal>
+      )}
+
+      {selectedMember && (
+        <Modal title={selectedMember.name} onClose={() => setSelectedMember(null)}>
+          <BrokerDetail broker={selectedMember} />
         </Modal>
       )}
     </div>

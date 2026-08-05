@@ -184,6 +184,16 @@ textarea {
   color: var(--text);
 }
 
+.topbar-tenant .page-title-sep {
+  font-weight: 400;
+  margin: 0 0.35em;
+}
+
+.topbar-tenant-profile {
+  font-weight: 500;
+  color: var(--muted);
+}
+
 .brand-sidebar {
   margin-bottom: 1.5rem;
   padding: 0 0.25rem;
@@ -880,6 +890,7 @@ th, td {
   text-align: left;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border);
+  vertical-align: top;
 }
 
 th {
@@ -892,6 +903,8 @@ th {
 
 .actions-cell {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 0.35rem;
 }
 
@@ -914,6 +927,11 @@ th {
 .badge-draft {
   background: #fef3c7;
   color: #92400e;
+}
+
+.badge-trial {
+  background: #cffafe;
+  color: #155e75;
 }
 
 .badge-declined,
@@ -946,6 +964,17 @@ th {
   background: #fffbeb;
   border: 1px solid #fde68a;
   color: #92400e;
+}
+
+.alert-trial {
+  background: #ecfdf5;
+  border: 1px solid #99f6e4;
+  color: #0f5e56;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
 }
 
 /* Tabelas administrativas — viram cards empilhados no mobile (mobile-first) */
@@ -1580,6 +1609,23 @@ th {
   margin-bottom: 0.65rem;
 }
 
+.lp-trial-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--lp-sea);
+  color: #fff;
+  margin-bottom: 0.75rem;
+}
+
+.lp-trial-badge-light {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
 .lp-section-head p {
   color: var(--lp-muted);
   font-size: 1rem;
@@ -1794,6 +1840,15 @@ th {
   padding: 0.25rem 0.55rem;
   border-radius: 999px;
   white-space: nowrap;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.lp-theme-thumb-label:hover,
+.lp-theme-thumb-label:focus-visible {
+  background: rgba(20, 32, 28, 0.16);
 }
 
 .lp-theme h3 {
@@ -2673,6 +2728,12 @@ th {
   font-size: 0.76rem !important;
 }
 
+.register-trial-note {
+  margin: 0;
+  font-size: 0.82rem;
+  text-align: center;
+}
+
 .register-submit {
   width: 100%;
 }
@@ -2709,12 +2770,14 @@ th {
 
 @media (min-width: 720px) {
   .lp-register-wrap {
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .lp-register-wrap .login-card.register-card,
   .register-card {
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .register-layout {

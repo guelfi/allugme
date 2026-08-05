@@ -18,6 +18,8 @@ public class Tenant
     public int ExtraBrokerSlots { get; set; }
     /// <summary>Código curto exibido no Pix "copia e cola" do cadastro, usado pelo administrador para conciliar o pagamento com esta conta.</summary>
     public string? PixReferenceCode { get; set; }
+    /// <summary>Data em que o período de degustação gratuita (7 dias) termina, se aplicável.</summary>
+    public DateTime? TrialEndsAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public int MaxBrokerSlots =>
