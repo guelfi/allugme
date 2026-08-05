@@ -107,7 +107,8 @@ public static class DtoMappers
             t.IncludedBrokerSlots,
             t.ExtraBrokerSlots,
             t.MaxBrokerSlots,
-            t.CreatedAt);
+            t.CreatedAt,
+            t.PixReferenceCode);
 
     public static string NormalizePlan(string? plan) =>
         plan is "yearly" or "anual" ? "yearly" : "monthly";

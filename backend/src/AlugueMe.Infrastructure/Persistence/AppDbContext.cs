@@ -37,6 +37,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.Plan).HasMaxLength(20).HasDefaultValue("monthly");
             e.Property(x => x.IncludedBrokerSlots).HasDefaultValue(5);
             e.Property(x => x.ExtraBrokerSlots).HasDefaultValue(0);
+            e.Property(x => x.PixReferenceCode).HasMaxLength(32);
             e.Ignore(x => x.MaxBrokerSlots);
         });
 

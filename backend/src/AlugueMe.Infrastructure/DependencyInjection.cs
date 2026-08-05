@@ -2,9 +2,11 @@ using System.Text;
 using AlugueMe.Application.Interfaces;
 using AlugueMe.Application.Visits;
 using AlugueMe.Infrastructure.Background;
+using AlugueMe.Infrastructure.Email;
 using AlugueMe.Infrastructure.Evolution;
 using AlugueMe.Infrastructure.Identity;
 using AlugueMe.Infrastructure.Options;
+using AlugueMe.Infrastructure.Payments;
 using AlugueMe.Infrastructure.Persistence;
 using AlugueMe.Infrastructure.Redis;
 using AlugueMe.Infrastructure.Storage;
@@ -28,6 +30,8 @@ public static class DependencyInjection
         services.Configure<ThemesOptions>(configuration.GetSection(ThemesOptions.SectionName));
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));
         services.Configure<RedisOptions>(configuration.GetSection(RedisOptions.SectionName));
+        services.Configure<PixOptions>(configuration.GetSection(PixOptions.SectionName));
+        services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
 
         var connectionString = configuration.GetConnectionString("PostgreSQL")
             ?? throw new InvalidOperationException("ConnectionStrings:PostgreSQL is required");
@@ -57,6 +61,8 @@ public static class DependencyInjection
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
         services.AddSingleton<IFileStorage, LocalFileStorage>();
         services.AddSingleton<IThemeRenderer, ThemeRenderer>();
+        services.AddSingleton<IQrCodeGenerator, QrCodeImageGenerator>();
+        services.AddSingleton<IEmailSender, SmtpEmailSender>();
         services.AddSingleton<VisitSlotCalculator>();
         services.AddScoped<Persistence.Seed.DemoSeed>();
         services.AddHostedService<WhatsAppOutboundWorker>();

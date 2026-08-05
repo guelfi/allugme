@@ -29,6 +29,7 @@ export interface Tenant {
   extraBrokerSlots?: number
   maxBrokerSlots?: number
   createdAt: string
+  pixReferenceCode?: string | null
 }
 
 export interface Property {

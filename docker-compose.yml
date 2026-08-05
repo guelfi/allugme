@@ -92,6 +92,16 @@ services:
       Cors__Origins__4: https://batuara.org.br
       Cors__Origins__5: https://www.batuara.org.br
       Cors__Origins__6: http://batuara.org.br
+      Pix__Key: ${Pix__Key:-+5511975747470}
+      Pix__MerchantName: ${Pix__MerchantName:-MARCO ANTONIO GUELFI}
+      Pix__MerchantCity: ${Pix__MerchantCity:-SAO PAULO}
+      Smtp__Host: ${Smtp__Host:-}
+      Smtp__Port: ${Smtp__Port:-587}
+      Smtp__User: ${Smtp__User:-}
+      Smtp__Password: ${Smtp__Password:-}
+      Smtp__UseSsl: ${Smtp__UseSsl:-true}
+      Smtp__FromAddress: ${Smtp__FromAddress:-no-reply@allugme.com.br}
+      Smtp__FromName: ${Smtp__FromName:-Allugme}
 
     volumes:
       - ./storage/media:/app/storage/media

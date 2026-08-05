@@ -16,6 +16,8 @@ public class Tenant
     public int IncludedBrokerSlots { get; set; } = 5;
     /// <summary>Assentos extras contratados além do incluso (só imobiliária).</summary>
     public int ExtraBrokerSlots { get; set; }
+    /// <summary>Código curto exibido no Pix "copia e cola" do cadastro, usado pelo administrador para conciliar o pagamento com esta conta.</summary>
+    public string? PixReferenceCode { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public int MaxBrokerSlots =>

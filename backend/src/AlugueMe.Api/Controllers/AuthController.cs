@@ -5,18 +5,28 @@ using AlugueMe.Api.Auth;
 using AlugueMe.Application.Common;
 using AlugueMe.Application.Dtos.Auth;
 using AlugueMe.Application.Interfaces;
+using AlugueMe.Application.Payments;
 using AlugueMe.Domain.Entities;
 using AlugueMe.Domain.Enums;
+using AlugueMe.Infrastructure.Options;
 using AlugueMe.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace AlugueMe.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/auth")]
-public class AuthController(AppDbContext db, IJwtTokenService jwt) : ControllerBase
+public class AuthController(
+    AppDbContext db,
+    IJwtTokenService jwt,
+    IOptions<PixOptions> pixOptions,
+    IQrCodeGenerator qrCodeGenerator,
+    IEmailSender emailSender,
+    ILogger<AuthController> logger) : ControllerBase
 {
     [HttpPost("register")]
     [AllowAnonymous]
@@ -29,16 +39,19 @@ public class AuthController(AppDbContext db, IJwtTokenService jwt) : ControllerB
         if (string.IsNullOrWhiteSpace(request.BusinessName))
             return BadRequest(new { message = "Informe o nome da imobiliária ou do corretor." });
 
+        var phoneDigits = Regex.Replace(request.Phone ?? string.Empty, @"\D", "");
+        if (phoneDigits.Length < 10)
+            return BadRequest(new { message = "Informe um WhatsApp/celular válido, com DDD." });
+
         var accountType = (request.AccountType ?? "agency").Trim().ToLowerInvariant();
-        var isIndependent = accountType is "independent" or "corretor" or "broker";
+        var isIndependent = PlanCatalog.IsIndependent(accountType);
         var plan = DtoMappers.NormalizePlan(request.Plan);
-        var planLabel = isIndependent
-            ? (plan == "yearly"
-                ? "Anual (R$ 490,00) — corretor independente"
-                : "Mensal (R$ 49,00) — corretor independente")
-            : plan == "yearly"
-                ? "Anual (R$ 900,00) — até 5 corretores; extra R$ 190,00/ano por corretor"
-                : "Mensal (R$ 99,00) — até 5 corretores; extra R$ 39,00/mês por corretor";
+        var planLabel = PlanCatalog.GetLabel(accountType, plan);
+        var amount = PlanCatalog.GetAmount(accountType, plan);
+        var phoneE164 = phoneDigits.StartsWith("55") ? $"+{phoneDigits}" : $"+55{phoneDigits}";
+        var pixReferenceCode = string.IsNullOrWhiteSpace(request.PixReferenceCode)
+            ? PixReferenceGenerator.Generate()
+            : request.PixReferenceCode.Trim().ToUpperInvariant();
 
         var slug = await UniqueSlugAsync(request.BusinessName, ct);
 
@@ -47,7 +60,7 @@ public class AuthController(AppDbContext db, IJwtTokenService jwt) : ControllerB
             Id = Guid.NewGuid(),
             Email = email,
             Name = request.Name,
-            Phone = request.Phone,
+            Phone = phoneE164,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
         };
         db.Users.Add(user);
@@ -62,7 +75,8 @@ public class AuthController(AppDbContext db, IJwtTokenService jwt) : ControllerB
             ThemeKey = "moderno",
             Plan = plan,
             IncludedBrokerSlots = isIndependent ? 1 : 5,
-            ExtraBrokerSlots = 0
+            ExtraBrokerSlots = 0,
+            PixReferenceCode = pixReferenceCode
         };
         db.Tenants.Add(tenant);
         db.TenantSettings.Add(new TenantSettings
@@ -84,6 +98,30 @@ public class AuthController(AppDbContext db, IJwtTokenService jwt) : ControllerB
 
         await db.SaveChangesAsync(ct);
 
+        object? pixInfo = null;
+        try
+        {
+            var pix = pixOptions.Value;
+            var copyPaste = PixBrCodeBuilder.Build(pix.Key, pix.MerchantName, pix.MerchantCity, amount, pixReferenceCode);
+            var qrPng = qrCodeGenerator.GeneratePng(copyPaste);
+            pixInfo = new
+            {
+                amount,
+                pixKey = pix.Key,
+                merchantName = pix.MerchantName,
+                merchantCity = pix.MerchantCity,
+                txId = pixReferenceCode,
+                copyPaste,
+                qrCodePngBase64 = Convert.ToBase64String(qrPng)
+            };
+
+            await SendRegistrationEmailAsync(user, tenant.Name, planLabel, amount, pixReferenceCode, copyPaste, qrPng, ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Falha ao gerar Pix/QR ou preparar e-mail para o cadastro de {Email}.", user.Email);
+        }
+
         return Ok(new
         {
             message =
@@ -91,8 +129,52 @@ public class AuthController(AppDbContext db, IJwtTokenService jwt) : ControllerB
             plan = planLabel,
             paymentMethod = "pix",
             tenant = new { tenant.Id, tenant.Name, tenant.Slug, status = "pending_payment" },
-            nextStep = "Após o Pix, o administrador ativa sua conta. Você receberá confirmação no e-mail cadastrado."
+            nextStep = "Após o Pix, o administrador ativa sua conta. Você receberá confirmação no e-mail cadastrado.",
+            pix = pixInfo
         });
+    }
+
+    private async Task SendRegistrationEmailAsync(
+        User user,
+        string businessName,
+        string planLabel,
+        decimal amount,
+        string txId,
+        string copyPaste,
+        byte[] qrPng,
+        CancellationToken ct)
+    {
+        try
+        {
+            var amountLabel = amount.ToString("N2", new CultureInfo("pt-BR"));
+            var html = $$"""
+                <div style="font-family: Arial, Helvetica, sans-serif; max-width: 520px; margin: 0 auto; color: #1f2937;">
+                  <h2 style="color: #0f766e;">Cadastro recebido — Allugme</h2>
+                  <p>Olá, {{System.Net.WebUtility.HtmlEncode(user.Name)}}!</p>
+                  <p>Recebemos o cadastro de <strong>{{System.Net.WebUtility.HtmlEncode(businessName)}}</strong>. Para ativar sua conta, realize o pagamento via Pix abaixo. Assim que confirmado pelo administrador Allugme, o acesso é liberado.</p>
+                  <table style="width:100%; border-collapse: collapse; margin: 16px 0;">
+                    <tr><td style="padding:4px 0; color:#6b7280;">Plano</td><td style="padding:4px 0; text-align:right;"><strong>{{System.Net.WebUtility.HtmlEncode(planLabel)}}</strong></td></tr>
+                    <tr><td style="padding:4px 0; color:#6b7280;">Valor</td><td style="padding:4px 0; text-align:right;"><strong>R$ {{amountLabel}}</strong></td></tr>
+                    <tr><td style="padding:4px 0; color:#6b7280;">Referência</td><td style="padding:4px 0; text-align:right;"><strong>{{txId}}</strong></td></tr>
+                  </table>
+                  <p style="text-align:center;"><img src="cid:pixqrcode" alt="QR Code Pix" style="width:220px;height:220px;" /></p>
+                  <p>Pix copia e cola:</p>
+                  <p style="word-break: break-all; background:#f3f4f6; padding:10px; border-radius:8px; font-family: monospace; font-size: 12px;">{{copyPaste}}</p>
+                  <p style="color:#6b7280; font-size: 13px;">Após o pagamento, aguarde a liberação pelo administrador do Allugme. Você receberá acesso no e-mail cadastrado.</p>
+                </div>
+                """;
+
+            await emailSender.SendAsync(
+                user.Email,
+                "Allugme — Cadastro recebido, finalize com o Pix",
+                html,
+                [new EmailAttachment("pix-qrcode.png", qrPng, "image/png", "pixqrcode")],
+                ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Falha ao preparar/enviar e-mail de cadastro para {Email}.", user.Email);
+        }
     }
 
     [HttpPost("login")]

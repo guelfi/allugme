@@ -84,6 +84,16 @@ services:
       PublicBasePath: /allugme
       Cors__Origins__0: http://192.168.15.119
       Cors__Origins__1: http://localhost:5173
+      Pix__Key: ${Pix__Key:-+5511975747470}
+      Pix__MerchantName: ${Pix__MerchantName:-MARCO ANTONIO GUELFI}
+      Pix__MerchantCity: ${Pix__MerchantCity:-SAO PAULO}
+      Smtp__Host: ${Smtp__Host:-}
+      Smtp__Port: ${Smtp__Port:-587}
+      Smtp__User: ${Smtp__User:-}
+      Smtp__Password: ${Smtp__Password:-}
+      Smtp__UseSsl: ${Smtp__UseSsl:-true}
+      Smtp__FromAddress: ${Smtp__FromAddress:-no-reply@allugme.com.br}
+      Smtp__FromName: ${Smtp__FromName:-Allugme}
     volumes:
       - ./storage/media:/app/storage/media
       - ./themes/official:/app/themes/official:ro

@@ -1,14 +1,18 @@
 using AlugueMe.Application.Common;
+using AlugueMe.Application.Dtos.Payments;
 using AlugueMe.Application.Dtos.Properties;
 using AlugueMe.Application.Dtos.Visits;
 using AlugueMe.Application.Interfaces;
+using AlugueMe.Application.Payments;
 using AlugueMe.Application.Visits;
 using AlugueMe.Domain.Entities;
 using AlugueMe.Domain.Enums;
+using AlugueMe.Infrastructure.Options;
 using AlugueMe.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace AlugueMe.Api.Controllers;
 
@@ -20,8 +24,34 @@ public class PublicController(
     VisitSlotCalculator slotCalculator,
     IFileStorage storage,
     IRedisLockService lockService,
-    IWhatsAppQueue whatsAppQueue) : ControllerBase
+    IWhatsAppQueue whatsAppQueue,
+    IOptions<PixOptions> pixOptions,
+    IQrCodeGenerator qrCodeGenerator) : ControllerBase
 {
+    [HttpPost("pix/quote")]
+    public ActionResult<PixQuoteResponse> QuotePix([FromBody] PixQuoteRequest request)
+    {
+        var accountType = (request.AccountType ?? "agency").Trim().ToLowerInvariant();
+        var plan = (request.Plan ?? "monthly").Trim().ToLowerInvariant() == "yearly" ? "yearly" : "monthly";
+        var amount = PlanCatalog.GetAmount(accountType, plan);
+        var planLabel = PlanCatalog.GetLabel(accountType, plan);
+        var txId = PixReferenceGenerator.Generate();
+
+        var pix = pixOptions.Value;
+        var copyPaste = PixBrCodeBuilder.Build(pix.Key, pix.MerchantName, pix.MerchantCity, amount, txId);
+        var qrPng = qrCodeGenerator.GeneratePng(copyPaste);
+
+        return Ok(new PixQuoteResponse(
+            amount,
+            planLabel,
+            pix.Key,
+            pix.MerchantName,
+            pix.MerchantCity,
+            txId,
+            copyPaste,
+            Convert.ToBase64String(qrPng)));
+    }
+
     [HttpGet("properties")]
     public async Task<ActionResult<PublicPropertySearchResult>> Search(
         [FromQuery] string? city,

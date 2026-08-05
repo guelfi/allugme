@@ -4,12 +4,14 @@ public record RegisterRequest(
     string Email,
     string Password,
     string Name,
-    string? Phone,
+    string Phone,
     /// <summary>agency | independent</summary>
     string AccountType,
     string BusinessName,
     /// <summary>monthly | yearly</summary>
-    string Plan);
+    string Plan,
+    /// <summary>Código exibido no Pix "copia e cola" da tela de confirmação, para conciliação manual.</summary>
+    string? PixReferenceCode = null);
 
 public record LoginRequest(string Email, string Password, Guid? TenantId);
 

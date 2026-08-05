@@ -209,6 +209,10 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasDefaultValue("monthly");
 
+                    b.Property<string>("PixReferenceCode")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(100)

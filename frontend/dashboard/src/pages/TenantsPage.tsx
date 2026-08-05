@@ -156,6 +156,11 @@ export function TenantsPage() {
                     <span className={`badge badge-${tenant.status === 'pending_payment' ? 'pending' : tenant.status}`}>
                       {statusLabel[tenant.status] ?? tenant.status}
                     </span>
+                    {tenant.status === 'pending_payment' && tenant.pixReferenceCode && (
+                      <div className="muted" title="Código exibido no Pix copia e cola do cadastro — use para conciliar com o extrato.">
+                        Pix ref.: <code>{tenant.pixReferenceCode}</code>
+                      </div>
+                    )}
                   </td>
                   <td className="actions-cell">
                     {(tenant.status === 'pending_payment' || tenant.status === 'pending') && (

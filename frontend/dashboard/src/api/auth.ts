@@ -86,14 +86,35 @@ export type RegisterPayload = {
   email: string
   password: string
   name: string
-  phone?: string
+  phone: string
   accountType: 'agency' | 'independent'
   businessName: string
   plan: 'monthly' | 'yearly'
+  pixReferenceCode?: string
 }
 
-export async function registerAccount(payload: RegisterPayload): Promise<{ message: string; plan: string }> {
+export type PixQuote = {
+  amount: number
+  planLabel: string
+  pixKey: string
+  merchantName: string
+  merchantCity: string
+  txId: string
+  copyPaste: string
+  qrCodePngBase64: string
+}
+
+export async function registerAccount(
+  payload: RegisterPayload,
+): Promise<{ message: string; plan: string; pix?: PixQuote }> {
   return post('/auth/register', payload, { skipAuth: true })
+}
+
+export async function quotePix(params: {
+  accountType: 'agency' | 'independent'
+  plan: 'monthly' | 'yearly'
+}): Promise<PixQuote> {
+  return post('/public/pix/quote', params, { skipAuth: true })
 }
 
 export function persistToken(token: string): void {
