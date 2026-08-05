@@ -22,8 +22,13 @@ export function LoginPage() {
     }
   }
 
+  const bgUrl = `${import.meta.env.BASE_URL}login-buildings.jpg`
+
   return (
-    <div className="login-page">
+    <div
+      className="login-page"
+      style={{ ['--login-bg-image' as string]: `url(${bgUrl})` }}
+    >
       <form className="login-card card" onSubmit={(e) => void handleSubmit(e)}>
         <div className="login-brand-block">
           <Link to="/" className="login-back-link">
