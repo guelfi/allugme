@@ -1722,8 +1722,9 @@ th {
 }
 
 /*
- * Contato: uma viewport fechada — título/CTAs + footer no fim,
- * sem estourar a altura útil (cookie fica no banner fixo).
+ * Contato: viewport fechada com footer SEMPRE visível.
+ * O bloco de conteúdo (inner) ocupa o espaço restante e rola se
+ * preciso; o rodapé fica flex: 0 0 auto (não é cortado).
  */
 #contato.lp-close {
   height: 100svh;
@@ -1734,18 +1735,25 @@ th {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  padding-bottom: calc(0.65rem + env(safe-area-inset-bottom, 0px));
+  gap: 0.75rem;
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 #contato .lp-close-inner {
-  flex: 0 1 auto;
+  flex: 1 1 0;
   min-height: 0;
-  gap: 0.65rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  gap: 0.55rem;
+  align-content: start;
+  width: 100%;
 }
 
 #contato .lp-footer-on-close {
-  margin-top: auto;
+  flex: 0 0 auto;
+  margin-top: 0;
   flex-shrink: 0;
+  padding: 0.75rem var(--lp-pad-x) 0.35rem;
 }
 
 .lp-close-inner {
@@ -1815,13 +1823,13 @@ th {
   color: #a9b7c6;
   border-top-color: rgba(255, 255, 255, 0.14);
   text-align: left;
-  flex-shrink: 0;
-  /* Empurra o rodapé para o fim da seção #contato */
-  margin-top: auto;
+  flex: 0 0 auto;
   width: 100%;
   max-width: none;
-  padding: 1rem var(--lp-pad-x) 0.5rem;
+  padding: 0.75rem var(--lp-pad-x) 0.35rem;
   box-sizing: border-box;
+  /* Evita padding-bottom extra do .lp-footer (safe-area já está na seção) */
+  padding-bottom: 0.35rem;
 }
 
 .lp-footer strong {
@@ -2476,7 +2484,19 @@ th {
     max-height: 100svh;
     min-height: 0;
     overflow: hidden;
-    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(0.4rem + env(safe-area-inset-bottom, 0px));
+    gap: 0.5rem;
+  }
+
+  #contato .lp-close-inner {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  #contato .lp-footer-on-close {
+    flex: 0 0 auto;
+    margin-top: 0;
   }
 
   .lp-close-inner {
@@ -2505,9 +2525,9 @@ th {
   }
 
   .lp-footer-on-close {
-    padding-top: 0.55rem;
-    padding-bottom: 0.25rem;
-    gap: 0.45rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.2rem;
+    gap: 0.4rem;
     font-size: 0.8rem;
   }
 
@@ -2725,17 +2745,21 @@ th {
     max-height: 100svh;
     min-height: 0;
     overflow: hidden;
-    gap: 1rem;
-    padding-bottom: calc(0.65rem + env(safe-area-inset-bottom, 0px));
+    gap: 0.75rem;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
   }
 
   #contato .lp-close-inner {
-    gap: 0.7rem;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    gap: 0.65rem;
   }
 
   #contato .lp-footer-on-close {
-    margin-top: auto;
-    padding-top: 0.85rem;
+    flex: 0 0 auto;
+    margin-top: 0;
+    padding-top: 0.75rem;
     padding-bottom: 0.35rem;
   }
 
