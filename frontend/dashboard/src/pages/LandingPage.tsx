@@ -501,7 +501,7 @@ export function LandingPage() {
           <div className="lp-section-inner">
             <header className="lp-section-head">
               <h2>Planos claros. Pagamento via Pix.</h2>
-              <p>
+              <p className="lp-planos-lead">
                 Escolha o perfil da sua conta. Imobiliária inclui equipe; corretor independente é
                 conta individual.
               </p>

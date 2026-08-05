@@ -1129,6 +1129,20 @@ th {
   font-size: 1rem;
 }
 
+#planos .lp-section-head {
+  max-width: none;
+}
+
+#planos .lp-planos-lead {
+  max-width: none;
+}
+
+@media (min-width: 640px) {
+  #planos .lp-planos-lead {
+    white-space: nowrap;
+  }
+}
+
 .lp-feature-grid {
   display: grid;
   grid-template-columns: 1fr;
