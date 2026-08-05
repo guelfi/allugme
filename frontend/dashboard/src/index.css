@@ -2179,24 +2179,35 @@ th {
     flex-shrink: 0;
   }
 
-  /* Card visual: thumbs maiores + painel branco (estilo desktop) */
+  /*
+   * Card visual mobile = mesma composição do desktop:
+   * marquee de thumbs + painel branco. Sem flex-grow (evita poço teal
+   * e o painel sumir atrás de overflow:hidden).
+   */
   .lp-hero-visual {
+    flex: 0 0 auto;
     max-height: none;
-    flex: 1 1 auto;
     min-height: 0;
-    border-radius: 20px;
+    border-radius: 22px;
     display: flex;
     flex-direction: column;
+    gap: 0;
   }
 
   .lp-hero-carousel {
-    flex: 1 1 auto;
-    min-height: 9.5rem;
-    padding: 0.85rem 0;
+    flex: 0 0 auto;
+    min-height: 0;
+    padding: 0.95rem 0 0.7rem;
+    align-items: center;
+  }
+
+  .lp-hero-carousel-track {
+    gap: 0.9rem;
+    padding-inline: 1rem;
   }
 
   .lp-hero-carousel-card {
-    width: 10.75rem;
+    width: 11.25rem;
     border-radius: 14px;
   }
 
@@ -2206,29 +2217,31 @@ th {
   }
 
   .lp-hero-carousel-card figcaption {
-    font-size: 0.78rem;
-    padding: 0.4rem 0.45rem 0.5rem;
+    font-size: 0.8rem;
+    padding: 0.42rem 0.5rem 0.55rem;
   }
 
   .lp-hero-panel {
+    flex: 0 0 auto;
     flex-shrink: 0;
-    margin: 0 0.85rem 0.85rem;
-    padding: 0.8rem 1rem;
-    border-radius: 14px;
+    margin: 0 0.9rem 0.9rem;
+    padding: 0.85rem 1.05rem;
+    border-radius: 16px;
     background: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
   }
 
   .lp-hero-panel span {
-    font-size: 0.82rem;
+    font-size: 0.85rem;
   }
 
   .lp-hero-panel strong {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     line-height: 1.2;
   }
 
   .lp-hero-panel em {
-    font-size: 0.9rem;
+    font-size: 0.92rem;
   }
 
   .lp-feature-grid {
