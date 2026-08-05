@@ -24,6 +24,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 0;
 }
 
 body {
@@ -611,7 +612,9 @@ th {
   --lp-cream: #f7faf8;
   --lp-accent: #c45c26;
   --lp-pad-x: 1rem;
+  /* Altura real do nav (2 linhas no mobile); gap sob o menu = 13px. */
   --lp-nav-h: 6.1rem;
+  --lp-nav-gap: 13px;
   font-family: 'Source Sans 3', system-ui, sans-serif;
   color: var(--lp-ink);
   background:
@@ -619,7 +622,8 @@ th {
     radial-gradient(700px 400px at 100% 0%, rgba(196, 92, 38, 0.1), transparent 50%),
     linear-gradient(180deg, #f7faf8 0%, #eef5f1 45%, #f7faf8 100%);
   min-height: 100svh;
-  scroll-padding-top: calc(var(--lp-nav-h) + 0.5rem);
+  /* Âncoras: só o padding da seção compensa o nav (sem scroll-padding). */
+  scroll-padding-top: 0;
 }
 
 .lp h1,
@@ -754,7 +758,7 @@ th {
 
 .lp main {
   scroll-snap-type: y mandatory;
-  scroll-padding-top: calc(var(--lp-nav-h) + env(safe-area-inset-top, 0px));
+  scroll-padding-top: 0;
 }
 
 .lp-viewport {
@@ -767,17 +771,21 @@ th {
   position: relative;
   z-index: 1;
   isolation: isolate;
-  scroll-margin-top: calc(var(--lp-nav-h) + env(safe-area-inset-top, 0px));
+  scroll-margin-top: 0;
   scroll-snap-align: start;
   scroll-snap-stop: always;
   padding:
-    calc(var(--lp-nav-h) + env(safe-area-inset-top, 0px) + 0.55rem)
+    calc(var(--lp-nav-h) + env(safe-area-inset-top, 0px) + var(--lp-nav-gap))
     var(--lp-pad-x)
     calc(0.85rem + env(safe-area-inset-bottom, 0px) + var(--lp-cookie-h, 0px));
   box-sizing: border-box;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior-y: contain;
+}
+
+.lp-viewport:not(.lp-hero) {
+  justify-content: flex-start;
 }
 
 /* Hero desktop/mobile: permanece centrado (aprovado no desktop). */
@@ -2439,20 +2447,12 @@ th {
 @media (min-width: 640px) {
   .lp {
     --lp-pad-x: 1.5rem;
-    /* Nav em uma linha: altura real ~3.25–3.5rem; evita poço sob o header. */
+    /* Nav em uma linha: altura real ~3.25–3.5rem. */
     --lp-nav-h: 3.5rem;
-    /* Âncoras: só o padding da seção compensa o nav (sem somar scroll-padding). */
-    scroll-padding-top: 0;
-  }
-
-  .lp main {
-    scroll-padding-top: 0;
   }
 
   .lp-viewport {
-    scroll-margin-top: 0;
-    /* Gap curto sob o menu — padding já equivale à altura do nav. */
-    padding-top: calc(var(--lp-nav-h) + 0.35rem);
+    padding-top: calc(var(--lp-nav-h) + env(safe-area-inset-top, 0px) + var(--lp-nav-gap));
   }
 
   .lp-nav-bar {
@@ -2586,10 +2586,6 @@ th {
 
   .lp-nav {
     padding-block: 0.55rem;
-  }
-
-  .lp-viewport:not(.lp-hero) {
-    padding-top: calc(var(--lp-nav-h) + 0.4rem);
   }
 
   #contato.lp-close {

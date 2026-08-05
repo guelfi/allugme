@@ -379,7 +379,6 @@ export function LandingPage() {
       <main id="topo">
         <section className="lp-viewport lp-hero" aria-label="Apresentação">
           <div className="lp-hero-copy">
-            <p className="lp-kicker">SaaS imobiliário brasileiro</p>
             <h1 className="lp-logo-hero">Allugme</h1>
             <p className="lp-hero-lead">
               A vitrine e a agenda da sua imobiliária — com layouts prontos, visitas pelo WhatsApp e
