@@ -27,7 +27,7 @@ git reset --hard origin/main
 
 if [ ! -f .env ]; then
   printf '%s\n' \\
-    'VITE_API_URL=https://allugme.com.br/allugme/api/v1' \\
+    'VITE_API_URL=https://www.allugme.com.br/allugme/api/v1' \\
     'VITE_BASE_PATH=/allugme/' \\
     'POSTGRES_DB=allugme' \\
     'POSTGRES_USER=allugme' \\

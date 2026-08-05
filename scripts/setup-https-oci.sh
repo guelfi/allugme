@@ -37,7 +37,7 @@ sudo docker exec nginx-proxy nginx -t
 sudo docker exec nginx-proxy nginx -s reload
 
 if grep -q '^VITE_API_URL=' .env 2>/dev/null; then
-  sed -i 's|^VITE_API_URL=.*|VITE_API_URL=https://allugme.com.br/allugme/api/v1|' .env
+  sed -i 's|^VITE_API_URL=.*|VITE_API_URL=https://www.allugme.com.br/allugme/api/v1|' .env
 fi
 
 sudo tee /usr/local/bin/renew-allugme-cert.sh >/dev/null << 'RENEW'
