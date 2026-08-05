@@ -503,7 +503,7 @@ export function LandingPage() {
               <h2>Planos claros. Pagamento via Pix.</h2>
               <p>
                 Escolha o perfil da sua conta. Imobiliária inclui equipe; corretor independente é
-                conta individual. Liberação pelo administrador após o Pix.
+                conta individual.
               </p>
             </header>
 
