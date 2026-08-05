@@ -2205,24 +2205,28 @@ th {
   }
 
   /*
-   * Card visual mobile = mesma composição do desktop:
-   * marquee de thumbs + painel branco. Sem flex-grow (evita poço teal
-   * e o painel sumir atrás de overflow:hidden).
+   * Hero visual mobile = card desktop: container arredondado,
+   * thumbs em marquee + painel branco interno. Sem flex-grow.
    */
   .lp-hero-visual {
     flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
     max-height: none;
-    min-height: 0;
-    border-radius: 22px;
+    min-height: 0 !important;
+    border-radius: 24px;
+    box-shadow: 0 16px 36px rgba(15, 40, 36, 0.28);
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     gap: 0;
+    isolation: isolate;
   }
 
   .lp-hero-carousel {
-    flex: 0 0 auto;
+    flex: 0 0 auto !important;
     min-height: 0;
-    padding: 0.95rem 0 0.7rem;
+    padding: 1rem 0 0.75rem;
     align-items: center;
   }
 
@@ -2247,26 +2251,40 @@ th {
   }
 
   .lp-hero-panel {
+    display: grid;
     flex: 0 0 auto;
     flex-shrink: 0;
-    margin: 0 0.9rem 0.9rem;
-    padding: 0.85rem 1.05rem;
+    margin: 0 0.85rem 0.85rem;
+    padding: 0.9rem 1.05rem;
     border-radius: 16px;
-    background: rgba(255, 255, 255, 0.97);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    background: #fff;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
   }
 
   .lp-hero-panel span {
     font-size: 0.85rem;
+    color: var(--lp-muted);
   }
 
   .lp-hero-panel strong {
-    font-size: 1.25rem;
+    font-family: Fraunces, serif;
+    font-size: 1.28rem;
     line-height: 1.2;
+    color: var(--lp-ink);
   }
 
   .lp-hero-panel em {
-    font-size: 0.92rem;
+    font-size: 0.95rem;
+    color: var(--lp-accent);
+    font-weight: 600;
+  }
+
+  /* CTAs ficam fora do card, no fundo da página */
+  .lp-hero-cta-after,
+  .lp-hero-note-after {
+    position: relative;
+    z-index: 1;
+    background: transparent;
   }
 
   .lp-feature-grid {
@@ -2597,22 +2615,36 @@ th {
     gap: 1rem;
   }
 
+  /* Tablet: mesmo card compacto (evita min-height 300px + flex:1 no carrossel) */
   .lp-hero-visual {
-    min-height: 300px;
+    min-height: 0;
     max-height: none;
+    flex: 0 0 auto;
+    border-radius: 26px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   .lp-hero-carousel {
-    padding: 0.9rem 0;
+    flex: 0 0 auto;
+    padding: 1rem 0 0.75rem;
   }
 
   .lp-hero-carousel-card {
-    width: 10.25rem;
+    width: 10.75rem;
   }
 
   .lp-hero-carousel-track {
     gap: 1rem;
     padding-inline: 1.15rem;
+  }
+
+  .lp-hero-panel {
+    display: grid;
+    flex: 0 0 auto;
+    margin: 0 1rem 1rem;
+    background: #fff;
   }
 
   .lp-privacy-grid {
