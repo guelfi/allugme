@@ -1,4 +1,5 @@
 .env
+docs/usuarios-teste.local.md
 bin/
 obj/
 node_modules/

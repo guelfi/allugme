@@ -36,10 +36,7 @@ Path no servidor: `/var/www/allugme`
 
 ## Credenciais seed
 
-| Role | Email | Senha |
-|------|-------|-------|
-| SaaS Admin | `admin@allugme.com.br` | `Admin123#` |
-| Demo tenant | `admin@{slug}.local` | `Demo@123456` |
+Ver `docs/usuarios-teste.local.md` (arquivo local, fora do Git — não versionar/commitar).
 
 Slugs: `horizon`, `vista-urbana`, `casa-tradicao`, `atlas`, `porto-lar`
 
