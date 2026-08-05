@@ -1,6 +1,7 @@
 import { type FormEvent, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { registerAccount } from '../api/auth'
+import { PasswordInput } from '../components/PasswordInput'
 import { agencyPricing, independentPricing, planFullLabel } from '../pricing'
 
 type AccountType = 'agency' | 'independent'
@@ -66,11 +67,12 @@ export function RegisterPage() {
             <Link to="/" className="login-back-link">
               ← Voltar à página inicial
             </Link>
-            <p className="lp-kicker">
-              <Link to="/" className="brand-home-link">
-                Allugme
-              </Link>
-            </p>
+            <span className="login-brand-sep" aria-hidden="true">
+              -
+            </span>
+            <Link to="/" className="login-brand-name">
+              Allugme
+            </Link>
           </div>
           <h1>Cadastro recebido</h1>
           <p className="muted">{done.message}</p>
@@ -98,29 +100,41 @@ export function RegisterPage() {
             <Link to="/" className="login-back-link">
               ← Voltar à página inicial
             </Link>
-            <p className="lp-kicker">
-              <Link to="/" className="brand-home-link">
-                Allugme
-              </Link>
-            </p>
-          </div>
-          <h1>{isAgency ? 'Cadastro de imobiliária' : 'Cadastro de corretor'}</h1>
-          <p className="muted register-lead">
-            {isAgency
-              ? 'Equipe, vitrine e agenda — ativação após Pix.'
-              : 'Conta individual — vitrine e agenda só suas, ativação após Pix.'}
-          </p>
-
-          <div className="register-context">
-            <span className="register-context-badge">
-              {isAgency ? 'Imobiliária' : 'Corretor independente'}
+            <span className="login-brand-sep" aria-hidden="true">
+              -
             </span>
+            <Link to="/" className="login-brand-name">
+              Allugme
+            </Link>
+          </div>
+          <h1 className="register-title-line">
+            <span>Cadastre-se</span>
+            <span className="login-brand-sep" aria-hidden="true">
+              -
+            </span>
+            <span className="register-lead-inline muted">
+              {isAgency
+                ? 'Equipe, vitrine e agenda — ativação após Pix.'
+                : 'Conta individual — vitrine e agenda só suas, ativação após Pix.'}
+            </span>
+          </h1>
+
+          <div className="register-context" role="group" aria-label="Tipo de conta">
             <button
               type="button"
-              className="register-context-switch"
-              onClick={() => updateParam('type', isAgency ? 'independent' : 'agency')}
+              className={`register-context-option${isAgency ? ' is-active' : ''}`}
+              aria-pressed={isAgency}
+              onClick={() => updateParam('type', 'agency')}
             >
-              {isAgency ? 'Quero ser corretor' : 'Quero imobiliária'}
+              Sou Imobiliária
+            </button>
+            <button
+              type="button"
+              className={`register-context-option${!isAgency ? ' is-active' : ''}`}
+              aria-pressed={!isAgency}
+              onClick={() => updateParam('type', 'independent')}
+            >
+              Sou Corretor
             </button>
           </div>
 
@@ -234,12 +248,12 @@ export function RegisterPage() {
               </label>
               <label>
                 Senha
-                <input
-                  type="password"
+                <PasswordInput
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={8}
+                  autoComplete="new-password"
                 />
               </label>
             </div>

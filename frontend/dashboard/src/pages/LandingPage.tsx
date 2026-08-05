@@ -70,7 +70,7 @@ type ThemeItem = (typeof themes)[number]
 const features = [
   {
     title: 'Vitrine multi-tenant',
-    text: 'Cada imobiliária ou corretor sobe com slug próprio, identidade visual e carteira isolada.',
+    text: 'Cada imobiliária ou corretor sobe com slug próprio, identidade visual e carteira de imóveis isolada.',
   },
   {
     title: 'Layouts oficiais + customização',
@@ -86,7 +86,7 @@ const features = [
   },
   {
     title: 'Busca pública de imóveis',
-    text: 'Filtros por cidade, bairro, preço, quartos e operação — prontos para o site da sua carteira.',
+    text: 'Filtros por cidade, bairro, preço, quartos e operação — prontos para o site da sua carteira de imóveis.',
   },
   {
     title: 'Painel simples de verdade',
@@ -385,7 +385,7 @@ export function LandingPage() {
               A vitrine e a agenda da sua imobiliária — com layouts prontos, visitas pelo WhatsApp e
               liberação simples via Pix.
             </p>
-            <div className="lp-hero-cta">
+            <div className="lp-hero-cta lp-hero-cta-inline">
               <Link to="/register?type=agency" className="btn btn-primary btn-lg">
                 Sou imobiliária
               </Link>
@@ -393,7 +393,7 @@ export function LandingPage() {
                 Sou corretor
               </Link>
             </div>
-            <p className="lp-hero-note">
+            <p className="lp-hero-note lp-hero-note-inline">
               Cadastro em minutos. Pagamento via Pix. Ativação pelo administrador.
             </p>
           </div>
@@ -405,6 +405,17 @@ export function LandingPage() {
               <em>Adaptável à sua marca</em>
             </div>
           </div>
+          <div className="lp-hero-cta lp-hero-cta-after">
+            <Link to="/register?type=agency" className="btn btn-primary btn-lg">
+              Sou imobiliária
+            </Link>
+            <Link to="/register?type=independent" className="btn btn-secondary btn-lg">
+              Sou corretor
+            </Link>
+          </div>
+          <p className="lp-hero-note lp-hero-note-after">
+            Cadastro em minutos. Pagamento via Pix. Ativação pelo administrador.
+          </p>
         </section>
 
         <section id="recursos" className="lp-viewport lp-section">
@@ -412,8 +423,8 @@ export function LandingPage() {
             <header className="lp-section-head">
               <h2>Tudo que a operação precisa — sem complexidade de marketplace.</h2>
               <p>
-                O Allugme não tenta ser um clone genérico: é a plataforma da sua carteira, com
-                presença digital e rotina de visitas sob controle.
+                O Allugme não tenta ser um clone genérico: é a plataforma da sua carteira de imóveis,
+                com presença digital e rotina de visitas sob controle.
               </p>
             </header>
             <div className="lp-feature-grid">
@@ -542,7 +553,7 @@ export function LandingPage() {
         <section id="contato" className="lp-viewport lp-close" aria-label="Contato e cadastro">
           <div className="lp-close-inner">
             <p className="lp-kicker lp-close-kicker">Contato</p>
-            <h2>Coloque sua carteira no ar</h2>
+            <h2>Coloque sua carteira de imóveis no ar</h2>
             <p>
               Imobiliária com equipe ou corretor independente: cadastre-se, pague via Pix e aguarde a
               ativação. Ou fale conosco agora.

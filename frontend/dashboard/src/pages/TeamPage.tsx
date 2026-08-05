@@ -7,6 +7,7 @@ import {
   type BrokerQuota,
   type BrokerSeat,
 } from '../api/brokers'
+import { PasswordInput } from '../components/PasswordInput'
 import { useAuth } from '../contexts/AuthContext'
 
 const roleLabel: Record<string, string> = {
@@ -154,13 +155,13 @@ export function TeamPage() {
             </label>
             <label>
               Senha inicial
-              <input
-                type="password"
+              <PasswordInput
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
                 disabled={atLimit}
+                autoComplete="new-password"
               />
             </label>
             <button type="submit" className="btn btn-primary" disabled={saving || atLimit}>

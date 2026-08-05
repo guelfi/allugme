@@ -47,9 +47,10 @@ Slugs: `horizon`, `vista-urbana`, `casa-tradicao`, `atlas`, `porto-lar`
 
 ## Próxima tarefa
 
-1. Executar [05-plano-aceite.md](../05-plano-aceite.md) e registrar evidências  
-2. Ligar Evolution API real quando disponível  
-3. Renovação Let's Encrypt já com cron na OCI (`renew-allugme-cert.sh`)
+1. **Em curso:** coleta seção a seção de regressões de layout da LP (desktop + mobile) — ver [lp-layout-secoes.md](lp-layout-secoes.md). Sem implementação até fechar a coleta e aprovar o plano.  
+2. Executar [05-plano-aceite.md](../05-plano-aceite.md) e registrar evidências  
+3. Ligar Evolution API real quando disponível  
+4. Renovação Let's Encrypt já com cron na OCI (`renew-allugme-cert.sh`)
 
 ## Blockers ativos
 
@@ -60,6 +61,7 @@ _Nenhum._ Aceite formal e Evolution real são próximos passos operacionais.
 | Doc | Status |
 |-----|--------|
 | Pacote docs (flat) | ✅ `docs/*.md` + `handoff/` + `design/` (sem oscar/sua-trilha) |
+| Handoff LP layout seções | 🔄 [lp-layout-secoes.md](lp-layout-secoes.md) — coletando |
 | Referência busca/listagem QA | ✅ `docs/design/referencia-busca-quintoandar.md` |
 | CI/CD | ✅ `.github/workflows/{ci,deploy-oci}.yml` |
 | HTTPS produção | ✅ Let's Encrypt `allugme.com.br` |

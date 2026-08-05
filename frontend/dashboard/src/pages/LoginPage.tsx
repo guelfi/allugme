@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
+import { PasswordInput } from '../components/PasswordInput'
 import { useAuth } from '../contexts/AuthContext'
 
 export function LoginPage() {
@@ -28,11 +29,12 @@ export function LoginPage() {
           <Link to="/" className="login-back-link">
             ← Voltar à página inicial
           </Link>
-          <h1>
-            <Link to="/" className="brand-home-link">
-              Allugme
-            </Link>
-          </h1>
+          <span className="login-brand-sep" aria-hidden="true">
+            -
+          </span>
+          <Link to="/" className="login-brand-name">
+            Allugme
+          </Link>
         </div>
         <p className="muted">Acesse o painel</p>
         {error && <div className="alert alert-error">{error}</div>}
@@ -48,8 +50,7 @@ export function LoginPage() {
         </label>
         <label>
           Senha
-          <input
-            type="password"
+          <PasswordInput
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
