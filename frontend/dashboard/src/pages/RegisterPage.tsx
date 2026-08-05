@@ -21,6 +21,20 @@ function parsePlan(value: string | null): Plan {
   return value === 'yearly' ? 'yearly' : 'monthly'
 }
 
+function RegisterBgVideo() {
+  return (
+    <video
+      className="lp-register-bg-video"
+      src={`${import.meta.env.BASE_URL}videos/register-bg.mp4`}
+      autoPlay
+      loop
+      muted
+      playsInline
+      aria-hidden="true"
+    />
+  )
+}
+
 export function RegisterPage() {
   const [params, setParams] = useSearchParams()
   const isMobile = useIsMobile()
@@ -137,6 +151,7 @@ export function RegisterPage() {
   if (done) {
     return (
       <div className="login-page lp-register-wrap">
+        <RegisterBgVideo />
         <div className="login-card card register-card">
           <div className="login-brand-block">
             <Link to="/" className="login-back-link">
@@ -303,6 +318,7 @@ export function RegisterPage() {
 
   return (
     <div className="login-page lp-register-wrap">
+      <RegisterBgVideo />
       <div className="login-card card register-card">
         <header className="register-head">
           <div className="login-brand-block">

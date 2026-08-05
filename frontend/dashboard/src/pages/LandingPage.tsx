@@ -392,7 +392,7 @@ export function LandingPage() {
           <div className="lp-hero-copy">
             <h1 className="lp-logo-hero">Allugme</h1>
             <p className="lp-hero-lead">
-              A vitrine e a agenda da sua imobiliária — com layouts prontos, visitas pelo WhatsApp e
+              A vitrine e a agenda da sua imobiliária, com layouts prontos, visitas agendadas pelo WhatsApp e
               liberação simples via Pix.
             </p>
             <div className="lp-hero-cta lp-hero-cta-inline">
