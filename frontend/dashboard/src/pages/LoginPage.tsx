@@ -3,11 +3,8 @@ import { Link, Navigate } from 'react-router-dom'
 import { PasswordInput } from '../components/PasswordInput'
 import { useAuth } from '../contexts/AuthContext'
 
-type LoginAudience = 'visitor' | 'allugme'
-
 export function LoginPage() {
   const { login, isLoading, user, isInitializing } = useAuth()
-  const [audience, setAudience] = useState<LoginAudience>('visitor')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -27,7 +24,6 @@ export function LoginPage() {
   }
 
   const bgUrl = `${import.meta.env.BASE_URL}login-buildings.jpg`
-  const isVisitor = audience === 'visitor'
 
   return (
     <div
@@ -41,32 +37,11 @@ export function LoginPage() {
           </Link>
         </div>
 
-        <div className="register-context" role="group" aria-label="Tipo de acesso">
-          <button
-            type="button"
-            className={`register-context-option${isVisitor ? ' is-active' : ''}`}
-            aria-pressed={isVisitor}
-            onClick={() => setAudience('visitor')}
-          >
-            Visitante
-          </button>
-          <button
-            type="button"
-            className={`register-context-option${!isVisitor ? ' is-active' : ''}`}
-            aria-pressed={!isVisitor}
-            onClick={() => setAudience('allugme')}
-          >
-            Allugme
-          </button>
-        </div>
-
         <h1 className="register-title-line" style={{ fontSize: '1.25rem', margin: '0.35rem 0 0' }}>
           Entrar
         </h1>
         <p className="muted" style={{ margin: 0 }}>
-          {isVisitor
-            ? 'Acompanhe visitas e favoritos'
-            : 'Acesse o painel — admins, imobiliárias e corretores'}
+          Use o e-mail e a senha da sua conta. Após o login, você vai para o painel certo.
         </p>
 
         {error && <div className="alert alert-error">{error}</div>}
