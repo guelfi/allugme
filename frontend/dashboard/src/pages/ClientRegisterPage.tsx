@@ -27,7 +27,7 @@ export function ClientRegisterPage() {
   }
 
   function validateDados(): string | null {
-    if (!name.trim()) return 'Informe seu nome.'
+    if (!name.trim()) return 'Informe seu nome completo.'
     if (!email.trim()) return 'Informe seu e-mail.'
     if (!isValidBrPhone(phone)) return 'Informe um WhatsApp/celular válido, com DDD.'
     return null
@@ -58,12 +58,12 @@ export function ClientRegisterPage() {
       if (isMobile) setStep('dados')
       return
     }
-    if (!acceptPrivacy) {
-      setError('Aceite a Política de Privacidade para continuar.')
-      return
-    }
     if (password.length < 8) {
       setError('A senha deve ter ao menos 8 caracteres.')
+      return
+    }
+    if (!acceptPrivacy) {
+      setError('Aceite a Política de Privacidade para continuar.')
       return
     }
 
@@ -86,8 +86,8 @@ export function ClientRegisterPage() {
   }
 
   const bgUrl = `${import.meta.env.BASE_URL}login-buildings.jpg`
-  const showDados = !isMobile || step === 'dados'
-  const showAcesso = !isMobile || step === 'acesso'
+  const showFields = !isMobile || step === 'dados'
+  const showAccess = !isMobile || step === 'acesso'
 
   return (
     <div
@@ -121,75 +121,89 @@ export function ClientRegisterPage() {
 
         {error && <div className="alert alert-error">{error}</div>}
 
-        <div className="client-register-layout">
-          {showDados && (
-            <div className="client-register-fields">
-              <label>
-                Nome
-                <input value={name} onChange={(e) => setName(e.target.value)} required autoComplete="name" />
-              </label>
-              <label>
-                E-mail
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                />
-              </label>
-              <label>
-                WhatsApp / celular
-                <input
-                  type="tel"
-                  inputMode="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(formatBrPhone(e.target.value))}
-                  placeholder="(99) 99999-9999"
-                  required
-                  autoComplete="tel"
-                />
-              </label>
-            </div>
-          )}
-
-          {showAcesso && (
-            <div className="client-register-fields">
+        {showFields && (
+          <div className="client-register-grid">
+            <label>
+              Nome completo
+              <input value={name} onChange={(e) => setName(e.target.value)} required autoComplete="name" />
+            </label>
+            <label>
+              E-mail
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+            </label>
+            <label>
+              WhatsApp / celular
+              <input
+                type="tel"
+                inputMode="tel"
+                value={phone}
+                onChange={(e) => setPhone(formatBrPhone(e.target.value))}
+                placeholder="(99) 99999-9999"
+                required
+                autoComplete="tel"
+              />
+            </label>
+            {!isMobile && (
               <label>
                 Senha
                 <PasswordInput
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required={!isMobile || step === 'acesso'}
+                  required
                   minLength={8}
                   autoComplete="new-password"
                 />
               </label>
-              <label className="checkbox-row">
-                <input
-                  type="checkbox"
-                  checked={acceptPrivacy}
-                  onChange={(e) => setAcceptPrivacy(e.target.checked)}
-                  required={!isMobile || step === 'acesso'}
+            )}
+          </div>
+        )}
+
+        {showAccess && (
+          <div className="client-register-footer-block">
+            {isMobile && (
+              <label>
+                Senha
+                <PasswordInput
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
                 />
-                <span>
-                  Li e aceito a{' '}
-                  <Link to="/privacy" target="_blank" rel="noopener noreferrer">
-                    Política de Privacidade
-                  </Link>
-                </span>
               </label>
-              <div className="client-reg-pro-cta">
-                <p className="muted" style={{ margin: 0 }}>
-                  É imobiliária ou corretor? Cadastre sua conta profissional.
-                </p>
-                <Link to="/register" className="btn btn-ghost">
-                  Cadastro de imobiliária / corretor
+            )}
+
+            <p className="client-reg-pro-line muted">
+              É imobiliária ou corretor?{' '}
+              <Link to="/register">Cadastre sua conta profissional</Link>
+            </p>
+
+            <label className="checkbox-row client-register-privacy">
+              <input
+                type="checkbox"
+                checked={acceptPrivacy}
+                onChange={(e) => setAcceptPrivacy(e.target.checked)}
+                required
+              />
+              <span>
+                Li e aceito a{' '}
+                <Link to="/privacy" target="_blank" rel="noopener noreferrer">
+                  Política de Privacidade
                 </Link>
-              </div>
-            </div>
-          )}
-        </div>
+              </span>
+            </label>
+
+            <p className="muted client-register-footer">
+              Já tem conta? <Link to="/login">Entrar</Link>
+            </p>
+          </div>
+        )}
 
         <div className="client-register-actions">
           {isMobile && step === 'acesso' && (
@@ -202,9 +216,7 @@ export function ClientRegisterPage() {
             className="btn btn-primary"
             disabled={
               loading ||
-              (isMobile
-                ? step === 'acesso' && !acceptPrivacy
-                : !acceptPrivacy)
+              (isMobile ? step === 'acesso' && !acceptPrivacy : !acceptPrivacy)
             }
           >
             {loading
@@ -214,10 +226,6 @@ export function ClientRegisterPage() {
                 : 'Criar conta'}
           </button>
         </div>
-
-        <p className="muted client-register-footer">
-          Já tem conta? <Link to="/login">Entrar</Link>
-        </p>
       </form>
     </div>
   )
