@@ -38,11 +38,11 @@ Ordem sugerida: 0 → 1 → 2 → 3 → 3b; fase 4 pode overlap com 3/3b (temas 
 - Atualizar `handoff/CURRENT.md`
 
 ### DoD
-- [ ] `dotnet build` OK  
-- [ ] `npm run build` OK  
-- [ ] API health check responde  
-- [ ] Redis ping OK via API/health ou smoke test  
-- [ ] Docs lidas (PRD + DET)
+- [x] `dotnet build` OK  
+- [x] `npm run build` OK  
+- [x] API health check responde  
+- [x] Redis ping OK via API/health ou smoke test  
+- [x] Docs lidas (PRD + DET)
 
 ---
 
@@ -58,9 +58,9 @@ Ordem sugerida: 0 → 1 → 2 → 3 → 3b; fase 4 pode overlap com 3/3b (temas 
 - Telas React: login, shell do painel, switch de contexto tenant
 
 ### DoD
-- [ ] Dois tenants não compartilham dados em teste manual  
-- [ ] Roles bloqueiam rotas indevidas  
-- [ ] OpenAPI atualizado  
+- [x] Dois tenants não compartilham dados em teste manual  
+- [x] Roles bloqueiam rotas indevidas  
+- [x] OpenAPI atualizado  
 
 ### Checkpoint S4 (parcial)
 Auth + tenant + (idealmente início do CRUD imóvel na Fase 2).
@@ -80,9 +80,9 @@ Auth + tenant + (idealmente início do CRUD imóvel na Fase 2).
 - Estrutura `Persistence/Seed/DemoSeed.cs` (esqueleto)
 
 ### DoD
-- [ ] Broker publica imóvel visível na API pública  
-- [ ] Filtros cidade/bairro/preço/quartos/operação  
-- [ ] Tenant suspenso não aparece no público  
+- [x] Broker publica imóvel visível na API pública  
+- [x] Filtros cidade/bairro/preço/quartos/operação  
+- [x] Tenant suspenso não aparece no público  
 
 ### Checkpoint S4 / início S8
 CRUD imóvel + busca API.
@@ -102,10 +102,10 @@ CRUD imóvel + busca API.
 - Testes unitários do algoritmo de buffer  
 
 ### DoD
-- [ ] Buffer 60 min evidenciado  
-- [ ] Override tenant e corretor  
-- [ ] Conflito rejeitado pela API  
-- [ ] Timezone SP  
+- [x] Buffer 60 min evidenciado  
+- [x] Override tenant e corretor  
+- [x] Conflito rejeitado pela API  
+- [x] Timezone SP  
 
 ### Checkpoint S12 (parcial)
 Visitas + buffer OK (WhatsApp na 3b).
@@ -129,16 +129,16 @@ Visitas + buffer OK (WhatsApp na 3b).
 - Fake/mock Evolution para testes  
 
 ### DoD
-- [ ] Número configurável no painel (tenant e corretor)  
-- [ ] Solicitação de visita enfileira e dispara WhatsApp ao corretor (quando ativo)  
-- [ ] `SIM {codigo}` / `NAO {codigo}` alteram status corretamente  
-- [ ] Remetente não autorizado é ignorado  
-- [ ] Webhook duplicado não processa 2x  
-- [ ] Falha Evolution não impede criar visita (retry na fila)  
-- [ ] Visitante recebe retorno se tiver telefone  
+- [x] Número configurável no painel (tenant e corretor) — *débito: UI ainda não expõe `EvolutionInstanceName`; teste WA: payload `phone`≠`ToE164`*  
+- [x] Solicitação de visita enfileira e dispara WhatsApp ao corretor (quando ativo) — *fake mode por default*  
+- [x] `SIM {codigo}` / `NAO {codigo}` alteram status corretamente — *código + testes; runtime depende de Evolution real*  
+- [x] Remetente não autorizado é ignorado  
+- [x] Webhook duplicado não processa 2x  
+- [x] Falha Evolution não impede criar visita (retry na fila)  
+- [x] Visitante recebe retorno se tiver telefone  
 
 ### Checkpoint S12
-Visitas + buffer + WhatsApp OK.
+Visitas + buffer + WhatsApp OK em **fake mode**. Evolution real + débitos UI ainda pendentes.
 
 ---
 
@@ -155,10 +155,10 @@ Visitas + buffer + WhatsApp OK.
 - JS da vitrine chama slots/visita  
 
 ### DoD
-- [ ] Cada tema: home, listing, property, schedule  
-- [ ] Fluxo visitante completo sem usar o React  
-- [ ] Seed cria 5 tenants com ThemeKey distintos e ≥ 3 imóveis cada  
-- [ ] Demo: abrir 5 vitrines + trocar tema do `horizon` e ver layout mudar  
+- [x] Cada tema: home, listing, property, schedule  
+- [x] Fluxo visitante completo sem usar o React  
+- [x] Seed cria 5 tenants com ThemeKey distintos e ≥ 3 imóveis cada  
+- [x] Demo: abrir 5 vitrines + trocar tema do `horizon` e ver layout mudar  
 
 ### Checkpoint S8 (1 tema) → S14 (5 temas + seed)
 
@@ -186,14 +186,18 @@ Visitas + buffer + WhatsApp OK.
 
 | Item | Fase sugerida |
 |------|----------------|
+| Recuperação de senha | P1 |
 | Convite broker por e-mail | P1 |
 | AvailabilityRule completa | P1 |
 | E-mail de visita | P1 |
+| LGPD checkbox no cadastro | P1 |
+| Cache Redis busca/slots + rate limit | P1 |
+| Billing / gateway Pix + conciliação | P1 |
+| Débitos WA UI (instance name + teste ToE164) + Evolution real | P1 operacional |
 | Chat WhatsApp livre (fora do fluxo de visita) | P2 |
 | Tema custom + aprovação | P2 |
 | Static generation | P2 |
 | MAUI | P2 |
-| Billing | P2 |
 
 ---
 

@@ -9,7 +9,8 @@ public record CreateVisitRequest(
     string VisitorName,
     string VisitorPhone,
     string? VisitorEmail,
-    DateTime StartAt);
+    DateTime StartAt,
+    bool AcceptPrivacy = false);
 
 public record VisitDto(
     Guid Id,
@@ -28,7 +29,8 @@ public record VisitDto(
     string ConfirmationCode,
     DateTime? NotifiedAt,
     string? ConfirmedVia,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    Guid? ClientUserId = null);
 
 public record PatchVisitRequest(string Status);
 

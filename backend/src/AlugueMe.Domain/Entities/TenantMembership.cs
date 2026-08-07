@@ -8,6 +8,7 @@ public class TenantMembership
     public Guid UserId { get; set; }
     public Guid TenantId { get; set; }
     public MembershipRole Role { get; set; }
+    public MembershipStatus Status { get; set; } = MembershipStatus.Active;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public User User { get; set; } = null!;

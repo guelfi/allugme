@@ -15,6 +15,11 @@ public interface IAppDbContext
     DbSet<CalendarBlock> CalendarBlocks { get; }
     DbSet<Visit> Visits { get; }
     DbSet<WhatsAppOutboundLog> WhatsAppOutboundLogs { get; }
+    DbSet<PasswordResetToken> PasswordResetTokens { get; }
+    DbSet<BrokerInviteToken> BrokerInviteTokens { get; }
+    DbSet<AvailabilityRule> AvailabilityRules { get; }
+    DbSet<ConsentRecord> ConsentRecords { get; }
+    DbSet<FavoriteProperty> FavoriteProperties { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

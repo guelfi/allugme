@@ -6,6 +6,7 @@ export type BrokerSeat = {
   email: string
   phone?: string | null
   role: string
+  status?: 'active' | 'invited' | string
   createdAt: string
   isCurrentUser: boolean
   avatarUrl?: string | null
@@ -38,6 +39,18 @@ export async function createBroker(payload: {
   phone?: string
 }): Promise<BrokerSeat> {
   return post<BrokerSeat>('/brokers', payload)
+}
+
+export async function inviteBroker(payload: {
+  name: string
+  email: string
+  phone?: string
+}): Promise<BrokerSeat> {
+  return post<BrokerSeat>('/brokers/invite', payload)
+}
+
+export async function resendInvite(userId: string): Promise<void> {
+  await post(`/brokers/${userId}/resend-invite`)
 }
 
 export async function removeBroker(userId: string): Promise<void> {

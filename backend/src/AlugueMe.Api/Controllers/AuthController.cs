@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using AlugueMe.Api.Auth;
@@ -24,17 +25,23 @@ public class AuthController(
     AppDbContext db,
     IJwtTokenService jwt,
     IOptions<PixOptions> pixOptions,
+    IOptions<AppPublicOptions> appPublicOptions,
     IQrCodeGenerator qrCodeGenerator,
     IEmailSender emailSender,
+    IEmailTemplateRenderer emailTemplates,
     IFileStorage storage,
     ILogger<AuthController> logger) : ControllerBase
 {
     private const int TrialDays = 7;
+    private const int PasswordResetMinutes = 60;
 
     [HttpPost("register")]
     [AllowAnonymous]
     public async Task<ActionResult<object>> Register([FromBody] RegisterRequest request, CancellationToken ct)
     {
+        if (!request.AcceptPrivacy)
+            return BadRequest(new { message = "É necessário aceitar a Política de Privacidade (LGPD)." });
+
         var email = request.Email.Trim().ToLowerInvariant();
         if (await db.Users.AnyAsync(u => u.Email == email, ct))
             return Conflict(new { message = "E-mail já cadastrado." });
@@ -89,7 +96,8 @@ public class AuthController(
             TenantId = tenant.Id,
             BufferMinutes = 60,
             VisitDurationMinutes = 60,
-            WhatsAppNotifyEnabled = false
+            WhatsAppNotifyEnabled = false,
+            EmailNotifyEnabled = true
         });
 
         var role = isIndependent ? MembershipRole.IndependentBroker : MembershipRole.AgencyAdmin;
@@ -98,7 +106,20 @@ public class AuthController(
             Id = Guid.NewGuid(),
             UserId = user.Id,
             TenantId = tenant.Id,
-            Role = role
+            Role = role,
+            Status = MembershipStatus.Active
+        });
+
+        db.ConsentRecords.Add(new ConsentRecord
+        {
+            Id = Guid.NewGuid(),
+            Context = "register_b2b",
+            PolicyVersion = "1.0",
+            SubjectEmail = email,
+            UserId = user.Id,
+            IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+            UserAgent = Request.Headers.UserAgent.ToString(),
+            AcceptedAt = DateTime.UtcNow
         });
 
         await db.SaveChangesAsync(ct);
@@ -201,20 +222,37 @@ public class AuthController(
             return Unauthorized(new { message = "Credenciais inválidas." });
 
         var memberships = await LoadMembershipsAsync(user.Id, ct);
+        if (memberships.Any(m => m.Status == MembershipStatus.Invited) &&
+            memberships.All(m => m.Status == MembershipStatus.Invited) &&
+            !user.IsClient && !user.IsSaasAdmin)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                message = "Finalize o convite pelo link enviado ao seu e-mail antes de entrar."
+            });
+        }
+
         Guid? tenantId = request.TenantId;
         string? role = null;
 
+        if (user.IsClient && memberships.Count == 0)
+        {
+            var clientToken = jwt.GenerateToken(user.Id, user.Email, user.Name, false, null, "client", isClient: true);
+            return Ok(new AuthResponse(clientToken, await MapUserAsync(user, memberships, ct)));
+        }
+
         if (tenantId.HasValue)
         {
-            var membership = memberships.FirstOrDefault(m => m.TenantId == tenantId);
+            var membership = memberships.FirstOrDefault(m => m.TenantId == tenantId && m.Status == MembershipStatus.Active);
             if (membership is null && !user.IsSaasAdmin)
                 return Forbid();
             role = membership is not null ? EnumMapper.ToApi(membership.Role) : null;
         }
-        else if (memberships.Count == 1)
+        else if (memberships.Count(m => m.Status == MembershipStatus.Active) == 1)
         {
-            tenantId = memberships[0].TenantId;
-            role = EnumMapper.ToApi(memberships[0].Role);
+            var m = memberships.First(x => x.Status == MembershipStatus.Active);
+            tenantId = m.TenantId;
+            role = EnumMapper.ToApi(m.Role);
         }
 
         if (!user.IsSaasAdmin && tenantId.HasValue)
@@ -242,13 +280,234 @@ public class AuthController(
                 });
         }
 
-        var token = jwt.GenerateToken(user.Id, user.Email, user.Name, user.IsSaasAdmin, tenantId, role);
+        var token = jwt.GenerateToken(user.Id, user.Email, user.Name, user.IsSaasAdmin, tenantId, role, user.IsClient);
         return Ok(new AuthResponse(token, await MapUserAsync(user, memberships, ct)));
     }
 
     [HttpPost("logout")]
     [Authorize]
     public IActionResult Logout() => Ok(new { message = "Logout realizado." });
+
+    /// <summary>
+    /// Solicita e-mail de redefinição de senha. Sempre retorna 200 para não vazar existência de conta.
+    /// </summary>
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken ct)
+    {
+        var generic = new
+        {
+            message = "Se o e-mail estiver cadastrado, você receberá um link para redefinir a senha."
+        };
+
+        var email = (request.Email ?? string.Empty).Trim().ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+            return Ok(generic);
+
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email, ct);
+        if (user is null)
+            return Ok(generic);
+
+        var membership = await db.TenantMemberships
+            .Include(m => m.Tenant)
+            .Where(m => m.UserId == user.Id)
+            .OrderBy(m => m.CreatedAt)
+            .FirstOrDefaultAsync(ct);
+
+        var tenant = membership?.Tenant;
+        var themeKey = tenant?.ThemeKey ?? "moderno";
+        var brandName = tenant?.Name ?? "Allugme";
+
+        var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
+        var tokenHash = HashToken(rawToken);
+
+        var now = DateTime.UtcNow;
+        var existing = await db.PasswordResetTokens
+            .Where(t => t.UserId == user.Id && t.UsedAt == null && t.ExpiresAt > now)
+            .ToListAsync(ct);
+        foreach (var old in existing)
+            old.UsedAt = now;
+
+        db.PasswordResetTokens.Add(new PasswordResetToken
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            TokenHash = tokenHash,
+            ExpiresAt = now.AddMinutes(PasswordResetMinutes),
+            CreatedAt = now
+        });
+        await db.SaveChangesAsync(ct);
+
+        var baseUrl = appPublicOptions.Value.DashboardBaseUrl.TrimEnd('/');
+        var resetUrl = $"{baseUrl}/reset-password?token={Uri.EscapeDataString(rawToken)}";
+
+        try
+        {
+            var html = await emailTemplates.RenderAsync(
+                EmailTemplateKeys.PasswordReset,
+                themeKey,
+                tenant?.Id,
+                new Dictionary<string, string>
+                {
+                    ["user_name"] = user.Name,
+                    ["user_email"] = user.Email,
+                    ["brand_name"] = brandName,
+                    ["expires_minutes"] = PasswordResetMinutes.ToString(),
+                    ["reset_url"] = resetUrl
+                },
+                ct);
+
+            await emailSender.SendAsync(
+                user.Email,
+                $"{brandName} — Redefinir senha",
+                html,
+                ct: ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Falha ao enviar e-mail de reset de senha para {Email}.", user.Email);
+        }
+
+        return Ok(generic);
+    }
+
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken ct)
+    {
+        var token = (request.Token ?? string.Empty).Trim();
+        var newPassword = request.NewPassword ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(token) || newPassword.Length < 8)
+            return BadRequest(new { message = "Token inválido ou senha muito curta (mínimo 8 caracteres)." });
+
+        var hash = HashToken(token);
+        var now = DateTime.UtcNow;
+        var reset = await db.PasswordResetTokens
+            .Include(t => t.User)
+            .FirstOrDefaultAsync(t => t.TokenHash == hash, ct);
+
+        if (reset is null || reset.UsedAt is not null || reset.ExpiresAt < now)
+            return BadRequest(new { message = "Link inválido ou expirado. Solicite uma nova redefinição." });
+
+        reset.User.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        reset.UsedAt = now;
+        await db.SaveChangesAsync(ct);
+
+        return Ok(new { message = "Senha atualizada. Você já pode entrar no painel." });
+    }
+
+    [HttpPost("accept-invite")]
+    [AllowAnonymous]
+    [RequestSizeLimit(6 * 1024 * 1024)]
+    public async Task<ActionResult<AuthResponse>> AcceptInvite(
+        [FromForm] string token,
+        [FromForm] string password,
+        [FromForm] string phone,
+        IFormFile? avatar,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(password) || password.Length < 8)
+            return BadRequest(new { message = "Token inválido ou senha muito curta (mínimo 8 caracteres)." });
+
+        var phoneDigits = Regex.Replace(phone ?? string.Empty, @"\D", "");
+        if (phoneDigits.Length < 10)
+            return BadRequest(new { message = "Informe um WhatsApp/celular válido, com DDD." });
+
+        if (avatar is null || avatar.Length == 0)
+            return BadRequest(new { message = "A foto de perfil é obrigatória para corretores." });
+
+        var hash = HashToken(token.Trim());
+        var now = DateTime.UtcNow;
+        var invite = await db.BrokerInviteTokens
+            .Include(t => t.User)
+            .Include(t => t.Tenant)
+            .FirstOrDefaultAsync(t => t.TokenHash == hash, ct);
+
+        if (invite is null || invite.UsedAt is not null || invite.ExpiresAt < now)
+            return BadRequest(new { message = "Convite inválido ou expirado." });
+
+        var membership = await db.TenantMemberships
+            .FirstOrDefaultAsync(m => m.UserId == invite.UserId && m.TenantId == invite.TenantId, ct);
+        if (membership is null || membership.Status != MembershipStatus.Invited)
+            return BadRequest(new { message = "Convite já utilizado ou inválido." });
+
+        var phoneE164 = phoneDigits.StartsWith("55") ? $"+{phoneDigits}" : $"+55{phoneDigits}";
+        invite.User.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password);
+        invite.User.Phone = phoneE164;
+
+        await using (var stream = avatar.OpenReadStream())
+        {
+            invite.User.AvatarPath = await storage.SaveAsync(stream, avatar.FileName, avatar.ContentType, ct);
+        }
+
+        membership.Status = MembershipStatus.Active;
+        invite.UsedAt = now;
+        await db.SaveChangesAsync(ct);
+
+        var jwtToken = jwt.GenerateToken(
+            invite.User.Id, invite.User.Email, invite.User.Name, false,
+            invite.TenantId, EnumMapper.ToApi(membership.Role));
+        var memberships = await LoadMembershipsAsync(invite.User.Id, ct);
+        return Ok(new AuthResponse(jwtToken, await MapUserAsync(invite.User, memberships, ct)));
+    }
+
+    [HttpPost("register-client")]
+    [AllowAnonymous]
+    public async Task<ActionResult<AuthResponse>> RegisterClient([FromBody] RegisterClientRequest request, CancellationToken ct)
+    {
+        if (!request.AcceptPrivacy)
+            return BadRequest(new { message = "É necessário aceitar a Política de Privacidade (LGPD)." });
+
+        var email = request.Email.Trim().ToLowerInvariant();
+        if (await db.Users.AnyAsync(u => u.Email == email, ct))
+            return Conflict(new { message = "E-mail já cadastrado." });
+
+        if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8)
+            return BadRequest(new { message = "Senha deve ter ao menos 8 caracteres." });
+
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = email,
+            Name = request.Name.Trim(),
+            Phone = request.Phone,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            IsClient = true
+        };
+        db.Users.Add(user);
+        db.ConsentRecords.Add(new ConsentRecord
+        {
+            Id = Guid.NewGuid(),
+            Context = "register_client",
+            PolicyVersion = "1.0",
+            SubjectEmail = email,
+            UserId = user.Id,
+            IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+            UserAgent = Request.Headers.UserAgent.ToString(),
+            AcceptedAt = DateTime.UtcNow
+        });
+
+        // Vincula visitas anteriores pelo mesmo e-mail
+        var orphanVisits = await db.Visits
+            .Where(v => v.ClientUserId == null && v.VisitorEmail != null && v.VisitorEmail.ToLower() == email)
+            .ToListAsync(ct);
+        foreach (var v in orphanVisits)
+            v.ClientUserId = user.Id;
+
+        await db.SaveChangesAsync(ct);
+
+        var token = jwt.GenerateToken(user.Id, user.Email, user.Name, false, null, "client", isClient: true);
+        return Ok(new AuthResponse(token, await MapUserAsync(user, [], ct)));
+    }
+
+    private static string HashToken(string rawToken)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(rawToken));
+        return Convert.ToHexString(bytes).ToLowerInvariant();
+    }
 
     [HttpGet("/api/v1/me")]
     [Authorize]
@@ -284,6 +543,7 @@ public class AuthController(
             user.Name,
             user.Phone,
             user.IsSaasAdmin,
+            user.IsClient,
             string.IsNullOrEmpty(user.AvatarPath) ? null : storage.GetPublicUrl(user.AvatarPath),
             memberships.Select(m => DtoMappers.ToDto(m, usage.GetValueOrDefault(m.TenantId))).ToList());
     }

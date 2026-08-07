@@ -18,9 +18,12 @@ public class Visit
     public string ConfirmationCode { get; set; } = string.Empty;
     public DateTime? NotifiedAt { get; set; }
     public ConfirmedVia? ConfirmedVia { get; set; }
+    /// <summary>Conta do portal do cliente vinculada (quando o visitante está logado ou reivindicou a visita).</summary>
+    public Guid? ClientUserId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public Property Property { get; set; } = null!;
     public Tenant Tenant { get; set; } = null!;
     public User Broker { get; set; } = null!;
+    public User? ClientUser { get; set; }
 }

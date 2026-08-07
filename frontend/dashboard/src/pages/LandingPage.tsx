@@ -597,7 +597,7 @@ export function LandingPage() {
             </div>
             <div className="lp-footer-links">
               <Link to="/login">Entrar no painel</Link>
-              <a href="#privacidade">Política de Privacidade</a>
+              <Link to="/privacy">Privacidade</Link>
               <a href="#privacidade">Cookies</a>
               <a
                 className="lp-footer-wa"

@@ -19,6 +19,10 @@ public static class ClaimsPrincipalExtensions
     public static bool IsSaasAdmin(this ClaimsPrincipal user) =>
         string.Equals(user.FindFirstValue("is_saas_admin"), "true", StringComparison.OrdinalIgnoreCase);
 
+    public static bool IsClient(this ClaimsPrincipal user) =>
+        string.Equals(user.FindFirstValue("is_client"), "true", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(user.FindFirstValue(ClaimTypes.Role), "client", StringComparison.OrdinalIgnoreCase);
+
     public static string? GetRole(this ClaimsPrincipal user) =>
         user.FindFirstValue(ClaimTypes.Role);
 }

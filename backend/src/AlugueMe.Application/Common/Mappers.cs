@@ -70,6 +70,8 @@ public static class EnumMapper
     public static string ToApi(PropertyMediaType type) => type == PropertyMediaType.Video ? "video" : "photo";
 
     public static string? ToApi(ConfirmedVia? via) => via?.ToString().ToLowerInvariant();
+
+    public static string ToApi(MembershipStatus status) => status == MembershipStatus.Invited ? "invited" : "active";
 }
 
 public static class ConfirmationCodeGenerator
@@ -91,6 +93,7 @@ public static class DtoMappers
             m.Tenant.Name,
             m.Tenant.Slug,
             EnumMapper.ToApi(m.Role),
+            EnumMapper.ToApi(m.Status),
             EnumMapper.ToApi(m.Tenant.Type),
             NormalizePlan(m.Tenant.Plan),
             m.Tenant.IncludedBrokerSlots,
@@ -132,5 +135,5 @@ public static class DtoMappers
         new(v.Id, v.PropertyId, v.Property.Title, v.TenantId, v.BrokerId, v.Broker.Name,
             v.VisitorName, v.VisitorPhone, v.VisitorEmail, v.StartAt, v.EndAt,
             v.BufferMinutesApplied, EnumMapper.ToApi(v.Status), v.ConfirmationCode,
-            v.NotifiedAt, EnumMapper.ToApi(v.ConfirmedVia), v.CreatedAt);
+            v.NotifiedAt, EnumMapper.ToApi(v.ConfirmedVia), v.CreatedAt, v.ClientUserId);
 }

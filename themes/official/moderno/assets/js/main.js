@@ -233,20 +233,51 @@
     var form = document.getElementById("visit-form");
     if (!form) return;
     form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
       var action = form.getAttribute("action") || "";
+      var slot = document.getElementById("slot-selecionado");
+      var status = form.querySelector(".form-status");
+      var privacy = form.querySelector("[name=acceptPrivacy]");
+      if (!slot || !slot.value) {
+        status.textContent = "Escolha um dia e horário ao lado para concluir o agendamento.";
+        status.hidden = false;
+        return;
+      }
+      if (privacy && !privacy.checked) {
+        status.textContent = "Aceite a Política de Privacidade para continuar.";
+        status.hidden = false;
+        return;
+      }
       if (action.indexOf("{{") !== -1) {
-        ev.preventDefault();
-        var slot = document.getElementById("slot-selecionado");
-        var status = form.querySelector(".form-status");
-        if (!slot.value) {
-          status.textContent = "Escolha um dia e horário ao lado para concluir o agendamento.";
-          status.hidden = false;
-          return;
-        }
         status.textContent = "Visita solicitada para " + slot.value +
           ". Em produção, estes dados seriam enviados ao corretor.";
         status.hidden = false;
+        return;
       }
+      var propertyId = (form.querySelector("[name=propertyId]") || {}).value;
+      var startAt = slot.getAttribute("data-start") || slot.value;
+      var body = {
+        propertyId: propertyId,
+        visitorName: (form.querySelector("[name=nome]") || {}).value,
+        visitorPhone: (form.querySelector("[name=telefone]") || {}).value,
+        visitorEmail: (form.querySelector("[name=email]") || {}).value,
+        startAt: startAt,
+        acceptPrivacy: true
+      };
+      status.textContent = "Enviando…";
+      status.hidden = false;
+      fetch(action, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(body)
+      }).then(function (r) {
+        return r.json().then(function (data) {
+          if (!r.ok) throw new Error((data && data.message) || "Falha ao agendar");
+          status.textContent = "Visita solicitada! O corretor confirma em breve.";
+        });
+      }).catch(function (err) {
+        status.textContent = err.message || "Não foi possível enviar o agendamento.";
+      });
     });
   }
 

@@ -52,7 +52,12 @@
             <input type="email" name="email" autocomplete="email" required placeholder="voce@exemplo.com" />
           </label>
 
+          <label class="field" style="display:flex;gap:0.5rem;align-items:flex-start;margin:0.75rem 0">
+            <input type="checkbox" name="acceptPrivacy" value="true" required style="margin-top:0.25rem" />
+            <span>Li e aceito a <a href="/allugme/privacy" target="_blank" rel="noopener">Política de Privacidade</a> (LGPD).</span>
+          </label>
           <input type="hidden" name="slot" id="slot-selecionado" value="" />
+          <input type="hidden" name="propertyId" value="{{property.id}}" />
 
           <button class="btn btn--primary btn--block" type="submit" data-od-id="visit-submit">
             <i data-lucide="calendar-check" aria-hidden="true"></i> Confirmar agendamento

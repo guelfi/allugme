@@ -38,6 +38,16 @@ public class StorageOptions
     public const string SectionName = "Storage";
     public string MediaPath { get; set; } = "storage/media";
     public string PublicBaseUrl { get; set; } = "/media";
+    /// <summary>Overrides de e-mail por tenant: {EmailTemplatesPath}/{tenantId}/{template}.html</summary>
+    public string EmailTemplatesPath { get; set; } = "storage/email-templates";
+}
+
+/// <summary>URLs públicas usadas em links de e-mail (reset de senha, convites).</summary>
+public class AppPublicOptions
+{
+    public const string SectionName = "App";
+    /// <summary>Base do painel, sem barra final — ex.: https://www.allugme.com.br/allugme</summary>
+    public string DashboardBaseUrl { get; set; } = "https://www.allugme.com.br/allugme";
 }
 
 public class RedisOptions

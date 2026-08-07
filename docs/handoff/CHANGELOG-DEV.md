@@ -4,6 +4,36 @@ Registro cronológico de evolução (decisões, entregas, mudanças de escopo).
 
 ---
 
+## 2026-08-05 / 2026-08-06
+
+### Cadastro, trial e Pix
+- Fluxo de cadastro B2B em etapas (dados → plano → confirmação); WhatsApp obrigatório com máscara.
+- Pix estático (QR + copia e cola) na confirmação e no e-mail; chave configurável no backend.
+- **Trial 7 dias** (`TenantStatus.Trial` + `TrialEndsAt`): auto-login após cadastro; banner no dashboard; expiração → `PendingPayment`.
+- Landing: CTA “7 dias grátis”; chip “Ver modelo” abre preview; vídeo leve de fundo na tela de registro.
+
+### Dashboard / UX
+- SaaS admin mobile-first: totais, detalhe de tenant (abas + visitas), somente leitura.
+- Sidebar retrátil com ícones; topbar `Nome do tenant - Perfil`.
+- Equipe: grid clicável, aviso/badge de foto obrigatória do corretor.
+- PropertyForm e Visitas com abas (menos scroll no desktop).
+- Padrão de título: `Título - subtítulo / somente leitura / Visão global`.
+- Mídia de imóvel: até 13 fotos + 1 vídeo curto; avatar de face do corretor.
+
+### Segurança / docs
+- Senhas de seed removidas dos docs versionados; arquivo local `docs/usuarios-teste.local.md` + `.gitignore`.
+- Handoff `CURRENT.md` atualizado com roadmap P1/P2.
+- **Auditoria docs×código (2026-08-06):** nenhum item P1 listado como “futuro” estava já implementado; DoD das fases 0–4 em `04-plano-implementacao-fases.md` alinhados; débitos WA UI e nuance SaaS “não 100% read-only” documentados; Redis “cache leve” corrigido para P1.
+
+### Commits relevantes
+- `2513448` cadastro + Pix estático  
+- `1a5aa89` admin SaaS mobile-first / mídia / avatar / detalhe tenant  
+- `0dea7bf` sidebar retrátil + telas sem scroll  
+- `983b69e` trial 7 dias + padronização de títulos  
+- `deab67c` vídeo de fundo no cadastro + texto Hero  
+
+---
+
 ## 2026-08-04
 
 ### Vitrine na raiz do domínio

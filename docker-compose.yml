@@ -100,11 +100,14 @@ services:
       Smtp__User: ${Smtp__User:-}
       Smtp__Password: ${Smtp__Password:-}
       Smtp__UseSsl: ${Smtp__UseSsl:-true}
-      Smtp__FromAddress: ${Smtp__FromAddress:-no-reply@allugme.com.br}
+      Smtp__FromAddress: ${Smtp__FromAddress:-contato@allugme.com.br}
       Smtp__FromName: ${Smtp__FromName:-Allugme}
+      App__DashboardBaseUrl: ${App__DashboardBaseUrl:-https://www.allugme.com.br/allugme}
+      Storage__EmailTemplatesPath: /app/storage/email-templates
 
     volumes:
       - ./storage/media:/app/storage/media
+      - ./storage/email-templates:/app/storage/email-templates
       - ./themes/official:/app/themes/official:ro
     expose:
       - "8080"

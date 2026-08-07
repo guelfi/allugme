@@ -1,10 +1,13 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using AlugueMe.Api.Auth;
 using AlugueMe.Application.Common;
 using AlugueMe.Application.Dtos.Brokers;
 using AlugueMe.Application.Interfaces;
 using AlugueMe.Domain.Entities;
 using AlugueMe.Domain.Enums;
+using AlugueMe.Infrastructure.Email;
 using AlugueMe.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,8 +18,12 @@ namespace AlugueMe.Api.Controllers;
 [ApiController]
 [Route("api/v1/brokers")]
 [Authorize]
-public class BrokersController(AppDbContext db, IFileStorage storage) : ControllerBase
+public class BrokersController(
+    AppDbContext db,
+    IFileStorage storage,
+    TransactionalEmailService emails) : ControllerBase
 {
+    private const int InviteDays = 7;
     private static readonly string[] AllowedAvatarContentTypes = ["image/jpeg", "image/png", "image/webp"];
 
     [HttpPost("me/avatar")]
@@ -69,22 +76,11 @@ public class BrokersController(AppDbContext db, IFileStorage storage) : Controll
             .ToListAsync(ct);
 
         var currentUserId = User.GetUserId();
-        var seats = members.Select(m => new BrokerSeatDto(
-            m.UserId,
-            m.User.Name,
-            m.User.Email,
-            m.User.Phone,
-            EnumMapper.ToApi(m.Role),
-            m.CreatedAt,
-            m.UserId == currentUserId,
-            string.IsNullOrEmpty(m.User.AvatarPath) ? null : storage.GetPublicUrl(m.User.AvatarPath))).ToList();
+        var seats = members.Select(m => ToSeat(m, currentUserId)).ToList();
 
         var quota = BuildQuota(tenant, seats.Count, User);
-        // SaaS nunca gerencia equipe do tenant
         if (User.IsSaasAdmin() && string.IsNullOrEmpty(User.GetRole()))
-        {
             quota = quota with { CanManageBrokers = false };
-        }
 
         return Ok(new TeamResponse(quota, seats));
     }
@@ -92,24 +88,11 @@ public class BrokersController(AppDbContext db, IFileStorage storage) : Controll
     [HttpPost]
     public async Task<ActionResult<BrokerSeatDto>> Create([FromBody] CreateBrokerRequest request, CancellationToken ct)
     {
-        var tenantId = User.GetTenantId();
-        if (tenantId is null)
-            return BadRequest(new { message = "Contexto de tenant não definido." });
+        var gate = await EnsureCanManageAsync(ct);
+        if (gate.Result is not null) return gate.Result;
+        var tenant = gate.Tenant!;
 
-        if (User.GetRole() is not "agency_admin")
-            return Forbid();
-
-        var tenant = await db.Tenants.FirstOrDefaultAsync(t => t.Id == tenantId, ct);
-        if (tenant is null)
-            return NotFound();
-
-        if (tenant.Type != TenantType.Agency)
-            return StatusCode(StatusCodes.Status403Forbidden, new
-            {
-                message = "Corretores independentes não podem cadastrar outros corretores."
-            });
-
-        var used = await db.TenantMemberships.CountAsync(m => m.TenantId == tenantId, ct);
+        var used = await db.TenantMemberships.CountAsync(m => m.TenantId == tenant.Id, ct);
         if (used >= tenant.MaxBrokerSlots)
             return Conflict(new
             {
@@ -139,45 +122,118 @@ public class BrokersController(AppDbContext db, IFileStorage storage) : Controll
             Id = Guid.NewGuid(),
             UserId = user.Id,
             TenantId = tenant.Id,
-            Role = MembershipRole.Broker
+            Role = MembershipRole.Broker,
+            Status = MembershipStatus.Active
         };
         db.TenantMemberships.Add(membership);
         await db.SaveChangesAsync(ct);
 
-        return Created($"/api/v1/brokers/{user.Id}", new BrokerSeatDto(
-            user.Id,
-            user.Name,
-            user.Email,
-            user.Phone,
-            EnumMapper.ToApi(membership.Role),
-            membership.CreatedAt,
-            false,
-            null));
+        return Created($"/api/v1/brokers/{user.Id}", ToSeat(membership, user, false));
+    }
+
+    [HttpPost("invite")]
+    public async Task<ActionResult<BrokerSeatDto>> Invite([FromBody] InviteBrokerRequest request, CancellationToken ct)
+    {
+        var gate = await EnsureCanManageAsync(ct);
+        if (gate.Result is not null) return gate.Result;
+        var tenant = gate.Tenant!;
+
+        var used = await db.TenantMemberships.CountAsync(m => m.TenantId == tenant.Id, ct);
+        if (used >= tenant.MaxBrokerSlots)
+            return Conflict(new
+            {
+                message =
+                    $"Limite de {tenant.MaxBrokerSlots} assentos atingido. Contrate corretores extras com o administrador Allugme."
+            });
+
+        var email = request.Email.Trim().ToLowerInvariant();
+        if (await db.Users.AnyAsync(u => u.Email == email, ct))
+            return Conflict(new { message = "E-mail já cadastrado." });
+
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = email,
+            Name = request.Name.Trim(),
+            Phone = request.Phone,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)))
+        };
+        db.Users.Add(user);
+
+        var membership = new TenantMembership
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            TenantId = tenant.Id,
+            Role = MembershipRole.Broker,
+            Status = MembershipStatus.Invited
+        };
+        db.TenantMemberships.Add(membership);
+
+        var rawToken = CreateRawToken();
+        db.BrokerInviteTokens.Add(new BrokerInviteToken
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            TenantId = tenant.Id,
+            TokenHash = HashToken(rawToken),
+            ExpiresAt = DateTime.UtcNow.AddDays(InviteDays),
+            CreatedAt = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync(ct);
+
+        await emails.SendBrokerInviteAsync(user, tenant, rawToken, ct);
+
+        return Created($"/api/v1/brokers/{user.Id}", ToSeat(membership, user, false));
+    }
+
+    [HttpPost("{userId:guid}/resend-invite")]
+    public async Task<IActionResult> ResendInvite(Guid userId, CancellationToken ct)
+    {
+        var gate = await EnsureCanManageAsync(ct);
+        if (gate.Result is not null) return gate.Result;
+        var tenant = gate.Tenant!;
+
+        var membership = await db.TenantMemberships
+            .Include(m => m.User)
+            .FirstOrDefaultAsync(m => m.TenantId == tenant.Id && m.UserId == userId, ct);
+        if (membership is null)
+            return NotFound();
+        if (membership.Status != MembershipStatus.Invited)
+            return BadRequest(new { message = "Este corretor já concluiu o cadastro." });
+
+        var now = DateTime.UtcNow;
+        var existing = await db.BrokerInviteTokens
+            .Where(t => t.UserId == userId && t.UsedAt == null && t.ExpiresAt > now)
+            .ToListAsync(ct);
+        foreach (var old in existing)
+            old.UsedAt = now;
+
+        var rawToken = CreateRawToken();
+        db.BrokerInviteTokens.Add(new BrokerInviteToken
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            TenantId = tenant.Id,
+            TokenHash = HashToken(rawToken),
+            ExpiresAt = now.AddDays(InviteDays),
+            CreatedAt = now
+        });
+        await db.SaveChangesAsync(ct);
+        await emails.SendBrokerInviteAsync(membership.User, tenant, rawToken, ct);
+        return Ok(new { message = "Convite reenviado." });
     }
 
     [HttpDelete("{userId:guid}")]
     public async Task<IActionResult> Remove(Guid userId, CancellationToken ct)
     {
-        var tenantId = User.GetTenantId();
-        if (tenantId is null)
-            return BadRequest(new { message = "Contexto de tenant não definido." });
-
-        if (User.GetRole() is not "agency_admin")
-            return Forbid();
-
-        var tenant = await db.Tenants.AsNoTracking().FirstOrDefaultAsync(t => t.Id == tenantId, ct);
-        if (tenant is null)
-            return NotFound();
-
-        if (tenant.Type != TenantType.Agency)
-            return StatusCode(StatusCodes.Status403Forbidden, new
-            {
-                message = "Corretores independentes não podem gerenciar equipe."
-            });
+        var gate = await EnsureCanManageAsync(ct);
+        if (gate.Result is not null) return gate.Result;
+        var tenant = gate.Tenant!;
 
         var membership = await db.TenantMemberships
             .Include(m => m.User)
-            .FirstOrDefaultAsync(m => m.TenantId == tenantId && m.UserId == userId, ct);
+            .FirstOrDefaultAsync(m => m.TenantId == tenant.Id && m.UserId == userId, ct);
         if (membership is null)
             return NotFound();
 
@@ -187,10 +243,54 @@ public class BrokersController(AppDbContext db, IFileStorage storage) : Controll
         if (membership.UserId == User.GetUserId())
             return BadRequest(new { message = "Você não pode remover a si mesmo." });
 
+        var invites = await db.BrokerInviteTokens.Where(t => t.UserId == userId).ToListAsync(ct);
+        db.BrokerInviteTokens.RemoveRange(invites);
         db.TenantMemberships.Remove(membership);
+        // Usuário convidado sem outras memberships: remove a conta órfã
+        var other = await db.TenantMemberships.AnyAsync(m => m.UserId == userId && m.Id != membership.Id, ct);
+        if (!other && !membership.User.IsSaasAdmin && !membership.User.IsClient)
+            db.Users.Remove(membership.User);
+
         await db.SaveChangesAsync(ct);
         return NoContent();
     }
+
+    private async Task<(ActionResult? Result, Tenant? Tenant)> EnsureCanManageAsync(CancellationToken ct)
+    {
+        var tenantId = User.GetTenantId();
+        if (tenantId is null)
+            return (BadRequest(new { message = "Contexto de tenant não definido." }), null);
+
+        if (User.GetRole() is not "agency_admin")
+            return (Forbid(), null);
+
+        var tenant = await db.Tenants.FirstOrDefaultAsync(t => t.Id == tenantId, ct);
+        if (tenant is null)
+            return (NotFound(), null);
+
+        if (tenant.Type != TenantType.Agency)
+            return (StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                message = "Corretores independentes não podem cadastrar outros corretores."
+            }), null);
+
+        return (null, tenant);
+    }
+
+    private BrokerSeatDto ToSeat(TenantMembership m, Guid currentUserId) =>
+        ToSeat(m, m.User, m.UserId == currentUserId);
+
+    private BrokerSeatDto ToSeat(TenantMembership m, User user, bool isCurrent) =>
+        new(
+            user.Id,
+            user.Name,
+            user.Email,
+            user.Phone,
+            EnumMapper.ToApi(m.Role),
+            EnumMapper.ToApi(m.Status),
+            m.CreatedAt,
+            isCurrent,
+            string.IsNullOrEmpty(user.AvatarPath) ? null : storage.GetPublicUrl(user.AvatarPath));
 
     private static BrokerQuotaDto BuildQuota(Tenant tenant, int used, ClaimsPrincipal user)
     {
@@ -205,5 +305,17 @@ public class BrokersController(AppDbContext db, IFileStorage storage) : Controll
             tenant.MaxBrokerSlots,
             Math.Max(0, tenant.MaxBrokerSlots - used),
             canManage);
+    }
+
+    private static string CreateRawToken() =>
+        Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
+
+    private static string HashToken(string rawToken)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(rawToken));
+        return Convert.ToHexString(bytes).ToLowerInvariant();
     }
 }

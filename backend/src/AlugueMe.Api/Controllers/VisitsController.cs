@@ -3,6 +3,7 @@ using AlugueMe.Application.Common;
 using AlugueMe.Application.Dtos.Visits;
 using AlugueMe.Application.Interfaces;
 using AlugueMe.Domain.Enums;
+using AlugueMe.Infrastructure.Email;
 using AlugueMe.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +14,11 @@ namespace AlugueMe.Api.Controllers;
 [ApiController]
 [Route("api/v1/visits")]
 [Authorize]
-public class VisitsController(AppDbContext db, IRedisLockService lockService, IWhatsAppQueue whatsAppQueue) : ControllerBase
+public class VisitsController(
+    AppDbContext db,
+    IRedisLockService lockService,
+    IWhatsAppQueue whatsAppQueue,
+    TransactionalEmailService emails) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<VisitDto>>> List(
@@ -52,6 +57,7 @@ public class VisitsController(AppDbContext db, IRedisLockService lockService, IW
         var visit = await db.Visits
             .Include(v => v.Property)
             .Include(v => v.Broker)
+            .Include(v => v.Tenant)
             .FirstOrDefaultAsync(v => v.Id == id, ct);
 
         if (visit is null)
@@ -91,7 +97,6 @@ public class VisitsController(AppDbContext db, IRedisLockService lockService, IW
 
     private bool CanManage(Domain.Entities.Visit visit)
     {
-        // SaaS admin: somente leitura
         if (User.IsSaasAdmin() && User.GetRole() is null)
             return false;
 
@@ -105,24 +110,26 @@ public class VisitsController(AppDbContext db, IRedisLockService lockService, IW
 
     private async Task NotifyVisitorAsync(Domain.Entities.Visit visit, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(visit.VisitorPhone))
-            return;
-
         var tenantSettings = await db.TenantSettings.FindAsync([visit.TenantId], ct);
-        if (tenantSettings?.WhatsAppNotifyEnabled != true || string.IsNullOrWhiteSpace(tenantSettings.EvolutionInstanceName))
-            return;
 
-        var message = visit.Status switch
+        if (!string.IsNullOrWhiteSpace(visit.VisitorPhone)
+            && tenantSettings?.WhatsAppNotifyEnabled == true
+            && !string.IsNullOrWhiteSpace(tenantSettings.EvolutionInstanceName))
         {
-            VisitStatus.Confirmed => $"Sua visita ao imóvel {visit.Property.Title} foi confirmada!",
-            VisitStatus.Rejected => $"Sua visita ao imóvel {visit.Property.Title} foi recusada.",
-            _ => null
-        };
+            var message = visit.Status switch
+            {
+                VisitStatus.Confirmed => $"Sua visita ao imóvel {visit.Property.Title} foi confirmada!",
+                VisitStatus.Rejected => $"Sua visita ao imóvel {visit.Property.Title} foi recusada.",
+                _ => null
+            };
+            if (message is not null)
+            {
+                await whatsAppQueue.EnqueueAsync(new WhatsAppQueueMessage(
+                    visit.TenantId, visit.Id, tenantSettings.EvolutionInstanceName, visit.VisitorPhone, message), ct);
+            }
+        }
 
-        if (message is null)
-            return;
-
-        await whatsAppQueue.EnqueueAsync(new WhatsAppQueueMessage(
-            visit.TenantId, visit.Id, tenantSettings.EvolutionInstanceName, visit.VisitorPhone, message), ct);
+        var emailOn = tenantSettings?.EmailNotifyEnabled ?? true;
+        await emails.SendVisitStatusToVisitorAsync(visit, visit.Property, visit.Tenant, emailOn, ct);
     }
 }

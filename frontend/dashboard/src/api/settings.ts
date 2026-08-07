@@ -1,11 +1,13 @@
 import { get, post, put } from './http'
-import type { TenantSettings } from '../types'
+import type { AvailabilityRule, TenantSettings } from '../types'
 
 export type BrokerSettings = {
   bufferMinutes?: number | null
   visitDurationMinutes?: number | null
   whatsAppE164?: string | null
 }
+
+export type AvailabilityScope = 'tenant' | 'broker'
 
 export async function getTenantSettings(): Promise<TenantSettings> {
   return get<TenantSettings>('/settings/tenant')
@@ -21,6 +23,19 @@ export async function getBrokerSettings(): Promise<BrokerSettings> {
 
 export async function updateBrokerSettings(payload: BrokerSettings): Promise<BrokerSettings> {
   return put<BrokerSettings>('/settings/broker', payload)
+}
+
+export async function getAvailability(
+  scope: AvailabilityScope = 'tenant',
+): Promise<{ rules: AvailabilityRule[] }> {
+  return get('/settings/availability', { query: { scope } })
+}
+
+export async function updateAvailability(
+  rules: AvailabilityRule[],
+  scope: AvailabilityScope = 'tenant',
+): Promise<{ rules: AvailabilityRule[] }> {
+  return put('/settings/availability', { rules }, { query: { scope } })
 }
 
 export async function sendWhatsAppTest(phone: string): Promise<{ ok: boolean; message?: string }> {

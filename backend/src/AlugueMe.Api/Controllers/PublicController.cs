@@ -26,7 +26,8 @@ public class PublicController(
     IRedisLockService lockService,
     IWhatsAppQueue whatsAppQueue,
     IOptions<PixOptions> pixOptions,
-    IQrCodeGenerator qrCodeGenerator) : ControllerBase
+    IQrCodeGenerator qrCodeGenerator,
+    Infrastructure.Email.TransactionalEmailService emails) : ControllerBase
 {
     [HttpPost("pix/quote")]
     public ActionResult<PixQuoteResponse> QuotePix([FromBody] PixQuoteRequest request)
@@ -130,7 +131,9 @@ public class PublicController(
             return NotFound();
 
         var targetDate = date ?? DateOnly.FromDateTime(VisitSlotCalculator.ToSaoPaulo(DateTime.UtcNow));
-        if (targetDate.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
+        var hours = await AvailabilityResolver.ResolveAsync(
+            db, property.TenantId, property.ResponsibleBrokerId, targetDate.DayOfWeek, ct);
+        if (hours.IsClosed)
             return Ok(new VisitSlotsResponse([]));
 
         var settings = await ResolveSlotSettingsAsync(property.ResponsibleBrokerId, property.TenantId, property.Tenant.Settings, ct);
@@ -151,7 +154,7 @@ public class PublicController(
             .Concat(blocks.Select(b => new OccupiedInterval(b.StartAt, b.EndAt)))
             .ToList();
 
-        var slots = slotCalculator.CalculateSlots(targetDate, settings, occupied)
+        var slots = slotCalculator.CalculateSlots(targetDate, settings, occupied, workStart: hours.Start, workEnd: hours.End)
             .Where(s => s.Start > DateTime.UtcNow)
             .Select(s => new VisitSlotDto(s.Start, s.End))
             .ToList();
@@ -162,8 +165,12 @@ public class PublicController(
     [HttpPost("visits")]
     public async Task<ActionResult<VisitDto>> CreateVisit([FromBody] CreateVisitRequest request, CancellationToken ct)
     {
+        if (!request.AcceptPrivacy)
+            return BadRequest(new { message = "É necessário aceitar a Política de Privacidade (LGPD)." });
+
         var property = await db.Properties
             .Include(p => p.Tenant).ThenInclude(t => t.Settings)
+            .Include(p => p.ResponsibleBroker)
             .FirstOrDefaultAsync(p => p.Id == request.PropertyId && p.Status == PropertyStatus.Published &&
                 (p.Tenant.Status == TenantStatus.Active || p.Tenant.Status == TenantStatus.Trial), ct);
 
@@ -186,6 +193,16 @@ public class PublicController(
         if (hasConflict)
             return Conflict(new { message = "Horário indisponível." });
 
+        Guid? clientUserId = null;
+        if (!string.IsNullOrWhiteSpace(request.VisitorEmail))
+        {
+            var visitorEmail = request.VisitorEmail.Trim().ToLowerInvariant();
+            clientUserId = await db.Users
+                .Where(u => u.IsClient && u.Email == visitorEmail)
+                .Select(u => (Guid?)u.Id)
+                .FirstOrDefaultAsync(ct);
+        }
+
         var visit = new Visit
         {
             Id = Guid.NewGuid(),
@@ -199,9 +216,23 @@ public class PublicController(
             EndAt = endAt,
             BufferMinutesApplied = settings.BufferMinutes,
             Status = VisitStatus.Pending,
-            ConfirmationCode = ConfirmationCodeGenerator.Generate()
+            ConfirmationCode = ConfirmationCodeGenerator.Generate(),
+            ClientUserId = clientUserId
         };
         db.Visits.Add(visit);
+
+        db.ConsentRecords.Add(new ConsentRecord
+        {
+            Id = Guid.NewGuid(),
+            Context = "visit_booking",
+            PolicyVersion = "1.0",
+            SubjectEmail = (request.VisitorEmail ?? request.VisitorPhone).Trim().ToLowerInvariant(),
+            VisitId = visit.Id,
+            IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+            UserAgent = Request.Headers.UserAgent.ToString(),
+            AcceptedAt = DateTime.UtcNow
+        });
+
         await db.SaveChangesAsync(ct);
 
         await EnqueueVisitNotificationAsync(visit, property, ct);
@@ -232,12 +263,16 @@ public class PublicController(
         else if (tenantSettings?.WhatsAppNotifyEnabled == true && !string.IsNullOrWhiteSpace(tenantSettings.WhatsAppE164))
             to = tenantSettings.WhatsAppE164;
 
-        if (string.IsNullOrWhiteSpace(to) || string.IsNullOrWhiteSpace(instance))
-            return;
+        if (!string.IsNullOrWhiteSpace(to) && !string.IsNullOrWhiteSpace(instance))
+        {
+            var spTime = VisitSlotCalculator.ToSaoPaulo(visit.StartAt);
+            var text = $"Nova visita solicitada!\nImóvel: {property.Title}\nVisitante: {visit.VisitorName}\nData: {spTime:dd/MM/yyyy HH:mm}\nCódigo: {visit.ConfirmationCode}\nResponda SIM {visit.ConfirmationCode} para confirmar ou NAO {visit.ConfirmationCode} para recusar.";
+            await whatsAppQueue.EnqueueAsync(new WhatsAppQueueMessage(property.TenantId, visit.Id, instance, to, text), ct);
+        }
 
-        var spTime = VisitSlotCalculator.ToSaoPaulo(visit.StartAt);
-        var text = $"Nova visita solicitada!\nImóvel: {property.Title}\nVisitante: {visit.VisitorName}\nData: {spTime:dd/MM/yyyy HH:mm}\nCódigo: {visit.ConfirmationCode}\nResponda SIM {visit.ConfirmationCode} para confirmar ou NAO {visit.ConfirmationCode} para recusar.";
-
-        await whatsAppQueue.EnqueueAsync(new WhatsAppQueueMessage(property.TenantId, visit.Id, instance, to, text), ct);
+        var broker = property.ResponsibleBroker
+            ?? await db.Users.FirstAsync(u => u.Id == property.ResponsibleBrokerId, ct);
+        var emailOn = tenantSettings?.EmailNotifyEnabled ?? true;
+        await emails.SendVisitCreatedToBrokerAsync(visit, property, broker, property.Tenant, emailOn, ct);
     }
 }

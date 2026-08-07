@@ -122,16 +122,48 @@
   function initScheduleForm() {
     const form = document.querySelector("[data-visit-form]");
     if (!form) return;
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const slot = form.querySelector("[name='slot']")?.value;
+      const slotEl = form.querySelector("[name='slot']");
+      const slot = slotEl?.value;
+      const privacy = form.querySelector("[name='acceptPrivacy']");
       if (!slot) {
         alert("Selecione um horário disponível.");
         return;
       }
-      alert("Solicitação registrada (demo). O corretor receberá o aviso no WhatsApp.");
-      form.reset();
-      document.querySelectorAll(".slot.is-selected").forEach((b) => b.classList.remove("is-selected"));
+      if (privacy && !privacy.checked) {
+        alert("Aceite a Política de Privacidade para continuar.");
+        return;
+      }
+      const action = form.getAttribute("action") || "";
+      if (action.includes("{{")) {
+        alert("Solicitação registrada (demo). O corretor receberá o aviso no WhatsApp.");
+        form.reset();
+        document.querySelectorAll(".slot.is-selected").forEach((b) => b.classList.remove("is-selected"));
+        return;
+      }
+      const body = {
+        propertyId: form.querySelector("[name='propertyId']")?.value,
+        visitorName: form.querySelector("[name='name']")?.value,
+        visitorPhone: form.querySelector("[name='phone']")?.value,
+        visitorEmail: form.querySelector("[name='email']")?.value,
+        startAt: slotEl.getAttribute("data-start") || slot,
+        acceptPrivacy: true
+      };
+      try {
+        const r = await fetch(action, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(body)
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.message || "Falha ao agendar");
+        alert("Visita solicitada! O corretor confirma em breve.");
+        form.reset();
+        document.querySelectorAll(".slot.is-selected").forEach((b) => b.classList.remove("is-selected"));
+      } catch (err) {
+        alert(err.message || "Não foi possível enviar o agendamento.");
+      }
     });
   }
 

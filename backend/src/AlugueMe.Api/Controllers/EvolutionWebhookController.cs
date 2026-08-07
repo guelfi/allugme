@@ -21,7 +21,8 @@ public class EvolutionWebhookController(
     IOptions<EvolutionOptions> evolutionOptions,
     IWebhookIdempotencyStore idempotency,
     IRedisLockService lockService,
-    IWhatsAppQueue whatsAppQueue) : ControllerBase
+    IWhatsAppQueue whatsAppQueue,
+    Infrastructure.Email.TransactionalEmailService emails) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> Handle([FromBody] EvolutionWebhookPayload payload, CancellationToken ct)
@@ -52,6 +53,7 @@ public class EvolutionWebhookController(
         var visit = await db.Visits
             .Include(v => v.Property)
             .Include(v => v.Broker)
+            .Include(v => v.Tenant)
             .FirstOrDefaultAsync(v => v.ConfirmationCode == parsed.ConfirmationCode && v.Status == VisitStatus.Pending, ct);
 
         if (visit is null)
@@ -83,19 +85,19 @@ public class EvolutionWebhookController(
         visit.ConfirmedVia = ConfirmedVia.WhatsApp;
         await db.SaveChangesAsync(ct);
 
-        if (!string.IsNullOrWhiteSpace(visit.VisitorPhone))
+        var tenantSettings = await db.TenantSettings.FindAsync([visit.TenantId], ct);
+        if (!string.IsNullOrWhiteSpace(visit.VisitorPhone) && tenantSettings?.EvolutionInstanceName is not null)
         {
-            var tenantSettings = await db.TenantSettings.FindAsync([visit.TenantId], ct);
-            if (tenantSettings?.EvolutionInstanceName is not null)
-            {
-                var msg = newStatus == VisitStatus.Confirmed
-                    ? $"Sua visita ao imóvel {visit.Property.Title} foi confirmada!"
-                    : $"Sua visita ao imóvel {visit.Property.Title} foi recusada.";
+            var msg = newStatus == VisitStatus.Confirmed
+                ? $"Sua visita ao imóvel {visit.Property.Title} foi confirmada!"
+                : $"Sua visita ao imóvel {visit.Property.Title} foi recusada.";
 
-                await whatsAppQueue.EnqueueAsync(new WhatsAppQueueMessage(
-                    visit.TenantId, visit.Id, tenantSettings.EvolutionInstanceName, visit.VisitorPhone, msg), ct);
-            }
+            await whatsAppQueue.EnqueueAsync(new WhatsAppQueueMessage(
+                visit.TenantId, visit.Id, tenantSettings.EvolutionInstanceName, visit.VisitorPhone, msg), ct);
         }
+
+        await emails.SendVisitStatusToVisitorAsync(
+            visit, visit.Property, visit.Tenant, tenantSettings?.EmailNotifyEnabled ?? true, ct);
 
         return Ok(new { message = "processed", status = EnumMapper.ToApi(newStatus) });
     }

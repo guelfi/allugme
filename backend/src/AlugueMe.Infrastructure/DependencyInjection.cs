@@ -32,12 +32,14 @@ public static class DependencyInjection
         services.Configure<RedisOptions>(configuration.GetSection(RedisOptions.SectionName));
         services.Configure<PixOptions>(configuration.GetSection(PixOptions.SectionName));
         services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
+        services.Configure<AppPublicOptions>(configuration.GetSection(AppPublicOptions.SectionName));
 
         var connectionString = configuration.GetConnectionString("PostgreSQL")
             ?? throw new InvalidOperationException("ConnectionStrings:PostgreSQL is required");
 
         services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(connectionString));
+            options.UseNpgsql(connectionString)
+                .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
 
         var redisConnection = configuration.GetConnectionString("Redis")
@@ -63,6 +65,8 @@ public static class DependencyInjection
         services.AddSingleton<IThemeRenderer, ThemeRenderer>();
         services.AddSingleton<IQrCodeGenerator, QrCodeImageGenerator>();
         services.AddSingleton<IEmailSender, SmtpEmailSender>();
+        services.AddSingleton<IEmailTemplateRenderer, EmailTemplateRenderer>();
+        services.AddSingleton<TransactionalEmailService>();
         services.AddSingleton<VisitSlotCalculator>();
         services.AddScoped<Persistence.Seed.DemoSeed>();
         services.AddHostedService<WhatsAppOutboundWorker>();

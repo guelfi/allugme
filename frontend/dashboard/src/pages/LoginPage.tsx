@@ -10,7 +10,8 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null)
 
   if (!isInitializing && user) {
-    return <Navigate to="/painel" replace />
+    const isClient = user.role === 'client' || user.isClient
+    return <Navigate to={isClient ? '/portal' : '/painel'} replace />
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -62,11 +63,16 @@ export function LoginPage() {
             autoComplete="current-password"
           />
         </label>
+        <p className="muted" style={{ margin: '-0.35rem 0 0', textAlign: 'right', fontSize: '0.88rem' }}>
+          <Link to="/forgot-password">Esqueci a senha</Link>
+        </p>
         <button type="submit" className="btn btn-primary" disabled={isLoading}>
           {isLoading ? 'Entrando…' : 'Entrar'}
         </button>
         <p className="muted" style={{ textAlign: 'center', marginTop: '0.75rem' }}>
           Novo por aqui? <Link to="/register">Cadastre-se</Link>
+          {' · '}
+          <Link to="/portal/register">Sou visitante</Link>
           {' · '}
           <Link to="/">Página inicial</Link>
         </p>

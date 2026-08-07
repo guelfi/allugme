@@ -1,4 +1,4 @@
-import { get, post } from './http'
+import { get, post, upload } from './http'
 import type { LoginResponse, MembershipRole, TenantType, User, UserRole } from '../types'
 
 type ApiMembership = {
@@ -6,6 +6,7 @@ type ApiMembership = {
   tenantName?: string
   tenantSlug?: string
   role: string
+  status?: string
   tenantType?: string
   plan?: string
   includedBrokerSlots?: number
@@ -23,6 +24,7 @@ type ApiUser = {
   name: string
   phone?: string | null
   isSaasAdmin?: boolean
+  isClient?: boolean
   avatarUrl?: string | null
   memberships?: ApiMembership[]
 }
@@ -34,6 +36,7 @@ type ApiLoginResponse = {
 }
 
 function mapRole(dto: ApiUser): UserRole {
+  if (dto.isClient || dto.memberships?.[0]?.role === 'client') return 'client'
   if (dto.isSaasAdmin) return 'saas_admin'
   const role = dto.memberships?.[0]?.role ?? ''
   if (role === 'agency_admin' || role === 'independent_broker') return 'tenant_admin'
@@ -41,13 +44,18 @@ function mapRole(dto: ApiUser): UserRole {
 }
 
 export function mapUser(dto: ApiUser): User {
+  const role = mapRole(dto)
   const membership = dto.memberships?.[0]
-  const membershipRole = membership?.role as MembershipRole | undefined
+  const membershipRole =
+    membership?.role && membership.role !== 'client'
+      ? (membership.role as MembershipRole)
+      : undefined
   return {
     id: dto.id,
     email: dto.email,
     name: dto.name,
-    role: mapRole(dto),
+    role,
+    isClient: Boolean(dto.isClient) || role === 'client',
     avatarUrl: dto.avatarUrl ?? undefined,
     membershipRole,
     tenantId: membership?.tenantId,
@@ -98,6 +106,7 @@ export type RegisterPayload = {
   businessName: string
   plan: 'monthly' | 'yearly'
   pixReferenceCode?: string
+  acceptPrivacy: boolean
 }
 
 export type PixQuote = {
@@ -129,6 +138,34 @@ export async function quotePix(params: {
   plan: 'monthly' | 'yearly'
 }): Promise<PixQuote> {
   return post('/public/pix/quote', params, { skipAuth: true })
+}
+
+export async function forgotPassword(email: string): Promise<{ message: string }> {
+  return post('/auth/forgot-password', { email }, { skipAuth: true })
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+  return post('/auth/reset-password', { token, newPassword }, { skipAuth: true })
+}
+
+export async function acceptInvite(formData: FormData): Promise<LoginResponse> {
+  const raw = await upload<ApiLoginResponse>('/auth/accept-invite', formData, { skipAuth: true })
+  const accessToken = raw.token ?? raw.accessToken
+  if (!accessToken) throw new Error('Token ausente na resposta do convite')
+  return { accessToken, user: mapUser(raw.user) }
+}
+
+export async function registerClient(payload: {
+  email: string
+  password: string
+  name: string
+  phone?: string
+  acceptPrivacy: boolean
+}): Promise<LoginResponse> {
+  const raw = await post<ApiLoginResponse>('/auth/register-client', payload, { skipAuth: true })
+  const accessToken = raw.token ?? raw.accessToken
+  if (!accessToken) throw new Error('Token ausente na resposta de cadastro')
+  return { accessToken, user: mapUser(raw.user) }
 }
 
 export function persistToken(token: string): void {

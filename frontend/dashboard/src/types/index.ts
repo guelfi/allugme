@@ -1,4 +1,4 @@
-export type UserRole = 'saas_admin' | 'tenant_admin' | 'broker'
+export type UserRole = 'saas_admin' | 'tenant_admin' | 'broker' | 'client'
 export type TenantType = 'agency' | 'independent'
 export type MembershipRole = 'agency_admin' | 'broker' | 'independent_broker'
 
@@ -7,6 +7,7 @@ export interface User {
   name: string
   email: string
   role: UserRole
+  isClient?: boolean
   avatarUrl?: string
   membershipRole?: MembershipRole
   tenantId?: string
@@ -83,6 +84,15 @@ export interface TenantSettings {
   bufferMinutes: number
   whatsAppE164?: string
   whatsAppNotifyEnabled: boolean
+  emailNotifyEnabled?: boolean
+  evolutionInstanceName?: string
+}
+
+export interface AvailabilityRule {
+  dayOfWeek: number
+  startTime: string
+  endTime: string
+  isClosed: boolean
 }
 
 export interface ThemeConfig {

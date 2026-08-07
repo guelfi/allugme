@@ -49,6 +49,7 @@ export function RegisterPage() {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false)
 
   const [quoteLoading, setQuoteLoading] = useState(false)
   const [pixQuote, setPixQuote] = useState<PixQuote | null>(null)
@@ -127,6 +128,10 @@ export function RegisterPage() {
 
   async function handleRegister() {
     setError(null)
+    if (!acceptPrivacy) {
+      setError('Aceite a Política de Privacidade para continuar.')
+      return
+    }
     setLoading(true)
     try {
       const result = await registerAccount({
@@ -138,6 +143,7 @@ export function RegisterPage() {
         businessName,
         plan,
         pixReferenceCode: pixQuote?.txId,
+        acceptPrivacy: true,
       })
       applySession(result.accessToken, mapUser(result.user))
       setDone({ message: result.message, plan: result.plan, trialEndsAt: result.trialEndsAt })
@@ -463,13 +469,28 @@ export function RegisterPage() {
               Pix agora ou quando quiser dentro desse prazo.
             </p>
 
+            <label className="checkbox-row">
+              <input
+                type="checkbox"
+                checked={acceptPrivacy}
+                onChange={(e) => setAcceptPrivacy(e.target.checked)}
+                required
+              />
+              <span>
+                Li e aceito a{' '}
+                <Link to="/privacy" target="_blank" rel="noopener noreferrer">
+                  Política de Privacidade
+                </Link>
+              </span>
+            </label>
+
             {error && <div className="alert alert-error">{error}</div>}
 
             <button
               type="button"
               className="btn btn-primary register-submit"
               onClick={() => void handleRegister()}
-              disabled={loading}
+              disabled={loading || !acceptPrivacy}
             >
               {loading ? 'Gravando…' : 'Gravar cadastro'}
             </button>

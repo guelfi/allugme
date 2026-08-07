@@ -2,9 +2,11 @@ import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'r
 import { Navigate } from 'react-router-dom'
 import { uploadMyAvatar } from '../api/brokers'
 import {
+  getAvailability,
   getBrokerSettings,
   getTenantSettings,
   sendWhatsAppTest,
+  updateAvailability,
   updateBrokerSettings,
   updateTenantSettings,
   type BrokerSettings,
@@ -15,7 +17,33 @@ import {
   canEditTenantSettings,
   isSaasReadOnly,
 } from '../permissions'
-import type { TenantSettings } from '../types'
+import type { AvailabilityRule, TenantSettings } from '../types'
+
+const DAY_LABELS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+
+function defaultAvailability(): AvailabilityRule[] {
+  return DAY_LABELS.map((_, dayOfWeek) => ({
+    dayOfWeek,
+    startTime: '09:00',
+    endTime: '18:00',
+    isClosed: dayOfWeek === 0 || dayOfWeek === 6,
+  }))
+}
+
+function normalizeRules(rules: AvailabilityRule[]): AvailabilityRule[] {
+  const byDay = new Map(rules.map((r) => [r.dayOfWeek, r]))
+  return DAY_LABELS.map((_, dayOfWeek) => {
+    const existing = byDay.get(dayOfWeek)
+    return (
+      existing ?? {
+        dayOfWeek,
+        startTime: '09:00',
+        endTime: '18:00',
+        isClosed: dayOfWeek === 0 || dayOfWeek === 6,
+      }
+    )
+  })
+}
 
 export function SettingsPage() {
   const { user, refreshUser } = useAuth()
@@ -29,32 +57,43 @@ export function SettingsPage() {
     visitDurationMinutes: 60,
     bufferMinutes: 60,
     whatsAppNotifyEnabled: false,
+    emailNotifyEnabled: true,
   })
   const [brokerForm, setBrokerForm] = useState<BrokerSettings>({
     bufferMinutes: 60,
     visitDurationMinutes: 60,
     whatsAppE164: '',
   })
+  const [availability, setAvailability] = useState<AvailabilityRule[]>(defaultAvailability())
   const [testPhone, setTestPhone] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  const availabilityScope = tenantMode ? 'tenant' : 'broker'
+
   useEffect(() => {
     if (isSaasReadOnly(user) || (!tenantMode && !brokerMode)) return
     const load = tenantMode ? getTenantSettings() : getBrokerSettings()
-    load
-      .then((data) => {
-        if (tenantMode) setTenantForm(data as TenantSettings)
-        else setBrokerForm(data as BrokerSettings)
+    Promise.all([load, getAvailability(availabilityScope)])
+      .then(([settings, avail]) => {
+        if (tenantMode) setTenantForm(settings as TenantSettings)
+        else setBrokerForm(settings as BrokerSettings)
+        setAvailability(normalizeRules(avail.rules ?? []))
       })
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false))
-  }, [user, tenantMode, brokerMode])
+  }, [user, tenantMode, brokerMode, availabilityScope])
 
   if (isSaasReadOnly(user) || (!tenantMode && !brokerMode)) {
     return <Navigate to="/painel" replace />
+  }
+
+  function updateDay(dayOfWeek: number, patch: Partial<AvailabilityRule>) {
+    setAvailability((prev) =>
+      prev.map((rule) => (rule.dayOfWeek === dayOfWeek ? { ...rule, ...patch } : rule)),
+    )
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -68,6 +107,8 @@ export function SettingsPage() {
       } else {
         setBrokerForm(await updateBrokerSettings(brokerForm))
       }
+      const saved = await updateAvailability(availability, availabilityScope)
+      setAvailability(normalizeRules(saved.rules ?? availability))
       setMessage('Configurações salvas.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao salvar')
@@ -116,7 +157,7 @@ export function SettingsPage() {
             </span>
             <span className="page-title-hint">
               {tenantMode
-                ? 'Buffer entre visitas e WhatsApp da imobiliária'
+                ? 'Buffer entre visitas, notificações e horário da imobiliária'
                 : 'Preferências de agenda e WhatsApp do corretor'}
             </span>
           </div>
@@ -189,7 +230,7 @@ export function SettingsPage() {
                 }
               />
             </label>
-            <h2>WhatsApp</h2>
+            <h2>Notificações</h2>
             <label className="checkbox-row">
               <input
                 type="checkbox"
@@ -199,6 +240,16 @@ export function SettingsPage() {
                 }
               />
               Notificar novas visitas via WhatsApp
+            </label>
+            <label className="checkbox-row">
+              <input
+                type="checkbox"
+                checked={Boolean(tenantForm.emailNotifyEnabled)}
+                onChange={(e) =>
+                  setTenantForm({ ...tenantForm, emailNotifyEnabled: e.target.checked })
+                }
+              />
+              Notificar visitas por e-mail
             </label>
             <label>
               Número WhatsApp (E.164)
@@ -247,6 +298,46 @@ export function SettingsPage() {
             </label>
           </>
         )}
+
+        <h2>Horário de funcionamento</h2>
+        <p className="muted" style={{ marginTop: 0 }}>
+          {tenantMode
+            ? 'Horário padrão da imobiliária. Corretores podem sobrescrever nas próprias configurações.'
+            : 'Seu horário pessoal (prevalece sobre o da imobiliária).'}
+        </p>
+        <div className="availability-grid">
+          {availability.map((rule) => (
+            <div key={rule.dayOfWeek} className="availability-row">
+              <span className="availability-day">{DAY_LABELS[rule.dayOfWeek]}</span>
+              <label className="checkbox-row availability-closed">
+                <input
+                  type="checkbox"
+                  checked={rule.isClosed}
+                  onChange={(e) => updateDay(rule.dayOfWeek, { isClosed: e.target.checked })}
+                />
+                Fechado
+              </label>
+              <label>
+                Início
+                <input
+                  type="time"
+                  value={rule.startTime}
+                  disabled={rule.isClosed}
+                  onChange={(e) => updateDay(rule.dayOfWeek, { startTime: e.target.value })}
+                />
+              </label>
+              <label>
+                Fim
+                <input
+                  type="time"
+                  value={rule.endTime}
+                  disabled={rule.isClosed}
+                  onChange={(e) => updateDay(rule.dayOfWeek, { endTime: e.target.value })}
+                />
+              </label>
+            </div>
+          ))}
+        </div>
 
         <div className="form-actions">
           <button type="submit" className="btn btn-primary" disabled={saving}>

@@ -18,7 +18,7 @@ Lista fechada do que o MVP entrega.
 12. **Painel** para imobiliária/corretor gerir imóveis e agenda
 13. **SaaS Admin** básico — listar/ativar/suspender tenants
 14. **WhatsApp via Evolution API** — configurar número no painel; notificar solicitação de visita; confirmar/recusar visita por WhatsApp
-15. **Redis** — fila de notificações WhatsApp, lock/controle de concorrência na agenda, cache leve e idempotência de webhook
+15. **Redis** — fila de notificações WhatsApp, lock/controle de concorrência na agenda e idempotência de webhook (cache de busca/slots e rate limit = P1)
 
 ## Fora do escopo (P1/P2)
 

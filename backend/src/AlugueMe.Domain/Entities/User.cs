@@ -10,6 +10,8 @@ public class User
     /// <summary>Caminho da foto de rosto (armazenada via IFileStorage), exibida ao visitante no agendamento de visita.</summary>
     public string? AvatarPath { get; set; }
     public bool IsSaasAdmin { get; set; }
+    /// <summary>Conta do portal do cliente (visitante / interessado).</summary>
+    public bool IsClient { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<TenantMembership> Memberships { get; set; } = [];
@@ -17,4 +19,5 @@ public class User
     public ICollection<Property> ResponsibleProperties { get; set; } = [];
     public ICollection<CalendarBlock> CalendarBlocks { get; set; } = [];
     public ICollection<Visit> Visits { get; set; } = [];
+    public ICollection<FavoriteProperty> Favorites { get; set; } = [];
 }

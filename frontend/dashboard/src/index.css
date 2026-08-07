@@ -3596,3 +3596,158 @@ th {
     animation-duration: 48s;
   }
 }
+
+/* Portal do cliente */
+.portal-shell {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg, #f4f6f5);
+}
+
+.portal-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+}
+
+.portal-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+}
+
+.portal-nav a {
+  color: var(--text);
+  text-decoration: none;
+  padding: 0.35rem 0.55rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+}
+
+.portal-nav a.active {
+  background: var(--primary-soft, #e8f2f0);
+  color: var(--primary, #0f766e);
+}
+
+.portal-logout {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: var(--muted, #64748b);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.35rem 0.55rem;
+}
+
+.portal-main {
+  flex: 1;
+  padding: 1.25rem 1rem 2rem;
+  width: min(960px, 100%);
+  margin-inline: auto;
+}
+
+.portal-user {
+  font-size: 0.9rem;
+}
+
+.portal-home-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.portal-home-card {
+  text-decoration: none;
+  color: inherit;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.portal-home-card h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.portal-fav-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.portal-fav-card {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.portal-fav-photo {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  background: #e2e8f0;
+}
+
+.portal-fav-photo-empty {
+  display: block;
+}
+
+.portal-fav-body h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+}
+
+.page-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.availability-grid {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.availability-row {
+  display: grid;
+  grid-template-columns: 6.5rem auto repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  align-items: end;
+}
+
+.availability-day {
+  font-weight: 600;
+  padding-bottom: 0.55rem;
+}
+
+.availability-closed {
+  padding-bottom: 0.45rem;
+}
+
+@media (max-width: 640px) {
+  .availability-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .availability-day {
+    grid-column: 1 / -1;
+    padding-bottom: 0;
+  }
+
+  .portal-fav-card {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-fav-photo {
+    width: 100%;
+    height: 160px;
+  }
+}

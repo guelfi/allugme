@@ -3,7 +3,9 @@ import { Navigate } from 'react-router-dom'
 import {
   createBroker,
   fetchTeam,
+  inviteBroker,
   removeBroker,
+  resendInvite,
   type BrokerQuota,
   type BrokerSeat,
 } from '../api/brokers'
@@ -18,6 +20,8 @@ const roleLabel: Record<string, string> = {
   independent_broker: 'Corretor independente',
 }
 
+type ModalMode = 'invite' | 'password' | null
+
 export function TeamPage() {
   const { canManageBrokers, isIndependent } = useAuth()
   const [quota, setQuota] = useState<BrokerQuota | null>(null)
@@ -29,8 +33,9 @@ export function TeamPage() {
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [saving, setSaving] = useState(false)
-  const [showAddModal, setShowAddModal] = useState(false)
+  const [modalMode, setModalMode] = useState<ModalMode>(null)
   const [selectedMember, setSelectedMember] = useState<BrokerSeat | null>(null)
+  const [resendingId, setResendingId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!canManageBrokers) return
@@ -47,6 +52,50 @@ export function TeamPage() {
     return <Navigate to="/painel" replace />
   }
 
+  function resetForm() {
+    setName('')
+    setEmail('')
+    setPhone('')
+    setPassword('')
+  }
+
+  function closeModal() {
+    setModalMode(null)
+    resetForm()
+  }
+
+  function onCreated(created: BrokerSeat) {
+    setMembers((prev) => [...prev, created])
+    setQuota((prev) =>
+      prev
+        ? {
+            ...prev,
+            usedBrokerSlots: prev.usedBrokerSlots + 1,
+            remainingBrokerSlots: Math.max(0, prev.remainingBrokerSlots - 1),
+          }
+        : prev,
+    )
+    closeModal()
+  }
+
+  async function handleInvite(event: FormEvent) {
+    event.preventDefault()
+    setError(null)
+    setSaving(true)
+    try {
+      const created = await inviteBroker({
+        name,
+        email,
+        phone: phone || undefined,
+      })
+      onCreated(created)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao convidar corretor')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   async function handleCreate(event: FormEvent) {
     event.preventDefault()
     setError(null)
@@ -58,25 +107,25 @@ export function TeamPage() {
         password,
         phone: phone || undefined,
       })
-      setMembers((prev) => [...prev, created])
-      setQuota((prev) =>
-        prev
-          ? {
-              ...prev,
-              usedBrokerSlots: prev.usedBrokerSlots + 1,
-              remainingBrokerSlots: Math.max(0, prev.remainingBrokerSlots - 1),
-            }
-          : prev,
-      )
-      setName('')
-      setEmail('')
-      setPhone('')
-      setPassword('')
-      setShowAddModal(false)
+      onCreated(created)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha ao cadastrar corretor')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleResend(member: BrokerSeat) {
+    setError(null)
+    setResendingId(member.userId)
+    try {
+      await resendInvite(member.userId)
+      setError(null)
+      alert(`Convite reenviado para ${member.email}`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao reenviar convite')
+    } finally {
+      setResendingId(null)
     }
   }
 
@@ -101,7 +150,9 @@ export function TeamPage() {
   }
 
   const atLimit = (quota?.remainingBrokerSlots ?? 0) <= 0
-  const missingAvatarCount = members.filter((m) => !m.avatarUrl).length
+  const missingAvatarCount = members.filter(
+    (m) => !m.avatarUrl && m.status !== 'invited',
+  ).length
 
   return (
     <div>
@@ -117,15 +168,32 @@ export function TeamPage() {
             </span>
           </div>
         </div>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => setShowAddModal(true)}
-          disabled={loading || atLimit}
-          title={atLimit ? 'Limite de assentos atingido' : undefined}
-        >
-          + Adicionar corretor
-        </button>
+        <div className="page-header-actions">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => {
+              resetForm()
+              setModalMode('invite')
+            }}
+            disabled={loading || atLimit}
+            title={atLimit ? 'Limite de assentos atingido' : undefined}
+          >
+            Convidar por e-mail
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => {
+              resetForm()
+              setModalMode('password')
+            }}
+            disabled={loading || atLimit}
+            title={atLimit ? 'Limite de assentos atingido' : undefined}
+          >
+            Adicionar com senha
+          </button>
+        </div>
       </header>
 
       {error && <div className="alert alert-error">{error}</div>}
@@ -182,7 +250,10 @@ export function TeamPage() {
                     onClick={() => setSelectedMember(member)}
                   >
                     <td data-label="Foto">
-                      <div className="avatar-preview avatar-preview-sm" title={member.avatarUrl ? '' : 'Sem foto de rosto cadastrada'}>
+                      <div
+                        className="avatar-preview avatar-preview-sm"
+                        title={member.avatarUrl ? '' : 'Sem foto de rosto cadastrada'}
+                      >
                         {member.avatarUrl ? (
                           <img src={member.avatarUrl} alt={member.name} />
                         ) : (
@@ -192,7 +263,12 @@ export function TeamPage() {
                     </td>
                     <td data-label="Nome">
                       {member.name}
-                      {!member.avatarUrl && (
+                      {member.status === 'invited' && (
+                        <span className="badge badge-pending" style={{ marginLeft: '0.5rem' }}>
+                          Convidado
+                        </span>
+                      )}
+                      {!member.avatarUrl && member.status !== 'invited' && (
                         <span className="badge badge-pending" style={{ marginLeft: '0.5rem' }}>
                           Sem foto
                         </span>
@@ -201,6 +277,19 @@ export function TeamPage() {
                     <td data-label="E-mail">{member.email}</td>
                     <td data-label="Papel">{roleLabel[member.role] ?? member.role}</td>
                     <td className="actions-cell">
+                      {member.status === 'invited' && (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-secondary"
+                          disabled={resendingId === member.userId}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            void handleResend(member)
+                          }}
+                        >
+                          {resendingId === member.userId ? 'Enviando…' : 'Reenviar convite'}
+                        </button>
+                      )}
                       {member.role === 'broker' && !member.isCurrentUser && (
                         <button
                           type="button"
@@ -222,8 +311,39 @@ export function TeamPage() {
         </>
       )}
 
-      {showAddModal && (
-        <Modal title="Adicionar corretor" onClose={() => setShowAddModal(false)}>
+      {modalMode === 'invite' && (
+        <Modal title="Convidar por e-mail" onClose={closeModal}>
+          <form className="form-grid" onSubmit={(e) => void handleInvite(e)}>
+            <p className="muted" style={{ margin: 0 }}>
+              O corretor recebe um e-mail para definir senha, telefone e foto de perfil.
+            </p>
+            <label>
+              Nome
+              <input value={name} onChange={(e) => setName(e.target.value)} required disabled={atLimit} />
+            </label>
+            <label>
+              E-mail
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={atLimit}
+              />
+            </label>
+            <label>
+              WhatsApp (opcional)
+              <input value={phone} onChange={(e) => setPhone(e.target.value)} disabled={atLimit} />
+            </label>
+            <button type="submit" className="btn btn-primary" disabled={saving || atLimit}>
+              {saving ? 'Enviando…' : 'Enviar convite'}
+            </button>
+          </form>
+        </Modal>
+      )}
+
+      {modalMode === 'password' && (
+        <Modal title="Adicionar com senha" onClose={closeModal}>
           <form className="form-grid" onSubmit={(e) => void handleCreate(e)}>
             <label>
               Nome

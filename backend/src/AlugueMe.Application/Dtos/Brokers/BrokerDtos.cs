@@ -6,6 +6,7 @@ public record BrokerSeatDto(
     string Email,
     string? Phone,
     string Role,
+    string Status,
     DateTime CreatedAt,
     bool IsCurrentUser,
     string? AvatarUrl);
@@ -24,6 +25,11 @@ public record CreateBrokerRequest(
     string Name,
     string Email,
     string Password,
+    string? Phone);
+
+public record InviteBrokerRequest(
+    string Name,
+    string Email,
     string? Phone);
 
 public record TeamResponse(
