@@ -1,10 +1,10 @@
 # Estado atual — Allugme
 
-**Última atualização:** 2026-08-06  
-**Auditoria docs×código:** 2026-08-06 (ver seção abaixo)  
-**Fase:** MVP operacional (0→5) + polish de LP/cadastro/dashboard; aceite formal e Evolution real pendentes  
+**Última atualização:** 2026-08-07  
+**Auditoria docs×código:** 2026-08-06 (parcialmente supersedida pelo pacote e-mail/LGPD/portal)  
+**Fase:** MVP operacional (0→5) + pacote e-mail/LGPD/portal (0→6) + polish login/cadastro visitante; aceite formal e Evolution real pendentes  
 **Repo GitHub:** https://github.com/guelfi/allugme  
-**Progresso estimado MVP:** ~90% (código + CI/CD + DNS/TLS + trial/Pix estático + UX painel; falta aceite formal e WhatsApp real)
+**Progresso estimado MVP:** ~95% (código + CI/CD + DNS/TLS + trial/Pix estático + portal cliente + e-mail; falta aceite formal, WhatsApp real e billing automático)
 
 ---
 
@@ -18,6 +18,8 @@
 | Produção | https://allugme.com.br/allugme |
 | Produção Swagger | https://allugme.com.br/allugme/swagger/index.html |
 | Vitrine tenant | https://www.allugme.com.br/{slug}/ |
+| Portal cliente | https://www.allugme.com.br/allugme/portal |
+| Cadastro visitante | https://www.allugme.com.br/allugme/portal/register |
 
 SSH OCI: `ssh -i /home/guelfi/Projetos/oci-key-2026-07-29 ubuntu@129.153.86.168`  
 Path no servidor: `/var/www/allugme`
@@ -29,24 +31,36 @@ Path no servidor: `/var/www/allugme`
 | Fase | Status |
 |------|--------|
 | 0 Foundation | ✅ Solution .NET 10, Vite React, Docker, health, Redis |
-| 1 Auth + Tenancy + RBAC | ✅ JWT, tenants, memberships, shells por papel |
+| 1 Auth + Tenancy + RBAC | ✅ JWT, tenants, memberships, shells por papel (+ cliente) |
 | 2 Imóveis + Busca | ✅ CRUD + public search + mídia (até 13 fotos + 1 vídeo) |
-| 3 Visitas + Buffer | ✅ Slots + buffer + agenda |
+| 3 Visitas + Buffer | ✅ Slots + buffer + agenda + AvailabilityRule |
 | 3b WhatsApp (Evolution) | ✅ Cliente + fila Redis + webhook + **fake mode** (real pendente); débitos UI abaixo |
 | 4 Temas + Vitrine | ✅ 5 temas + seed 5 tenants + `/{slug}/` |
-| 5 Polish + Aceite | 🔄 LP/cadastro/dashboard avançados; **aceite formal** ainda não executado |
+| 5 Polish + Aceite | 🔄 LP/cadastro/dashboard/portal avançados; **aceite formal** ainda não executado |
+| E-mail / LGPD / portal | ✅ Fases 0→6 — ver [plano-email-lgpd-portal-cliente.md](plano-email-lgpd-portal-cliente.md) |
 
 ---
 
-## Entregas recentes (após 2026-08-04)
+## Entregas recentes (2026-08-06 → 2026-08-07)
 
-- **E-mail / LGPD / portal (fases 0–6):** Resend + templates; reset senha; convite corretor; e-mails de visita; horário de funcionamento; consentimentos LGPD; portal do cliente (`/portal`).
-- Landing page: marca unificada (logo SVG), favicon, Contato/Layouts/Planos, CTA “7 dias grátis”, chip “Ver modelo” clicável, vídeo de fundo no cadastro.
-- Cadastro B2B em etapas (dados → plano → confirmação): WhatsApp obrigatório com máscara, Pix estático (QR + copia e cola), e-mail com dados do plano.
-- **Trial 7 dias:** status `Trial` + `TrialEndsAt`; auto-login após cadastro; banner no dashboard com dias restantes e opção de pagar via Pix; expiração → `PendingPayment` no login.
-- Dashboard SaaS admin: mobile-first, totais reais, detalhe de tenant (abas imobiliária/corretores + visitas); leitura de conteúdo + ações operacionais (ativar/suspender/plano/assentos).
-- Dashboard imobiliária/corretor: sidebar retrátil com ícones, topbar com `Nome - Perfil`, Equipe com grid clicável e aviso de foto obrigatória, PropertyForm/Visitas com abas (menos scroll no desktop), padrão de título `Título - subtítulo`.
-- Credenciais de seed: só em `docs/usuarios-teste.local.md` (`.gitignore`); docs versionados não trazem senhas.
+### Pacote e-mail / LGPD / horário / portal (`817dd23`)
+- Resend SMTP + templates HTML (`_platform/emails`)
+- Recuperação de senha (forgot/reset)
+- Convite de corretor por e-mail (+ “adicionar com senha”)
+- E-mails de visita (criação / confirm / reject)
+- `AvailabilityRule` (horário comercial; corretor > tenant > 09–18 úteis)
+- Consentimentos LGPD + página `/privacy`
+- Portal do cliente: `/portal` (favoritos, visitas, claim por e-mail)
+
+### UX login / cadastro visitante / Contato
+- Login único (sem seletor Visitante/Allugme); pós-auth → `/portal` (cliente) ou `/painel` (demais) — `f2050ba`
+- Cadastro visitante: grid desktop 2×2; mobile em 2 passos; WhatsApp obrigatório
+- Aceite de privacidade + link abre modal flutuante; “Já tem conta” abaixo do CTA
+- Contato na LP: “Falem conosco” (WA) sem expor número no bloco Contato
+- Conta teste cliente (local/doc): ver `docs/usuarios-teste.local.md`
+
+### Antes (2026-08-04 → 06)
+- Landing, trial 7 dias, Pix estático, dashboards SaaS/imobiliária, sidebar retrátil, mídia 13+1, seed 5 tenants
 
 ---
 
@@ -58,9 +72,7 @@ Slugs: `horizon`, `vista-urbana`, `casa-tradicao`, `atlas`, `porto-lar`
 
 ---
 
-## Auditoria docs × código (2026-08-06)
-
-Cruzamento de `CURRENT`, aceite, PRD/P1 e `04-fases` com controllers, workers e páginas React.
+## Auditoria docs × código
 
 ### Confirmado implementado (não tratar como pendência de feature)
 
@@ -76,6 +88,13 @@ Cruzamento de `CURRENT`, aceite, PRD/P1 e `04-fases` com controllers, workers e 
 | Buffer configurável (corretor > tenant > 60) | `SettingsController` + slots públicos |
 | Fake Evolution + fila + webhook SIM/NAO | `FakeEvolutionWhatsAppClient`, `WhatsAppOutboundWorker`, `EvolutionWebhookController` |
 | Redis: lock agenda + fila WA + idempotência webhook | `RedisServices.cs` |
+| Recuperação de senha | forgot/reset API + UI |
+| Convite corretor por e-mail | `POST /brokers/invite` + UI Equipe |
+| AvailabilityRule / horário comercial | Settings + slots públicos |
+| E-mail de notificação de visita | templates + workers/controllers |
+| LGPD checkbox + ConsentRecord | Register B2B, portal, agendamento |
+| Portal do cliente | `/portal`, favoritos, visitas |
+| Login unificado | `LoginPage` → redirect por papel |
 
 ### Realmente pendente (código ausente ou só operacional)
 
@@ -85,13 +104,9 @@ Cruzamento de `CURRENT`, aceite, PRD/P1 e `04-fases` com controllers, workers e 
 | Evolution API real | `Evolution:Enabled = false` → Fake client por default |
 | Spec UX painel por perfil | Combinado na sessão; sem spec formal |
 | Gateway Pix + conciliação automática | Pix estático; ativação manual pelo SaaS |
-| Recuperação de senha | Sem endpoints/UI |
-| Convite corretor por e-mail | Create no painel com senha; sem e-mail de convite |
-| AvailabilityRule / horário comercial | Janela fixa 09–18 dias úteis |
-| E-mail de notificação de visita | SMTP só no cadastro; visita usa WA |
-| LGPD checkbox no cadastro | LP tem privacidade/cookies; Register sem aceite obrigatório |
 | Cache Redis busca/slots + rate limit | Não implementados (só lock/fila/idempotência) |
 | Billing automático pós-Pix | Não implementado |
+| Performance busca P95 &lt; 1s | A medir / otimizar (dataset MVP) |
 
 ### Parcial / débitos técnicos (não confundir com “feature inexistente”)
 
@@ -113,6 +128,8 @@ Cruzamento de `CURRENT`, aceite, PRD/P1 e `04-fases` com controllers, workers e 
 | Local / OCI `.env` | ✅ Resend (gitignored) |
 | Smoke test Resend | ✅ enfileirado para Gmail + MSN (2026-08-06) — conferir caixa/spam |
 
+---
+
 ## Pendências imediatas
 
 1. Executar [05-plano-aceite.md](../05-plano-aceite.md) e registrar evidências.
@@ -123,7 +140,6 @@ Cruzamento de `CURRENT`, aceite, PRD/P1 e `04-fases` com controllers, workers e 
    - Corretor independente  
 4. Avaliar gateway Pix real (hoje: chave estática / QR + copia e cola; sem conciliação automática).
 5. Manter renovação Let's Encrypt (`renew-allugme-cert.sh` na OCI).
-6. Pacote aprovado: e-mail / LGPD / horário / portal do cliente — ver [plano-email-lgpd-portal-cliente.md](plano-email-lgpd-portal-cliente.md) (Fase 0 SMTP ✅; próximo: template HTML + Fase 1 recuperação de senha).
 
 ## Blockers ativos
 
@@ -134,17 +150,12 @@ _Nenhum._ Aceite formal, Evolution real e spec do painel por perfil são próxim
 ## Roadmap — features futuras
 
 Sugestão priorizada a partir de [escopo-mvp.md](../escopo-mvp.md), [02-prd.md](../02-prd.md) e [04-plano-implementacao-fases.md](../04-plano-implementacao-fases.md).  
-**Validado em 2026-08-06:** nenhum item P1 abaixo já está implementado de ponta a ponta.
+**Atualizado em 2026-08-07:** itens do pacote e-mail/LGPD/portal saíram do P1 (já entregues).
 
 ### P1 — próximo ciclo (pós-aceite / pós-Evolution real)
 
 | Feature | Origem | Notas |
 |---------|--------|-------|
-| Recuperação de senha | REQ-AUTH-03 | Sem forgot/reset no código |
-| Convite de corretor por e-mail | REQ-TEN-04 | Hoje o admin cria corretor no painel |
-| Horário comercial / AvailabilityRule | REQ-VIS-11 | MVP usa janela fixa 09–18 dias úteis |
-| Notificação de visita por e-mail | REQ-VIS-13 | Complementa WhatsApp |
-| LGPD no cadastro (checkbox aceite) | REQ-NFR-04 | LP estática existe; falta aceite no Register |
 | Cache Redis busca/slots + rate limit | REQ-INF-04/06 | Redis hoje: fila + lock + idempotência |
 | Performance busca P95 &lt; 1s | REQ-NFR-06 | Dataset MVP |
 | Billing / assinatura real | Escopo P1 | UI planos + Pix estático ok; falta gateway + conciliação + ativação automática |
@@ -171,7 +182,7 @@ Sugestão priorizada a partir de [escopo-mvp.md](../escopo-mvp.md), [02-prd.md](
 2. Débitos WA na UI + Evolution API real  
 3. Spec + implementação do painel por perfil  
 4. Gateway Pix / billing real  
-5. Pacote P1 (senha, convite, horário comercial, e-mail, LGPD, cache/rate limit)  
+5. Cache Redis + rate limit + performance busca  
 6. Itens P2 conforme demanda comercial  
 
 ---
@@ -188,4 +199,6 @@ Sugestão priorizada a partir de [escopo-mvp.md](../escopo-mvp.md), [02-prd.md](
 | HTTPS produção | ✅ Let's Encrypt `allugme.com.br` |
 | Plano de aceite | 🔄 [05-plano-aceite.md](../05-plano-aceite.md) — executar (AC-* = rodada, não ausência de código) |
 | Plano de fases DoD | ✅ checkboxes alinhados ao código em [04-plano-implementacao-fases.md](../04-plano-implementacao-fases.md) |
+| Plano e-mail/LGPD/portal | ✅ [plano-email-lgpd-portal-cliente.md](plano-email-lgpd-portal-cliente.md) — fases 0→6 done |
 | Changelog | ✅ [CHANGELOG-DEV.md](CHANGELOG-DEV.md) |
+| Sessão 2026-08-07 | ✅ [SESSION-2026-08-07.md](SESSION-2026-08-07.md) |

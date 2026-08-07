@@ -4,6 +4,24 @@ Registro cronológico de evolução (decisões, entregas, mudanças de escopo).
 
 ---
 
+## 2026-08-07
+
+### Pacote e-mail / LGPD / horário / portal (fases 0–6)
+- Resend + templates; reset de senha; convite corretor; e-mails de visita; `AvailabilityRule`; consentimentos LGPD; portal `/portal`.
+- Plano: [plano-email-lgpd-portal-cliente.md](plano-email-lgpd-portal-cliente.md) marcado como concluído.
+- Commit âncora: `817dd23`.
+
+### UX login, cadastro visitante e Contato
+- Login unificado (sem toggle Visitante/Allugme); redirect por papel.
+- Cadastro visitante: mobile 2 passos, WhatsApp obrigatório, grid desktop, modal de privacidade, CTA “Já tem conta” abaixo do botão.
+- Contato LP: “Falem conosco” (WA) sem número no bloco Contato.
+- Commits: `3e2f761`, `636f910`, `88f30bc`, `ee92890`, `f2050ba`.
+
+### Docs / handoff
+- `CURRENT.md` atualizado: P1 limpo dos itens já entregues; progresso ~95%; sessão `SESSION-2026-08-07.md`.
+
+---
+
 ## 2026-08-05 / 2026-08-06
 
 ### Cadastro, trial e Pix
