@@ -3,8 +3,11 @@ import { Link, Navigate } from 'react-router-dom'
 import { PasswordInput } from '../components/PasswordInput'
 import { useAuth } from '../contexts/AuthContext'
 
+type LoginAudience = 'visitor' | 'allugme'
+
 export function LoginPage() {
   const { login, isLoading, user, isInitializing } = useAuth()
+  const [audience, setAudience] = useState<LoginAudience>('visitor')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -24,6 +27,7 @@ export function LoginPage() {
   }
 
   const bgUrl = `${import.meta.env.BASE_URL}login-buildings.jpg`
+  const isVisitor = audience === 'visitor'
 
   return (
     <div
@@ -35,14 +39,36 @@ export function LoginPage() {
           <Link to="/" className="login-back-link">
             ← Voltar à página inicial
           </Link>
-          <span className="login-brand-sep" aria-hidden="true">
-            -
-          </span>
-          <Link to="/" className="login-brand-name">
-            Allugme
-          </Link>
         </div>
-        <p className="muted">Acesse o painel</p>
+
+        <div className="register-context" role="group" aria-label="Tipo de acesso">
+          <button
+            type="button"
+            className={`register-context-option${isVisitor ? ' is-active' : ''}`}
+            aria-pressed={isVisitor}
+            onClick={() => setAudience('visitor')}
+          >
+            Visitante
+          </button>
+          <button
+            type="button"
+            className={`register-context-option${!isVisitor ? ' is-active' : ''}`}
+            aria-pressed={!isVisitor}
+            onClick={() => setAudience('allugme')}
+          >
+            Allugme
+          </button>
+        </div>
+
+        <h1 className="register-title-line" style={{ fontSize: '1.25rem', margin: '0.35rem 0 0' }}>
+          Entrar
+        </h1>
+        <p className="muted" style={{ margin: 0 }}>
+          {isVisitor
+            ? 'Acompanhe visitas e favoritos'
+            : 'Acesse o painel — admins, imobiliárias e corretores'}
+        </p>
+
         {error && <div className="alert alert-error">{error}</div>}
         <label>
           E-mail
@@ -70,11 +96,7 @@ export function LoginPage() {
           {isLoading ? 'Entrando…' : 'Entrar'}
         </button>
         <p className="muted" style={{ textAlign: 'center', marginTop: '0.75rem' }}>
-          Novo por aqui? <Link to="/register">Cadastre-se</Link>
-          {' · '}
-          <Link to="/portal/register">Sou visitante</Link>
-          {' · '}
-          <Link to="/">Página inicial</Link>
+          Novo por aqui? <Link to="/portal/register">Cadastre-se</Link>
         </p>
       </form>
     </div>

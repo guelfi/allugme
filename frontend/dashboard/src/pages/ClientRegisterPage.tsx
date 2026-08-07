@@ -129,6 +129,14 @@ export function ClientRegisterPage() {
         <button type="submit" className="btn btn-primary" disabled={loading || !acceptPrivacy}>
           {loading ? 'Criando…' : 'Criar conta'}
         </button>
+        <div className="client-reg-pro-cta">
+          <p className="muted" style={{ margin: 0, textAlign: 'center' }}>
+            É imobiliária ou corretor? Cadastre sua conta profissional.
+          </p>
+          <Link to="/register" className="btn btn-ghost" style={{ width: '100%', textAlign: 'center' }}>
+            Cadastro de imobiliária / corretor
+          </Link>
+        </div>
         <p className="muted" style={{ textAlign: 'center', marginTop: '0.75rem' }}>
           Já tem conta? <Link to="/login">Entrar</Link>
         </p>

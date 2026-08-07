@@ -586,7 +586,7 @@ export function LandingPage() {
                 rel="noopener noreferrer"
               >
                 <WhatsAppIcon className="lp-close-wa-icon" />
-                <span>{contactWhatsAppDisplay}</span>
+                <span>Falem conosco</span>
               </a>
             </div>
           </div>
@@ -606,7 +606,7 @@ export function LandingPage() {
                 rel="noopener noreferrer"
               >
                 <WhatsAppIcon />
-                <span>{contactWhatsAppDisplay}</span>
+                <span>Falem conosco</span>
               </a>
               <a href={contactMailto}>{contactEmail}</a>
             </div>
