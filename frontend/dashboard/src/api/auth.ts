@@ -159,7 +159,7 @@ export async function registerClient(payload: {
   email: string
   password: string
   name: string
-  phone?: string
+  phone: string
   acceptPrivacy: boolean
 }): Promise<LoginResponse> {
   const raw = await post<ApiLoginResponse>('/auth/register-client', payload, { skipAuth: true })

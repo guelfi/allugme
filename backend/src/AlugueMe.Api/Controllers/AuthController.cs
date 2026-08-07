@@ -468,12 +468,17 @@ public class AuthController(
         if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8)
             return BadRequest(new { message = "Senha deve ter ao menos 8 caracteres." });
 
+        var phoneDigits = Regex.Replace(request.Phone ?? string.Empty, @"\D", "");
+        if (phoneDigits.Length < 10)
+            return BadRequest(new { message = "Informe um WhatsApp/celular válido, com DDD." });
+        var phoneE164 = phoneDigits.StartsWith("55") ? $"+{phoneDigits}" : $"+55{phoneDigits}";
+
         var user = new User
         {
             Id = Guid.NewGuid(),
             Email = email,
             Name = request.Name.Trim(),
-            Phone = request.Phone,
+            Phone = phoneE164,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             IsClient = true
         };

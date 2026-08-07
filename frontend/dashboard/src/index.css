@@ -2515,10 +2515,132 @@ th {
 
 .client-reg-pro-cta {
   display: grid;
-  gap: 0.55rem;
-  margin-top: 0.85rem;
-  padding-top: 0.85rem;
+  gap: 0.45rem;
+  margin-top: 0.15rem;
+  padding-top: 0.55rem;
   border-top: 1px solid rgba(15, 40, 36, 0.1);
+}
+
+.client-reg-pro-cta .btn {
+  width: 100%;
+  text-align: center;
+}
+
+.client-register-page {
+  align-content: center;
+  padding: 0.55rem;
+  box-sizing: border-box;
+  min-height: 100svh;
+  max-height: 100svh;
+  overflow: hidden;
+}
+
+.client-register-card {
+  width: min(400px, 100%);
+  max-width: min(400px, 100%);
+  max-height: calc(100svh - 1.1rem);
+  gap: 0.55rem;
+  padding: 0.85rem 0.95rem;
+  overflow: hidden;
+}
+
+.client-register-head {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.client-register-title {
+  font-size: 1.15rem !important;
+  margin: 0 !important;
+}
+
+.client-register-lead {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.client-register-layout {
+  display: grid;
+  gap: 0.55rem;
+  min-height: 0;
+}
+
+.client-register-fields {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.client-register-fields label {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.86rem;
+}
+
+.client-register-fields input {
+  min-height: 2.35rem;
+  padding: 0.45rem 0.65rem;
+}
+
+.client-register-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.15rem;
+}
+
+.client-register-actions .btn-primary {
+  flex: 1;
+  min-width: 8rem;
+}
+
+.client-register-footer {
+  text-align: center;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.client-register-card .register-steps {
+  margin: 0.15rem 0 0;
+}
+
+.client-register-card .alert {
+  margin: 0;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.85rem;
+}
+
+@media (min-width: 720px) {
+  .client-register-card {
+    width: min(720px, 100%);
+    max-width: min(720px, 100%);
+    gap: 0.75rem;
+    padding: 1.15rem 1.35rem;
+  }
+
+  .client-register-title {
+    font-size: 1.35rem !important;
+  }
+
+  .client-register-lead {
+    font-size: 0.92rem;
+  }
+
+  .client-register-layout {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.15rem;
+    align-items: start;
+  }
+
+  .client-register-actions {
+    justify-content: flex-end;
+  }
+
+  .client-register-actions .btn-primary {
+    flex: none;
+    min-width: 12rem;
+  }
 }
 
 .register-plans {
