@@ -4,9 +4,10 @@ type ModalProps = {
   title?: string
   onClose: () => void
   children: ReactNode
+  className?: string
 }
 
-export function Modal({ title, onClose, children }: ModalProps) {
+export function Modal({ title, onClose, children, className }: ModalProps) {
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose()
@@ -22,7 +23,7 @@ export function Modal({ title, onClose, children }: ModalProps) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
-        className="modal-panel card"
+        className={['modal-panel', 'card', className].filter(Boolean).join(' ')}
         role="dialog"
         aria-modal="true"
         aria-label={title}

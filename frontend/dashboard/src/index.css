@@ -731,6 +731,66 @@ textarea {
   background: #e2e8e6;
 }
 
+.modal-panel.privacy-policy-modal {
+  max-width: 640px;
+}
+
+.privacy-policy-body {
+  display: grid;
+  gap: 0.85rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.privacy-policy-lead {
+  margin: 0;
+}
+
+.privacy-policy-body h3 {
+  font-size: 1rem;
+  margin: 0 0 0.35rem;
+}
+
+.privacy-policy-body p {
+  margin: 0;
+}
+
+.privacy-policy-version {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.privacy-page-card {
+  width: min(640px, 100%);
+  max-height: 90svh;
+  overflow: auto;
+}
+
+.privacy-page-title {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.privacy-page-links {
+  text-align: center;
+  margin: 0;
+}
+
+.link-button {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  color: var(--primary-hover);
+}
+
 .broker-card-header {
   display: flex;
   align-items: center;
@@ -2623,7 +2683,7 @@ th {
 
 .client-register-footer {
   text-align: center;
-  margin: 0;
+  margin: 0.15rem 0 0;
   font-size: 0.88rem;
 }
 

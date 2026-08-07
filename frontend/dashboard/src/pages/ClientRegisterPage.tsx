@@ -1,7 +1,9 @@
 import { type FormEvent, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { registerClient } from '../api/auth'
+import { Modal } from '../components/Modal'
 import { PasswordInput } from '../components/PasswordInput'
+import { PrivacyPolicyContent } from '../components/PrivacyPolicyContent'
 import { useAuth } from '../contexts/AuthContext'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { formatBrPhone, isValidBrPhone, phoneToE164 } from '../utils/phone'
@@ -18,6 +20,7 @@ export function ClientRegisterPage() {
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [acceptPrivacy, setAcceptPrivacy] = useState(false)
+  const [privacyOpen, setPrivacyOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -179,11 +182,6 @@ export function ClientRegisterPage() {
               </label>
             )}
 
-            <p className="client-reg-pro-line muted">
-              É imobiliária ou corretor?{' '}
-              <Link to="/register">Cadastre sua conta profissional</Link>
-            </p>
-
             <label className="checkbox-row client-register-privacy">
               <input
                 type="checkbox"
@@ -193,14 +191,22 @@ export function ClientRegisterPage() {
               />
               <span>
                 Li e aceito a{' '}
-                <Link to="/privacy" target="_blank" rel="noopener noreferrer">
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setPrivacyOpen(true)
+                  }}
+                >
                   Política de Privacidade
-                </Link>
+                </button>
               </span>
             </label>
 
-            <p className="muted client-register-footer">
-              Já tem conta? <Link to="/login">Entrar</Link>
+            <p className="client-reg-pro-line muted">
+              É imobiliária ou corretor?{' '}
+              <Link to="/register">Cadastre sua conta profissional</Link>
             </p>
           </div>
         )}
@@ -226,7 +232,21 @@ export function ClientRegisterPage() {
                 : 'Criar conta'}
           </button>
         </div>
+
+        <p className="muted client-register-footer">
+          Já tem conta? <Link to="/login">Entrar</Link>
+        </p>
       </form>
+
+      {privacyOpen && (
+        <Modal
+          title="Política de Privacidade"
+          className="privacy-policy-modal"
+          onClose={() => setPrivacyOpen(false)}
+        >
+          <PrivacyPolicyContent />
+        </Modal>
+      )}
     </div>
   )
 }
