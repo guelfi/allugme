@@ -9,6 +9,7 @@ public class WhatsAppReplyParserTests
     [InlineData("sim abc123", WhatsAppReplyAction.Confirm, "ABC123")]
     [InlineData("NAO XYZ9", WhatsAppReplyAction.Reject, "XYZ9")]
     [InlineData("nao 1234ABCD", WhatsAppReplyAction.Reject, "1234ABCD")]
+    [InlineData("  SIM ab12  ", WhatsAppReplyAction.Confirm, "AB12")]
     public void TryParse_valid_commands(string input, WhatsAppReplyAction expectedAction, string expectedCode)
     {
         var result = WhatsAppReplyParser.TryParse(input);
@@ -23,6 +24,9 @@ public class WhatsAppReplyParserTests
     [InlineData("CONFIRMAR ABC123")]
     [InlineData("SIM ABC123 EXTRA")]
     [InlineData("")]
+    [InlineData("NÃO ABC123")]
+    [InlineData("SIM ABC")]
+    [InlineData("SIM ABC123456")]
     public void TryParse_invalid_commands_returns_null(string input)
     {
         Assert.Null(WhatsAppReplyParser.TryParse(input));

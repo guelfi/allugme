@@ -1,7 +1,7 @@
 # PRD — Product Requirements Document — Allugme
 
-**Versão:** 1.2  
-**Data:** 2026-08-04  
+**Versão:** 1.3
+**Data:** 2026-08-09
 **Stack:** ASP.NET Core 10 + React  
 **Referências:** [Resumo Executivo](01-resumo-executivo.md) · [RBAC](rbac-matriz.md) · [Escopo MVP](escopo-mvp.md)
 
@@ -20,6 +20,7 @@ Permitir que imobiliárias e corretores independentes publiquem sua carteira (ve
 | P-BR | Broker | Cadastrar imóveis, gerir agenda e visitas |
 | P-IB | Independent Broker | Tudo do tenant individual |
 | P-VI | Visitante | Buscar imóvel e solicitar visita |
+| P-CL | Cliente autenticado | Favoritar imóveis e acompanhar suas visitas |
 
 ## 3. Jornadas principais
 
@@ -38,6 +39,12 @@ SaaS Admin lista tenants → ativa/suspende → tenants suspensos não aparecem 
 ### J5 — Configurar WhatsApp
 Agency Admin / Independent / Broker abre configurações → informa número WhatsApp e dados da instância Evolution → testa conexão → ativa notificações de visita.
 
+### J6 — Recuperar acesso e integrar corretor
+Usuário solicita redefinição de senha → recebe link por e-mail → define nova senha. Agency Admin pode convidar corretor por e-mail, que aceita o convite e ativa a membership, ou adicioná-lo diretamente com senha.
+
+### J7 — Usar o portal do cliente
+Visitante aceita a política de privacidade e cria conta → entra no portal separado do B2B → favorita imóveis → consulta visitas vinculadas ou reivindicadas pelo mesmo e-mail.
+
 ## 4. Requisitos funcionais
 
 ### 4.1 Auth e contas
@@ -46,7 +53,7 @@ Agency Admin / Independent / Broker abre configurações → informa número Wha
 |----|-----------|------------|
 | REQ-AUTH-01 | Cadastro e login com e-mail e senha | P0 |
 | REQ-AUTH-02 | Logout e sessão segura | P0 |
-| REQ-AUTH-03 | Recuperação de senha | P1 |
+| REQ-AUTH-03 | Recuperação de senha por e-mail | P1 |
 | REQ-AUTH-04 | OAuth Google/Apple | P2 |
 
 ### 4.2 Tenancy e RBAC
@@ -128,13 +135,26 @@ Agency Admin / Independent / Broker abre configurações → informa número Wha
 | REQ-UI-01 | Telas: login, imóveis, agenda/visitas, configurações (buffer + WhatsApp), admin SaaS | P0 |
 | REQ-UI-02 | Consumo exclusivo da API .NET (OpenAPI) | P0 |
 
+### 4.8 E-mail, LGPD e portal do cliente
+
+| ID | Requisito | Prioridade |
+|----|-----------|------------|
+| REQ-EMAIL-01 | Templates transacionais com fallback tenant → tema → plataforma | P1 |
+| REQ-EMAIL-02 | Convite e recuperação de senha por e-mail | P1 |
+| REQ-EMAIL-03 | Notificar corretor na criação e visitante na confirmação/recusa da visita | P1 |
+| REQ-LGPD-01 | Registrar consentimento versionado, data, IP e user-agent nos fluxos aplicáveis | P1 |
+| REQ-LGPD-02 | Disponibilizar política de privacidade e preferências de cookies | P1 |
+| REQ-PORTAL-01 | Cadastro/login de cliente em shell separado do painel B2B | P1 |
+| REQ-PORTAL-02 | Cliente autenticado favorita/desfavorita imóveis | P1 |
+| REQ-PORTAL-03 | Cliente acompanha e reivindica visitas pelo e-mail verificado no fluxo | P1 |
+
 ## 5. Regras de negócio — agenda
 
 Seja visita com `start_at`, `end_at = start_at + duration`, `buffer = B` minutos efetivos:
 
 1. Intervalo ocupado considerado: `[start_at, end_at + B]` (ou política documentada equivalente no DET).  
 2. Novo slot só é válido se não intersectar ocupados (visitas pending/confirmed + bloqueios).  
-3. Slots só dentro da disponibilidade do corretor (P1: AvailabilityRule; MVP pode usar janela fixa 09:00–18:00 dias úteis).  
+3. Slots só dentro da disponibilidade efetiva: regra do corretor > regra do tenant > padrão 09:00–18:00 em dias úteis.
 4. Imóvel suspenso/despublicado não aceita novas visitas.  
 5. Confirmação via WhatsApp aplica as **mesmas** regras de conflito/status que o painel.  
 6. Sem número WhatsApp configurado, o fluxo de visita no site/painel continua válido (só não há notificação).
@@ -172,9 +192,13 @@ Seja visita com `start_at`, `end_at = start_at + duration`, `buffer = B` minutos
 
 ## 8. Fora de escopo (MVP)
 
-App mobile, billing, tema custom, propostas/contratos/boletos, fintech, iBuyer, consórcio, QPreço, chat WhatsApp livre fora do fluxo de visita.
+App mobile, billing automático/conciliação de gateway, tema custom, propostas/contratos/boletos, fintech, iBuyer, consórcio, QPreço e chat WhatsApp livre fora do fluxo de visita.
 
-## 9. Métricas de aceite de produto
+## 9. Baseline de implementação em 2026-08-09
+
+Os requisitos P0 do núcleo e o pacote P1 de e-mail/LGPD/portal estão implementados no código. WhatsApp permanece habilitado em fake mode por padrão e precisa de homologação com Evolution real. O status de implementação não substitui aceite: todos os casos Blocker do [Plano de Aceite](05-plano-aceite.md) devem obter `PASS` antes do GO.
+
+## 10. Métricas de aceite de produto
 
 Ligadas ao [Plano de Aceite](05-plano-aceite.md):
 
@@ -185,7 +209,7 @@ Ligadas ao [Plano de Aceite](05-plano-aceite.md):
 - 5 temas com as 4 páginas mínimas  
 - Seed com 5 tenants (um por tema) permite demo de troca de layout  
 
-## 10. Rastreabilidade
+## 11. Rastreabilidade
 
 IDs `REQ-*` são referenciados no DET, no [Seed](06-seed-demo-tenants.md) e no Plano de Aceite (`AC-*`).  
 Detalhe dos tenants/slugs/temas: [06-seed-demo-tenants.md](06-seed-demo-tenants.md).

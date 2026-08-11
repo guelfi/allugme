@@ -4,6 +4,25 @@ Registro cronológico de evolução (decisões, entregas, mudanças de escopo).
 
 ---
 
+## 2026-08-10
+
+### Clientes e grids administrativos
+- Dashboard SaaS e listagem de Clientes passam a contabilizar contas do portal (`User.IsClient`), mesmo sem visitas.
+- Visão SaaS de clientes permanece estritamente somente leitura; dados só podem ser alterados pelo próprio cliente.
+- Tabelas padronizadas com conteúdo centralizado em uma linha, largura compacta e paginação de até 10 registros.
+- Paginação aplicada a Clientes, Tenants, Imóveis, Visitas, Equipe, detalhe do tenant e visitas do portal.
+
+### WhatsApp / Evolution
+- Corrigido contrato do teste WhatsApp no frontend: payload `toE164` alinhado ao DTO `WhatsAppTestRequest.ToE164`.
+- Campo `EvolutionInstanceName` exposto nas configurações do tenant.
+- Validação de instância e número de destino vazios adicionada ao endpoint de teste.
+- Adicionado teste de serialização do contrato camelCase usado pelo frontend.
+
+### Ambiente local
+- `docker-compose.local.yml` alinhado ao IP atual `192.168.15.157` para URL da API, CORS e links do dashboard.
+
+---
+
 ## 2026-08-07
 
 ### Pacote e-mail / LGPD / horário / portal (fases 0–6)

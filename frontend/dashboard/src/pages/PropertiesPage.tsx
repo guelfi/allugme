@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listProperties } from '../api/properties'
+import { TablePagination } from '../components/TablePagination'
 import { useAuth } from '../contexts/AuthContext'
+import { usePagination } from '../hooks/usePagination'
 import { canWriteProperties, isBroker, isSaasReadOnly } from '../permissions'
 import type { Property } from '../types'
 
@@ -18,6 +20,7 @@ export function PropertiesPage() {
   const [items, setItems] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const pagination = usePagination(items)
 
   useEffect(() => {
     listProperties()
@@ -72,8 +75,12 @@ export function PropertiesPage() {
           )}
         </div>
       ) : (
-        <div className="table-wrap card">
-          <table>
+        <div className="table-shell">
+          <div className="table-toolbar">
+            <TablePagination total={items.length} page={pagination.page} pageCount={pagination.pageCount} pageSize={pagination.pageSize} onPageChange={pagination.setPage} itemLabel="imóveis" />
+          </div>
+          <div className="table-wrap card">
+            <table>
             <thead>
               <tr>
                 <th>Título</th>
@@ -85,7 +92,7 @@ export function PropertiesPage() {
               </tr>
             </thead>
             <tbody>
-              {items.map((item) => (
+              {pagination.pagedItems.map((item) => (
                 <tr key={item.id}>
                   <td data-label="Título">{item.title}</td>
                   <td data-label="Cidade">{item.city}</td>
@@ -104,7 +111,8 @@ export function PropertiesPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       )}
     </div>

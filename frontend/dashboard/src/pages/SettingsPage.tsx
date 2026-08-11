@@ -120,8 +120,12 @@ export function SettingsPage() {
   async function handleTestWhatsApp() {
     setError(null)
     setMessage(null)
+    if (!testPhone.trim()) {
+      setError('Informe o número de destino em formato E.164.')
+      return
+    }
     try {
-      await sendWhatsAppTest(testPhone)
+      await sendWhatsAppTest(testPhone.trim())
       setMessage('Mensagem de teste enviada (se Evolution estiver configurada).')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha no teste WhatsApp')
@@ -258,6 +262,17 @@ export function SettingsPage() {
                 placeholder="+5511999999999"
                 value={tenantForm.whatsAppE164 ?? ''}
                 onChange={(e) => setTenantForm({ ...tenantForm, whatsAppE164: e.target.value })}
+              />
+            </label>
+            <label>
+              Instância Evolution
+              <input
+                type="text"
+                placeholder="allugme-imobiliaria"
+                value={tenantForm.evolutionInstanceName ?? ''}
+                onChange={(e) =>
+                  setTenantForm({ ...tenantForm, evolutionInstanceName: e.target.value })
+                }
               />
             </label>
           </>

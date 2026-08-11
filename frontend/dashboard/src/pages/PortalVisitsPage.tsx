@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { claimVisits, listMyVisits } from '../api/portal'
+import { TablePagination } from '../components/TablePagination'
+import { usePagination } from '../hooks/usePagination'
 import type { Visit } from '../types'
 
 const statusLabel: Record<string, string> = {
@@ -22,6 +24,7 @@ export function PortalVisitsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+  const pagination = usePagination(items)
 
   async function reload() {
     setLoading(true)
@@ -79,8 +82,12 @@ export function PortalVisitsPage() {
       ) : items.length === 0 ? (
         <p className="muted">Nenhuma visita encontrada.</p>
       ) : (
-        <div className="table-wrap card">
-          <table>
+        <div className="table-shell">
+          <div className="table-toolbar">
+            <TablePagination total={items.length} page={pagination.page} pageCount={pagination.pageCount} pageSize={pagination.pageSize} onPageChange={pagination.setPage} itemLabel="visitas" />
+          </div>
+          <div className="table-wrap card">
+            <table>
             <thead>
               <tr>
                 <th>Imóvel</th>
@@ -90,7 +97,7 @@ export function PortalVisitsPage() {
               </tr>
             </thead>
             <tbody>
-              {items.map((visit) => (
+              {pagination.pagedItems.map((visit) => (
                 <tr key={visit.id}>
                   <td data-label="Imóvel">{visit.propertyTitle}</td>
                   <td data-label="Data">{formatDateTime(visit.startAt)}</td>
@@ -103,7 +110,8 @@ export function PortalVisitsPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       )}
     </div>

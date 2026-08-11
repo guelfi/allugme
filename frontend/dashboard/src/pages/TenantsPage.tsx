@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listTenants, updateTenantPlan, updateTenantStatus } from '../api/tenants'
+import { TablePagination } from '../components/TablePagination'
+import { usePagination } from '../hooks/usePagination'
 import type { Tenant } from '../types'
 
 const statusLabel: Record<string, string> = {
@@ -15,6 +17,7 @@ export function TenantsPage() {
   const [items, setItems] = useState<Tenant[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const pagination = usePagination(items)
 
   useEffect(() => {
     listTenants()
@@ -74,8 +77,12 @@ export function TenantsPage() {
       {loading ? (
         <p className="muted">Carregando…</p>
       ) : (
-        <div className="table-wrap card">
-          <table>
+        <div className="table-shell">
+          <div className="table-toolbar">
+            <TablePagination total={items.length} page={pagination.page} pageCount={pagination.pageCount} pageSize={pagination.pageSize} onPageChange={pagination.setPage} itemLabel="tenants" />
+          </div>
+          <div className="table-wrap card">
+            <table>
             <thead>
               <tr>
                 <th>Nome</th>
@@ -87,7 +94,7 @@ export function TenantsPage() {
               </tr>
             </thead>
             <tbody>
-              {items.map((tenant) => (
+              {pagination.pagedItems.map((tenant) => (
                 <tr key={tenant.id}>
                   <td data-label="Nome">
                     <Link to={`/admin/tenants/${tenant.id}`}>
@@ -167,7 +174,8 @@ export function TenantsPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       )}
     </div>

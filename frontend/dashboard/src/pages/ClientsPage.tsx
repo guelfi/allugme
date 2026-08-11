@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { listClients, type Client } from '../api/clients'
+import { TablePagination } from '../components/TablePagination'
 import { useAuth } from '../contexts/AuthContext'
+import { usePagination } from '../hooks/usePagination'
 import { isSaasReadOnly } from '../permissions'
 
 export function ClientsPage() {
@@ -8,6 +10,7 @@ export function ClientsPage() {
   const [items, setItems] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const pagination = usePagination(items)
 
   useEffect(() => {
     listClients()
@@ -35,7 +38,7 @@ export function ClientsPage() {
                 <span className="page-title-sep" aria-hidden="true">
                   -
                 </span>
-                <span className="page-title-hint">Visitantes agregados de todas as imobiliárias</span>
+                <span className="page-title-hint">Contas cadastradas no portal</span>
               </>
             )}
           </div>
@@ -50,8 +53,12 @@ export function ClientsPage() {
           <p>Nenhum cliente/visitante encontrado ainda.</p>
         </div>
       ) : (
-        <div className="table-wrap card">
-          <table>
+        <div className="table-shell">
+          <div className="table-toolbar">
+            <TablePagination total={items.length} page={pagination.page} pageCount={pagination.pageCount} pageSize={pagination.pageSize} onPageChange={pagination.setPage} itemLabel="clientes" />
+          </div>
+          <div className="table-wrap card">
+            <table>
             <thead>
               <tr>
                 <th>Nome</th>
@@ -59,22 +66,25 @@ export function ClientsPage() {
                 <th>E-mail</th>
                 {isSaasReadOnly(user) && <th>Tenant</th>}
                 <th>Visitas</th>
+                {isSaasReadOnly(user) && <th>Cadastro</th>}
                 <th>Última visita</th>
               </tr>
             </thead>
             <tbody>
-              {items.map((client, index) => (
-                <tr key={`${client.visitorPhone}-${client.tenantId ?? ''}-${index}`}>
+              {pagination.pagedItems.map((client, index) => (
+                <tr key={client.clientUserId ?? `${client.visitorPhone}-${client.tenantId ?? ''}-${index}`}>
                   <td data-label="Nome">{client.visitorName}</td>
                   <td data-label="Telefone">{client.visitorPhone}</td>
                   <td data-label="E-mail">{client.visitorEmail || '—'}</td>
                   {isSaasReadOnly(user) && <td data-label="Tenant">{client.tenantName || '—'}</td>}
                   <td data-label="Visitas">{client.visitCount}</td>
-                  <td data-label="Última visita">{new Date(client.lastVisitAt).toLocaleString('pt-BR')}</td>
+                  {isSaasReadOnly(user) && <td data-label="Cadastro">{client.registeredAt ? new Date(client.registeredAt).toLocaleDateString('pt-BR') : '—'}</td>}
+                  <td data-label="Última visita">{client.lastVisitAt ? new Date(client.lastVisitAt).toLocaleString('pt-BR') : '—'}</td>
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       )}
     </div>

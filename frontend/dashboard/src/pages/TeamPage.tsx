@@ -12,7 +12,9 @@ import {
 import { BrokerDetail } from '../components/BrokerDetail'
 import { Modal } from '../components/Modal'
 import { PasswordInput } from '../components/PasswordInput'
+import { TablePagination } from '../components/TablePagination'
 import { useAuth } from '../contexts/AuthContext'
+import { usePagination } from '../hooks/usePagination'
 
 const roleLabel: Record<string, string> = {
   agency_admin: 'Administrador',
@@ -36,6 +38,7 @@ export function TeamPage() {
   const [modalMode, setModalMode] = useState<ModalMode>(null)
   const [selectedMember, setSelectedMember] = useState<BrokerSeat | null>(null)
   const [resendingId, setResendingId] = useState<string | null>(null)
+  const pagination = usePagination(members)
 
   useEffect(() => {
     if (!canManageBrokers) return
@@ -231,8 +234,12 @@ export function TeamPage() {
             </div>
           )}
 
-          <div className="table-wrap card">
-            <table>
+          <div className="table-shell">
+            <div className="table-toolbar">
+              <TablePagination total={members.length} page={pagination.page} pageCount={pagination.pageCount} pageSize={pagination.pageSize} onPageChange={pagination.setPage} itemLabel="corretores" />
+            </div>
+            <div className="table-wrap card">
+              <table>
               <thead>
                 <tr>
                   <th />
@@ -243,7 +250,7 @@ export function TeamPage() {
                 </tr>
               </thead>
               <tbody>
-                {members.map((member) => (
+                {pagination.pagedItems.map((member) => (
                   <tr
                     key={member.userId}
                     className="clickable-row"
@@ -306,7 +313,8 @@ export function TeamPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+              </table>
+            </div>
           </div>
         </>
       )}

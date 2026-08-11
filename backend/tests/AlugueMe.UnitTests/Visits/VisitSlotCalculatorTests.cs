@@ -52,4 +52,34 @@ public class VisitSlotCalculatorTests
 
         Assert.DoesNotContain(slots, s => s.Start >= blockStart && s.Start < blockEnd);
     }
+
+    [Fact]
+    public void CalculateSlots_allows_slot_exactly_after_visit_buffer()
+    {
+        var date = new DateOnly(2026, 8, 4);
+        var visitStart = VisitSlotCalculator.ToUtc(date, new TimeOnly(10, 0));
+        var occupied = new[] { VisitSlotCalculator.FromVisit(visitStart, visitStart.AddHours(1), 60) };
+
+        var slots = _calculator.CalculateSlots(date, new VisitSlotSettings(60, 60), occupied);
+
+        Assert.Contains(slots, slot => slot.Start == visitStart.AddHours(2));
+    }
+
+    [Fact]
+    public void CalculateSlots_respects_custom_working_hours_and_step()
+    {
+        var date = new DateOnly(2026, 8, 4);
+        var slots = _calculator.CalculateSlots(
+            date, new VisitSlotSettings(45, 15), [], TimeSpan.FromMinutes(15),
+            new TimeOnly(10, 0), new TimeOnly(12, 0));
+
+        Assert.Equal(6, slots.Count);
+        Assert.All(slots, slot =>
+        {
+            var localStart = VisitSlotCalculator.ToSaoPaulo(slot.Start);
+            var localEnd = VisitSlotCalculator.ToSaoPaulo(slot.End);
+            Assert.True(localStart.TimeOfDay >= TimeSpan.FromHours(10));
+            Assert.True(localEnd.TimeOfDay <= TimeSpan.FromHours(12));
+        });
+    }
 }

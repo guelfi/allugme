@@ -1,9 +1,9 @@
 # Ambiente local — paridade com OCI (sem publicar porta no host).
 # Acesso via nginx-local na rede projetos-local:
-#   http://192.168.15.119/allugme/
-#   http://192.168.15.119/allugme/swagger/index.html
-#   http://192.168.15.119/allugme/api/v1/...
-#   http://192.168.15.119/{slug}/
+#   http://192.168.15.157/allugme/
+#   http://192.168.15.157/allugme/swagger/index.html
+#   http://192.168.15.157/allugme/api/v1/...
+#   http://192.168.15.157/{slug}/
 #
 # Subir:
 #   docker compose -f docker-compose.local.yml up -d --build
@@ -17,7 +17,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: http://192.168.15.119/allugme/api/v1
+        VITE_API_URL: http://192.168.15.157/allugme/api/v1
         VITE_BASE_PATH: /allugme/
     container_name: allugme-frontend
     expose:
@@ -82,7 +82,7 @@ services:
       Evolution__Enabled: "false"
       Themes__RootPath: /app/themes/official
       PublicBasePath: /allugme
-      Cors__Origins__0: http://192.168.15.119
+      Cors__Origins__0: http://192.168.15.157
       Cors__Origins__1: http://localhost:5173
       Pix__Key: ${Pix__Key:-+5511975747470}
       Pix__MerchantName: ${Pix__MerchantName:-MARCO ANTONIO GUELFI}
@@ -94,7 +94,7 @@ services:
       Smtp__UseSsl: ${Smtp__UseSsl:-true}
       Smtp__FromAddress: ${Smtp__FromAddress:-contato@allugme.com.br}
       Smtp__FromName: ${Smtp__FromName:-Allugme}
-      App__DashboardBaseUrl: ${App__DashboardBaseUrl:-http://192.168.15.119/allugme}
+      App__DashboardBaseUrl: ${App__DashboardBaseUrl:-http://192.168.15.157/allugme}
       Storage__EmailTemplatesPath: /app/storage/email-templates
     volumes:
       - ./storage/media:/app/storage/media

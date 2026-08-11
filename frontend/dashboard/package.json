@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "echo \"No linting configured\" && exit 0",
+    "lint": "oxlint src --deny-warnings",
     "preview": "vite preview"
   },
   "dependencies": {

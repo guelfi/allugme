@@ -1,8 +1,10 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { createBlock, deleteBlock, listBlocks, type CalendarBlock } from '../api/agenda'
 import { listVisits, updateVisitStatus } from '../api/visits'
+import { TablePagination } from '../components/TablePagination'
 import { Tabs } from '../components/Tabs'
 import { useAuth } from '../contexts/AuthContext'
+import { usePagination } from '../hooks/usePagination'
 import { canManageVisits, isBroker, isSaasReadOnly } from '../permissions'
 import type { Visit } from '../types'
 
@@ -35,6 +37,8 @@ export function VisitsPage() {
   const [blockEnd, setBlockEnd] = useState('')
   const [blockReason, setBlockReason] = useState('')
   const [tab, setTab] = useState<'agenda' | 'blocks'>('agenda')
+  const visitPagination = usePagination(items)
+  const blockPagination = usePagination(blocks)
 
   async function reload() {
     setLoading(true)
@@ -113,8 +117,12 @@ export function VisitsPage() {
           <p>Nenhuma visita encontrada.</p>
         </div>
       ) : (
-        <div className="table-wrap card">
-          <table>
+        <div className="table-shell">
+          <div className="table-toolbar">
+            <TablePagination total={items.length} page={visitPagination.page} pageCount={visitPagination.pageCount} pageSize={visitPagination.pageSize} onPageChange={visitPagination.setPage} itemLabel="visitas" />
+          </div>
+          <div className="table-wrap card">
+            <table>
             <thead>
               <tr>
                 <th>Imóvel</th>
@@ -127,7 +135,7 @@ export function VisitsPage() {
               </tr>
             </thead>
             <tbody>
-              {items.map((visit) => (
+              {visitPagination.pagedItems.map((visit) => (
                 <tr key={visit.id}>
                   <td data-label="Imóvel">{visit.propertyTitle}</td>
                   <td data-label="Visitante">{visit.visitorName}</td>
@@ -162,7 +170,8 @@ export function VisitsPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       )}
     </>
@@ -237,8 +246,12 @@ export function VisitsPage() {
                 </button>
               </div>
               {blocks.length > 0 && (
-                <div className="table-wrap full-row">
-                  <table>
+                <div className="table-shell full-row">
+                  <div className="table-toolbar">
+                    <TablePagination total={blocks.length} page={blockPagination.page} pageCount={blockPagination.pageCount} pageSize={blockPagination.pageSize} onPageChange={blockPagination.setPage} itemLabel="bloqueios" />
+                  </div>
+                  <div className="table-wrap">
+                    <table>
                     <thead>
                       <tr>
                         <th>Início</th>
@@ -248,7 +261,7 @@ export function VisitsPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {blocks.map((b) => (
+                      {blockPagination.pagedItems.map((b) => (
                         <tr key={b.id}>
                           <td data-label="Início">{formatDateTime(b.startAt)}</td>
                           <td data-label="Fim">{formatDateTime(b.endAt)}</td>
@@ -265,7 +278,8 @@ export function VisitsPage() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                    </table>
+                  </div>
                 </div>
               )}
             </form>

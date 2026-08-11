@@ -38,6 +38,6 @@ export async function updateAvailability(
   return put('/settings/availability', { rules }, { query: { scope } })
 }
 
-export async function sendWhatsAppTest(phone: string): Promise<{ ok: boolean; message?: string }> {
-  return post('/settings/whatsapp/test', { phone })
+export async function sendWhatsAppTest(toE164: string): Promise<{ message: string }> {
+  return post('/settings/whatsapp/test', { toE164 })
 }

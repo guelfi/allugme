@@ -1,7 +1,7 @@
 # Plano de Implementação em Fases — Allugme
 
-**Versão:** 1.2  
-**Data:** 2026-08-04  
+**Versão:** 1.3
+**Data:** 2026-08-10
 **Stack:** ASP.NET Core 10 + React  
 **Prazo-alvo:** 11–15 semanas (~20h/semana) ou 5–8 semanas full-time
 
@@ -17,6 +17,7 @@
 | 3 | Visitas + Buffer | 2 | S12 (parcial) |
 | 3b | WhatsApp (Evolution API) | 1,5–2 | S12 |
 | 4 | Temas + Vitrine | 2 | S8 / S14 |
+| 4b | E-mail + LGPD + Portal | concluída | pós-S14 |
 | 5 | Polish + Aceite | 1–2 | S14–16 |
 
 Ordem sugerida: 0 → 1 → 2 → 3 → 3b; fase 4 pode overlap com 3/3b (temas HTML em paralelo) → 5.
@@ -129,7 +130,7 @@ Visitas + buffer OK (WhatsApp na 3b).
 - Fake/mock Evolution para testes  
 
 ### DoD
-- [x] Número configurável no painel (tenant e corretor) — *débito: UI ainda não expõe `EvolutionInstanceName`; teste WA: payload `phone`≠`ToE164`*  
+- [x] Número e `EvolutionInstanceName` configuráveis no painel; payload do teste alinhado a `ToE164` (corrigido em 2026-08-10)
 - [x] Solicitação de visita enfileira e dispara WhatsApp ao corretor (quando ativo) — *fake mode por default*  
 - [x] `SIM {codigo}` / `NAO {codigo}` alteram status corretamente — *código + testes; runtime depende de Evolution real*  
 - [x] Remetente não autorizado é ignorado  
@@ -138,7 +139,7 @@ Visitas + buffer OK (WhatsApp na 3b).
 - [x] Visitante recebe retorno se tiver telefone  
 
 ### Checkpoint S12
-Visitas + buffer + WhatsApp OK em **fake mode**. Evolution real + débitos UI ainda pendentes.
+Visitas + buffer + WhatsApp OK em **fake mode**. Débitos UI corrigidos; Evolution real ainda depende de homologação.
 
 ---
 
@@ -164,6 +165,27 @@ Visitas + buffer + WhatsApp OK em **fake mode**. Evolution real + débitos UI ai
 
 ---
 
+## Fase 4b — E-mail, LGPD, disponibilidade e portal
+
+**Objetivo:** completar os fluxos transacionais e a jornada autenticada do cliente.
+
+### Entregáveis
+- SMTP Resend e templates com fallback por tenant/tema/plataforma.
+- Recuperação de senha.
+- Convite de corretor por e-mail e inclusão direta com senha.
+- E-mails de criação/confirmação/recusa de visita com fail-soft.
+- `AvailabilityRule` com precedência corretor > tenant > padrão.
+- Consentimentos LGPD versionados e página de privacidade.
+- Portal do cliente com autenticação, favoritos e minhas visitas.
+
+### DoD
+- [x] Fases 0→6 do [plano aprovado](handoff/plano-email-lgpd-portal-cliente.md) implementadas em 2026-08-07.
+- [x] Migração `EmailLgpdPortal` e entidades relacionadas presentes.
+- [x] Rotas e páginas React dos fluxos disponíveis.
+- [x] Casos `AC-EMAIL-*`, `AC-LGPD-*` e `AC-PORTAL-*` incorporados ao Plano de Aceite em 2026-08-10.
+
+---
+
 ## Fase 5 — Polish + Aceite
 
 **Objetivo:** GO no Plano de Aceite.
@@ -173,12 +195,17 @@ Visitas + buffer + WhatsApp OK em **fake mode**. Evolution real + débitos UI ai
 - Correção de bloqueadores  
 - README de execução local  
 - Demo script (J1→J2→J3 painel + J3 via WhatsApp)  
+- Lint frontend real e bloqueante no CI
+- Ampliação de testes unitários e substituição do teste de integração placeholder
+- Evidências reproduzíveis dos Blockers de tenancy, publicação, visitas e WhatsApp
 - Atualização handoff + checkpoint S14–16  
 
 ### DoD
 - [ ] Ata de aceite GO ou GO com ressalvas documentadas  
 - [ ] Nenhum bloqueador P0 aberto  
 - [ ] `CURRENT.md` = Fase 5 concluída  
+- [x] `npm run lint` executa Oxlint real (não comando placeholder)
+- [ ] Testes de integração automatizam tenancy, publicação e concorrência de visitas
 
 ---
 
@@ -186,14 +213,11 @@ Visitas + buffer + WhatsApp OK em **fake mode**. Evolution real + débitos UI ai
 
 | Item | Fase sugerida |
 |------|----------------|
-| Recuperação de senha | P1 |
-| Convite broker por e-mail | P1 |
-| AvailabilityRule completa | P1 |
-| E-mail de visita | P1 |
-| LGPD checkbox no cadastro | P1 |
 | Cache Redis busca/slots + rate limit | P1 |
 | Billing / gateway Pix + conciliação | P1 |
-| Débitos WA UI (instance name + teste ToE164) + Evolution real | P1 operacional |
+| Homologação Evolution real | P1 operacional |
+| Observabilidade e alertas operacionais | P1 |
+| Testes de integração API/DB/Redis e fluxos frontend | P1 contínuo |
 | Chat WhatsApp livre (fora do fluxo de visita) | P2 |
 | Tema custom + aprovação | P2 |
 | Static generation | P2 |

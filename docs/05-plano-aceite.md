@@ -1,10 +1,58 @@
 # Plano de Aceite — Allugme
 
-**Versão:** 1.2  
-**Data:** 2026-08-04  
+**Versão:** 1.3
+**Data:** 2026-08-10
 **Stack:** ASP.NET Core 10 + React  
 **Objetivo:** Validar o MVP antes de considerar a ferramenta entregue (GO / NO-GO).  
 **Inclui:** WhatsApp via Evolution API + Redis (fila, locks, idempotência).
+
+---
+
+## 0. Estratégia de execução — rodada MVP
+
+### Princípios
+
+1. Fixar um único commit/tag e não promover código durante uma onda de testes.
+2. Executar primeiro os Blockers; qualquer `FAIL` interrompe a promoção para P0/P1.
+3. Usar tenants, usuários e imóveis diferentes dos utilizados pelo implementador no desenvolvimento diário.
+4. Registrar request/response, screenshot e correlação de logs para todo Blocker.
+5. Repetir a onda completa afetada depois de uma correção; não validar apenas o caso que falhou.
+
+### Preparação — responsável: Implementador
+
+- [ ] Fixar commit/tag, URLs e data na seção 2.
+- [ ] Subir Postgres e Redis limpos e registrar health checks.
+- [ ] Executar o seed duas vezes e guardar contagens antes/depois.
+- [ ] Separar credenciais de Tenant A, Tenant B, dois brokers do mesmo tenant e SaaS admin.
+- [ ] Configurar Evolution real, webhook secreto, número do corretor e um número não autorizado.
+- [ ] Criar `docs/handoff/checkpoints/aceite-YYYYMMDD/` a partir do README/template.
+- [ ] Habilitar logs necessários sem registrar senha, JWT completo, apikey ou dados pessoais além do mínimo.
+
+### Ondas de execução
+
+As ondas 1→5 formam a **Porta de Blockers**. Nenhum caso P0 ou P1 pode ser iniciado enquanto houver Blocker `PENDENTE` ou `FAIL`.
+
+| Ordem | Onda | Casos mínimos | Critério para avançar |
+|------:|------|---------------|-----------------------|
+| 1 | Baseline, Auth e Segurança | `AC-AUTH-01`, `AC-SEC-01`, `AC-SEC-03`, `AC-SEC-04` | Cadastro/login, upload, hash de senha e bundle seguro = PASS |
+| 2 | Tenancy e RBAC | `AC-RBAC-01`, `AC-RBAC-02`, `AC-TEN-01`, `AC-TEN-02`, `AC-TEN-03`, `AC-SEC-02` | Todos PASS; nenhuma resposta contém dados do outro tenant |
+| 3 | Publicação e vitrine | `AC-PROP-01`, `AC-PROP-03`, `AC-SRC-01`, `AC-SRC-02`, `AC-SRC-03`, `AC-SRC-04`, `AC-SEED-01` | Imóvel só aparece publicado e tenant ativo |
+| 4 | Visitas e concorrência | `AC-VIS-01`, `AC-VIS-02`, `AC-VIS-03`, `AC-VIS-04`, `AC-VIS-06`, `AC-VIS-09`, `AC-INF-01`, `AC-INF-03` | Slots/buffer corretos e exatamente um POST concorrente bem-sucedido |
+| 5 | WhatsApp real e webhook | `AC-WA-01`, `AC-WA-03`, `AC-WA-04`, `AC-WA-05`, `AC-WA-06`, `AC-SEC-05` | Envio real, confirmação/recusa, autorização e secret PASS |
+| **Gate** | **Porta de Blockers** | **Todos os casos Blocker da matriz** | **Todos em PASS; zero PENDENTE/FAIL** |
+| 6 | P0 e regressão crítica | Todos os casos P0 restantes | Nenhum P0 aberto |
+| 7 | P1: e-mail, LGPD, portal e demais | Todos os casos P1 restantes | PASS ou até 3 ressalvas com responsável e prazo |
+
+### Automação-alvo
+
+| Área | Camada | Automação mínima |
+|------|--------|------------------|
+| Tenancy/RBAC | Integração API + PostgreSQL | Tokens A/B; list/get/update cruzados; suspensão e catálogo público |
+| Publicação | Integração API | Draft → upload válido → publish → busca/detalhe → unpublish |
+| Visitas | Unitário + integração API/Redis | disponibilidade/buffer; bloqueio; dois POSTs simultâneos |
+| WhatsApp | Unitário + integração fake + aceite real | parser; remetente; idempotência; fail-soft; smoke real Evolution |
+
+O smoke real de Evolution permanece manual/operacional: um mock não comprova entrega no WhatsApp nem configuração externa.
 
 ---
 
@@ -148,7 +196,36 @@ Legenda status: `PENDENTE` · `PASS` · `FAIL` · `N/A`
 | AC-INF-03 | REQ-INF-03 | Dois POSTs mesmo slot | Concorrência | Apenas um sucesso (lock+DB) | Blocker | PENDENTE |
 | AC-INF-04 | REQ-INF-05 | Reenviar mesmo webhook | Duplicar event id | Segunda chamada não altera status de novo | P0 | PENDENTE |
 
-### 5.7 Segurança mínima
+### 5.7 E-mail transacional
+
+| ID | REQ | Pré-condição | Passos | Esperado | Sev. | Status |
+|----|-----|--------------|--------|----------|------|--------|
+| AC-EMAIL-01 | REQ-AUTH-03, REQ-EMAIL-02 | Usuário ativo + SMTP de teste | Solicitar reset, abrir link e definir nova senha | Token funciona uma vez; senha nova autentica e antiga não | P1 | PENDENTE |
+| AC-EMAIL-02 | REQ-TEN-04, REQ-EMAIL-02 | Agency admin + SMTP de teste | Convidar broker e aceitar convite | E-mail recebido; membership passa de Invited para Active | P1 | PENDENTE |
+| AC-EMAIL-03 | REQ-VIS-13, REQ-EMAIL-03 | Notificação e-mail ativa | Visitante cria visita | Corretor responsável recebe e-mail com dados da visita | P1 | PENDENTE |
+| AC-EMAIL-04 | REQ-VIS-13, REQ-EMAIL-03 | Visita pending com e-mail | Confirmar e depois repetir cenário com recusa | Visitante recebe o template correspondente a cada resultado | P1 | PENDENTE |
+| AC-EMAIL-05 | REQ-EMAIL-03 | SMTP indisponível | Criar e confirmar/recusar visita | Operação principal conclui; falha de e-mail fica registrada (fail-soft) | P1 | PENDENTE |
+| AC-EMAIL-06 | REQ-EMAIL-01 | Templates tenant/tema/plataforma preparados em cenários separados | Disparar o mesmo tipo de e-mail removendo a camada mais específica a cada rodada | Renderer usa tenant; sem tenant usa tema; sem ambos usa `_platform` | P1 | PENDENTE |
+
+### 5.8 LGPD e privacidade
+
+| ID | REQ | Pré-condição | Passos | Esperado | Sev. | Status |
+|----|-----|--------------|--------|----------|------|--------|
+| AC-LGPD-01 | REQ-LGPD-01, REQ-NFR-04 | Cadastro B2B | Enviar sem aceite e depois com aceite | Sem aceite é rejeitado; com aceite cria `ConsentRecord` versionado | P1 | PENDENTE |
+| AC-LGPD-02 | REQ-LGPD-01 | Cadastro de cliente | Enviar sem aceite e depois com aceite | Sem aceite é rejeitado; com aceite registra versão, data, IP e user-agent | P1 | PENDENTE |
+| AC-LGPD-03 | REQ-LGPD-01 | Solicitação pública de visita | Enviar sem aceite e depois com aceite | Sem aceite é rejeitada; com aceite registra consentimento ligado ao fluxo | P1 | PENDENTE |
+| AC-LGPD-04 | REQ-LGPD-02 | Aplicação pública | Abrir política e preferências/banner de cookies | Conteúdo acessível; escolha do usuário é respeitada no navegador | P1 | PENDENTE |
+
+### 5.9 Portal do cliente
+
+| ID | REQ | Pré-condição | Passos | Esperado | Sev. | Status |
+|----|-----|--------------|--------|----------|------|--------|
+| AC-PORTAL-01 | REQ-PORTAL-01 | Cliente cadastrado | Login e acesso a `/portal`; tentar rota B2B | Shell do cliente abre; rota B2B é negada | P1 | PENDENTE |
+| AC-PORTAL-02 | REQ-PORTAL-02 | Cliente logado + imóvel publicado | Favoritar, recarregar e desfavoritar | Estado persiste e depois é removido; outro cliente não vê o favorito | P1 | PENDENTE |
+| AC-PORTAL-03 | REQ-PORTAL-03 | Visita com mesmo e-mail do cliente | Abrir Minhas visitas/reivindicar | Visita compatível aparece e fica vinculada ao cliente | P1 | PENDENTE |
+| AC-PORTAL-04 | REQ-PORTAL-03 | Visitas com e-mails diferentes | Tentar consultar/reivindicar visita de terceiro | Visita não é exposta nem vinculada | P1 | PENDENTE |
+
+### 5.10 Segurança mínima
 
 | ID | REQ | Pré-condição | Passos | Esperado | Sev. | Status |
 |----|-----|--------------|--------|----------|------|--------|
@@ -171,6 +248,9 @@ Legenda status: `PENDENTE` · `PASS` · `FAIL` · `N/A`
 - [ ] Cinco temas navegáveis  
 - [ ] Script demo J1→J2→J3 painel + confirmação WhatsApp (8–12 min)  
 - [ ] Logs acessíveis para investigar FAIL  
+- [ ] SMTP de teste e caixa de entrada acessíveis
+- [ ] Conta cliente e segundo cliente preparados para isolamento do portal
+- [ ] Versão vigente dos termos/política registrada para conferir `ConsentRecord`
 
 ---
 
@@ -221,4 +301,7 @@ Implementador: _______________
 | AC-VIS-* | REQ-VIS-* |
 | AC-WA-* | REQ-WA-*, REQ-VIS-14..16 |
 | AC-INF-* | REQ-INF-* |
+| AC-EMAIL-* | REQ-EMAIL-*, REQ-AUTH-03, REQ-TEN-04, REQ-VIS-13 |
+| AC-LGPD-* | REQ-LGPD-*, REQ-NFR-04 |
+| AC-PORTAL-* | REQ-PORTAL-* |
 | AC-SEC-* | REQ-NFR-* |

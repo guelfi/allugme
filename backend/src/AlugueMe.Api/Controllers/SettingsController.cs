@@ -178,12 +178,15 @@ public class SettingsController(AppDbContext db, IWhatsAppQueue whatsAppQueue) :
             return BadRequest(new { message = "Contexto de tenant não definido." });
 
         var tenantSettings = await db.TenantSettings.FindAsync([tenantId.Value], ct);
-        if (tenantSettings?.EvolutionInstanceName is null)
+        if (string.IsNullOrWhiteSpace(tenantSettings?.EvolutionInstanceName))
             return BadRequest(new { message = "Evolution instance não configurada." });
+
+        if (string.IsNullOrWhiteSpace(request.ToE164))
+            return BadRequest(new { message = "Número de destino não informado." });
 
         var text = request.Message ?? "Mensagem de teste Allugme";
         await whatsAppQueue.EnqueueAsync(new WhatsAppQueueMessage(
-            tenantId, null, tenantSettings.EvolutionInstanceName, request.ToE164, text), ct);
+            tenantId, null, tenantSettings.EvolutionInstanceName, request.ToE164.Trim(), text), ct);
 
         return Ok(new { message = "Mensagem enfileirada." });
     }

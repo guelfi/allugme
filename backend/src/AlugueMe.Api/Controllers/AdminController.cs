@@ -27,13 +27,8 @@ public class AdminController(AppDbContext db) : ControllerBase
         var independents = await db.Tenants.CountAsync(t => t.Type == TenantType.Independent, ct);
         var properties = await db.Properties.CountAsync(ct);
 
-        var visitors = await db.Visits
-            .AsNoTracking()
-            .Select(v => new { Phone = (v.VisitorPhone ?? "").Trim(), Name = (v.VisitorName ?? "").Trim(), v.TenantId })
-            .Where(v => v.Phone != "" || v.Name != "")
-            .Distinct()
-            .CountAsync(ct);
+        var clients = await db.Users.CountAsync(u => u.IsClient, ct);
 
-        return Ok(new AdminStatsDto(agencies, independents, properties, visitors));
+        return Ok(new AdminStatsDto(agencies, independents, properties, clients));
     }
 }

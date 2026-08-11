@@ -1,11 +1,13 @@
 import { get } from './http'
 
 export type Client = {
+  clientUserId?: string | null
   visitorName: string
   visitorPhone: string
   visitorEmail?: string | null
   visitCount: number
-  lastVisitAt: string
+  lastVisitAt?: string | null
+  registeredAt?: string | null
   tenantId?: string | null
   tenantName?: string | null
 }

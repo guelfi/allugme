@@ -4,7 +4,9 @@ import { fetchTeam, type BrokerSeat } from '../api/brokers'
 import { getTenant } from '../api/tenants'
 import { BrokerDetail } from '../components/BrokerDetail'
 import { Modal } from '../components/Modal'
+import { TablePagination } from '../components/TablePagination'
 import { Tabs } from '../components/Tabs'
+import { usePagination } from '../hooks/usePagination'
 import type { Tenant } from '../types'
 
 const statusLabel: Record<string, string> = {
@@ -29,6 +31,7 @@ export function TenantDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState('info')
   const [selectedBroker, setSelectedBroker] = useState<BrokerSeat | null>(null)
+  const pagination = usePagination(members)
 
   useEffect(() => {
     if (!id) return
@@ -125,7 +128,13 @@ export function TenantDetailPage() {
           )}
 
           {tab === 'brokers' && (
-            <div className="table-wrap card">
+            <div className="table-shell">
+              {members.length > 0 && (
+                <div className="table-toolbar">
+                  <TablePagination total={members.length} page={pagination.page} pageCount={pagination.pageCount} pageSize={pagination.pageSize} onPageChange={pagination.setPage} itemLabel="corretores" />
+                </div>
+              )}
+              <div className="table-wrap card">
               {members.length === 0 ? (
                 <p className="muted" style={{ margin: 0 }}>
                   Nenhum corretor cadastrado ainda.
@@ -141,7 +150,7 @@ export function TenantDetailPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {members.map((member) => (
+                    {pagination.pagedItems.map((member) => (
                       <tr
                         key={member.userId}
                         className="clickable-row"
@@ -164,6 +173,7 @@ export function TenantDetailPage() {
                   </tbody>
                 </table>
               )}
+              </div>
             </div>
           )}
         </>
