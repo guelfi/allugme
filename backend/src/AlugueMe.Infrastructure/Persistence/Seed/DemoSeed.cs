@@ -36,8 +36,28 @@ public class DemoSeed(AppDbContext db, IOptions<SeedOptions> seedOptions, ILogge
 
     private async Task EnsureSaasAdminAsync(CancellationToken cancellationToken)
     {
-        if (await db.Users.AnyAsync(u => u.Email == _options.SaasAdminEmail, cancellationToken))
+        var configuredAdmin = await db.Users.FirstOrDefaultAsync(
+            u => u.Email == _options.SaasAdminEmail,
+            cancellationToken);
+        if (configuredAdmin is not null)
+        {
+            if (!configuredAdmin.IsSaasAdmin)
+                throw new InvalidOperationException(
+                    $"O e-mail administrativo configurado '{_options.SaasAdminEmail}' já pertence a um usuário não administrativo.");
+
             return;
+        }
+
+        // Migra a identidade administrativa legada sem recriar usuário ou senha.
+        var legacyAdmin = await db.Users.FirstOrDefaultAsync(
+            u => u.IsSaasAdmin && u.Email == "admin@allugme.com.br",
+            cancellationToken);
+        if (legacyAdmin is not null)
+        {
+            legacyAdmin.Email = _options.SaasAdminEmail;
+            await db.SaveChangesAsync(cancellationToken);
+            return;
+        }
 
         db.Users.Add(new User
         {
