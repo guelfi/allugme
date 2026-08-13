@@ -15,7 +15,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: ${VITE_API_URL:-https://www.allugme.com.br/allugme/api/v1}
+        VITE_API_URL: ${VITE_API_URL:-https://api.allugme.online/api/v1}
         VITE_BASE_PATH: ${VITE_BASE_PATH:-/allugme/}
     container_name: allugme-frontend
     depends_on:
@@ -102,7 +102,7 @@ services:
       Smtp__UseSsl: ${Smtp__UseSsl:-true}
       Smtp__FromAddress: ${Smtp__FromAddress:-contato@allugme.com.br}
       Smtp__FromName: ${Smtp__FromName:-Allugme}
-      App__DashboardBaseUrl: ${App__DashboardBaseUrl:-https://www.allugme.com.br/allugme}
+      App__DashboardBaseUrl: ${App__DashboardBaseUrl:-https://app.allugme.online/allugme}
       Storage__EmailTemplatesPath: /app/storage/email-templates
 
     volumes:

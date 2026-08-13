@@ -57,7 +57,10 @@ builder.Services.AddCors(options =>
                 "http://192.168.15.119",
                 "http://129.153.86.168",
                 "https://allugme.com.br",
-                "https://www.allugme.com.br")
+                "https://www.allugme.com.br",
+                "https://allugme.online",
+                "https://www.allugme.online",
+                "https://app.allugme.online")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
