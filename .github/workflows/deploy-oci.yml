@@ -97,7 +97,7 @@ jobs:
                 'Seed__Enabled=true' \
                 'Seed__DemoData=true' \
                 'Seed__DemoPassword=Demo@123456' \
-                'Seed__SuperAdmin__Email=contato@allugme.com.br' \
+                'Seed__SuperAdmin__Email=admin@allugme.com.br' \
                 'Seed__SuperAdmin__Password=Admin123#' \
                 'Swagger__Enabled=true' \
                 'Evolution__Enabled=false' \
@@ -107,9 +107,9 @@ jobs:
 
             # Mantém a identidade administrativa canônica também em instalações existentes.
             if grep -q '^Seed__SuperAdmin__Email=' .env; then
-              sed -i 's/^Seed__SuperAdmin__Email=.*/Seed__SuperAdmin__Email=contato@allugme.com.br/' .env
+              sed -i 's/^Seed__SuperAdmin__Email=.*/Seed__SuperAdmin__Email=admin@allugme.com.br/' .env
             else
-              printf '%s\n' 'Seed__SuperAdmin__Email=contato@allugme.com.br' >> .env
+              printf '%s\n' 'Seed__SuperAdmin__Email=admin@allugme.com.br' >> .env
             fi
 
             # Rede compartilhada do nginx-proxy (paridade Barbear.IA / bela360)

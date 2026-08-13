@@ -48,13 +48,13 @@ public class DemoSeed(AppDbContext db, IOptions<SeedOptions> seedOptions, ILogge
             return;
         }
 
-        // Migra a identidade administrativa legada sem recriar usuário ou senha.
-        var legacyAdmin = await db.Users.FirstOrDefaultAsync(
-            u => u.IsSaasAdmin && u.Email == "admin@allugme.com.br",
+        // Reconciliamos a identidade configurada sem recriar usuário ou senha.
+        var currentAdmin = await db.Users.FirstOrDefaultAsync(
+            u => u.IsSaasAdmin,
             cancellationToken);
-        if (legacyAdmin is not null)
+        if (currentAdmin is not null)
         {
-            legacyAdmin.Email = _options.SaasAdminEmail;
+            currentAdmin.Email = _options.SaasAdminEmail;
             await db.SaveChangesAsync(cancellationToken);
             return;
         }
