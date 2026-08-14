@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { AppShell } from './components/layout/AppShell'
+import { PublicSiteLayout } from './components/layout/PublicSiteLayout'
 import { ClientPortalRoute, ProtectedRoute, SaasAdminRoute } from './components/auth/ProtectedRoute'
 import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/LoginPage'
@@ -75,14 +76,16 @@ export default function App() {
       <BrowserRouter basename={basename}>
         <DocumentTitle />
         <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/accept-invite" element={<AcceptInvitePage />} />
-          <Route path="/portal/register" element={<ClientRegisterPage />} />
+          <Route element={<PublicSiteLayout />}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/accept-invite" element={<AcceptInvitePage />} />
+            <Route path="/portal/register" element={<ClientRegisterPage />} />
+          </Route>
 
           <Route element={<ClientPortalRoute />}>
             <Route path="portal" element={<ClientShell />}>

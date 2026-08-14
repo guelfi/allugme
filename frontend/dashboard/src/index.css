@@ -1294,6 +1294,94 @@ td.actions-cell > * + * {
 /* ---- Landing (SaaS) — mobile first ------------------------------------ */
 :root {
   --lp-cookie-h: 0px;
+  --public-footer-h: 0px;
+}
+
+.public-site-layout {
+  min-height: 100svh;
+}
+
+.public-site-layout > .login-page {
+  padding-bottom: calc(1rem + var(--public-footer-h));
+}
+
+.public-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--lp-cookie-h, 0px);
+  z-index: 70;
+  color: #d5e0ea;
+  background:
+    radial-gradient(460px 120px at 92% 100%, rgba(196, 92, 38, 0.13), transparent 70%),
+    #122033;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 -8px 24px rgba(8, 20, 32, 0.12);
+  transition: bottom 0.2s ease;
+}
+
+.public-footer-inner {
+  width: min(1120px, calc(100% - 2rem));
+  min-height: 4.35rem;
+  margin: 0 auto;
+  padding: 0.7rem 0 calc(0.55rem + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.public-footer-brand {
+  display: grid;
+  line-height: 1.3;
+}
+
+.public-footer-brand strong {
+  color: #fff;
+}
+
+.public-footer-brand span {
+  color: #a9b7c6;
+}
+
+.public-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.public-footer-links a {
+  color: #d5e0ea;
+  text-decoration: none;
+}
+
+.public-footer-links a:hover,
+.public-footer-links a:focus-visible {
+  color: #fff;
+}
+
+.public-footer-links a:has(svg) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.public-footer-links svg {
+  color: #25d366;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .public-footer-inner {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+
+  .public-footer-links {
+    justify-content: flex-end;
+  }
 }
 
 .lp {
@@ -1468,7 +1556,7 @@ td.actions-cell > * + * {
   padding:
     calc(var(--lp-nav-h) + env(safe-area-inset-top, 0px) + var(--lp-nav-gap))
     var(--lp-pad-x)
-    calc(0.85rem + env(safe-area-inset-bottom, 0px) + var(--lp-cookie-h, 0px));
+    calc(0.85rem + env(safe-area-inset-bottom, 0px) + var(--lp-cookie-h, 0px) + var(--public-footer-h, 0px));
   box-sizing: border-box;
   overflow-x: hidden;
   overflow-y: auto;
@@ -2446,7 +2534,7 @@ td.actions-cell > * + * {
   flex-direction: column;
   justify-content: flex-start;
   gap: 0.75rem;
-  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px) + var(--lp-cookie-h, 0px));
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px) + var(--lp-cookie-h, 0px) + var(--public-footer-h, 0px));
 }
 
 #contato .lp-close-inner {
@@ -3543,7 +3631,7 @@ td.actions-cell > * + * {
     max-height: 100svh;
     min-height: 0;
     overflow: hidden;
-    padding-bottom: calc(0.4rem + env(safe-area-inset-bottom, 0px) + var(--lp-cookie-h, 0px));
+    padding-bottom: calc(0.4rem + env(safe-area-inset-bottom, 0px) + var(--lp-cookie-h, 0px) + var(--public-footer-h, 0px));
     gap: 0.5rem;
   }
 
@@ -3800,7 +3888,7 @@ td.actions-cell > * + * {
     min-height: 0;
     overflow: hidden;
     gap: 0.75rem;
-    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px) + var(--lp-cookie-h, 0px));
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px) + var(--lp-cookie-h, 0px) + var(--public-footer-h, 0px));
   }
 
   #contato .lp-close-inner {
