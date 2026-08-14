@@ -185,3 +185,36 @@ As três linhas bloqueadas não representam reprovação funcional do Allugme: n
 - O Playwright foi executado contra `http://192.168.15.157/allugme/`.
 - Os testes automatizados de WhatsApp validam regras e parsing local, sem acionar a Evolution API real.
 - O GO final desta rodada depende de o novo commit da branch concluir novamente todos os checks da PR em verde.
+
+---
+
+## Homologação de upload e e-mail transacional — 2026-08-14
+
+### Upload real pelo proxy
+
+| Verificação | Resultado |
+|---|---|
+| Arquivo JPEG real | PASS — 2.411.059 bytes (2,30 MiB) |
+| Autenticação de corretor seed | PASS — HTTP 200 |
+| `POST /allugme/api/v1/brokers/me/avatar` | PASS — HTTP 200 |
+| Gravação e retorno da URL pública | PASS |
+| Leitura da URL `/allugme/media/{arquivo}` | PASS — HTTP 200, `Content-Length: 2411059` |
+
+O primeiro ensaio identificou que o upload era aceito e persistido, mas a URL pública retornava 404 porque `/allugme/media/` caía no frontend. A configuração do Nginx local e o template legado da OCI foram corrigidos para encaminhar `/media/` e `/allugme/media/` à API. A sintaxe do Nginx foi validada antes do reload.
+
+### E-mail transacional real
+
+| Verificação | Resultado |
+|---|---|
+| `https://api.allugme.online/health` | PASS — HTTP 200 |
+| Recuperação de senha para `admin@allugme.com.br` | PASS — API HTTP 200 |
+| Evento no Resend | PASS — `delivered`, assunto `Allugme — Redefinir senha` |
+
+O teste foi executado no ambiente OCI/produção porque o ambiente local não possui credenciais SMTP configuradas. O fluxo apenas gerou e enviou o link de recuperação; nenhuma senha foi alterada.
+
+### Escopo adiado sem bloqueio
+
+- Evolution API/WhatsApp real.
+- Câmera física e captura manual de selfie.
+
+Com os critérios acordados, upload de 1–5 MB e e-mail transacional deixam de ser pendências técnicas desta rodada.
