@@ -8,6 +8,7 @@ import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/LoginPage'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
+import { VerifyEmailPage } from './pages/VerifyEmailPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { AcceptInvitePage } from './pages/AcceptInvitePage'
 import { PrivacyPage } from './pages/PrivacyPage'
@@ -34,6 +35,7 @@ const routeTitles: Record<string, string> = {
   '/login': 'Allugme — Entrar',
   '/forgot-password': 'Allugme — Recuperar senha',
   '/reset-password': 'Allugme — Redefinir senha',
+  '/verify-email': 'Allugme — Confirmar e-mail',
   '/register': 'Allugme — Criar conta',
   '/privacy': 'Allugme — Privacidade',
   '/accept-invite': 'Allugme — Aceitar convite',
@@ -81,6 +83,7 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/accept-invite" element={<AcceptInvitePage />} />

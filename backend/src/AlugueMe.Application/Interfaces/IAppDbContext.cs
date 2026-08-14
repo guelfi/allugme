@@ -20,6 +20,8 @@ public interface IAppDbContext
     DbSet<AvailabilityRule> AvailabilityRules { get; }
     DbSet<ConsentRecord> ConsentRecords { get; }
     DbSet<FavoriteProperty> FavoriteProperties { get; }
+    DbSet<VisitFeedback> VisitFeedbacks { get; }
+    DbSet<EmailVerificationToken> EmailVerificationTokens { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

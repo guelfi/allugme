@@ -1,6 +1,6 @@
 # Estado atual — Allugme
 
-**Última atualização:** 2026-08-10
+**Última atualização:** 2026-08-14
 **Fase:** MVP funcional; Fase 5 (polish, automação e aceite formal) em andamento
 **Repo GitHub:** https://github.com/guelfi/allugme  
 **Progresso estimado MVP:** ~95% de implementação; entrega comercial condicionada ao aceite formal e à homologação da Evolution API real
@@ -46,7 +46,7 @@ Path OCI: `/var/www/allugme`.
 
 - Cadastro/login B2B, trial de sete dias, bloqueio por expiração e Pix estático.
 - Recuperação de senha por e-mail.
-- Convite de corretor por e-mail e alternativa de adição com senha.
+- Pré-cadastro de corretor afiliado e convite por e-mail; a senha é definida exclusivamente pelo convidado.
 - Perfis SaaS admin, agency admin, broker, independent broker e cliente.
 - CRUD/publicação de imóveis, mídia e avatar do corretor.
 - Busca pública, cinco vitrines temáticas e seleção de tema.
@@ -54,6 +54,8 @@ Path OCI: `/var/www/allugme`.
 - E-mails de visita com comportamento fail-soft.
 - Consentimentos LGPD versionados e página de privacidade.
 - Portal do cliente: cadastro/login, favoritos e minhas visitas.
+- Jornada do cliente: confirmação de e-mail, dashboard ampliado, cancelamento, agenda, lembretes e avaliação pós-visita.
+- Isolamento de CRM: visão global somente para SaaS admin; agência por relacionamento no tenant; corretor por próprias visitas.
 - Dashboard SaaS contabiliza e lista contas Cliente cadastradas, em modo somente leitura.
 - Grids administrativos compactos e paginados em blocos de até dez registros.
 - WhatsApp: fila Redis, worker, logs, webhook, autorização do remetente, idempotência e retorno ao visitante.

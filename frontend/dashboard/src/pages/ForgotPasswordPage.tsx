@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { forgotPassword } from '../api/auth'
+import { AuthCardHeader } from '../components/AuthCardHeader'
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -27,17 +28,7 @@ export function ForgotPasswordPage() {
   return (
     <div className="login-page" style={{ ['--login-bg-image' as string]: `url(${bgUrl})` }}>
       <form className="login-card card" onSubmit={(e) => void handleSubmit(e)}>
-        <div className="login-brand-block">
-          <Link to="/login" className="login-back-link">
-            ← Voltar ao login
-          </Link>
-          <span className="login-brand-sep" aria-hidden="true">
-            -
-          </span>
-          <Link to="/" className="login-brand-name">
-            Allugme
-          </Link>
-        </div>
+        <AuthCardHeader backTo="/login" backLabel="Voltar ao login" />
         <h1 className="register-title-line" style={{ fontSize: '1.25rem', margin: 0 }}>
           Esqueci a senha
         </h1>

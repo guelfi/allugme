@@ -186,6 +186,28 @@ Visitas + buffer + WhatsApp OK em **fake mode**. Débitos UI corrigidos; Evoluti
 
 ---
 
+## Fase 4c — Jornada segura do cliente e relacionamento
+
+**Objetivo:** fechar a jornada autenticada de clientes e o CRM leve sem vazamento entre tenants.
+
+### Entregáveis
+- Confirmação de e-mail antes da reivindicação de visitas anteriores.
+- Dashboard do cliente com resumo, próxima visita e avaliações pendentes.
+- Cancelamento pelo cliente, inclusão na agenda e avaliação pós-visita.
+- E-mails de recebimento, confirmação/recusa, lembretes e solicitação de feedback.
+- Visão global exclusiva do SaaS admin; agência limitada às interações do tenant; corretor limitado às próprias visitas.
+- Convite de corretor afiliado com senha escolhida exclusivamente pelo convidado, inativação sem exclusão e reenvio de convite.
+- Foto obrigatória do corretor com captura por câmera e alerta progressivo de login.
+
+### DoD
+- [x] Estrutura de dados, endpoints e telas principais implementados.
+- [x] Queries de clientes e feedback com escopo explícito de tenant/corretor.
+- [x] Build backend e frontend.
+- [ ] Testes de integração automatizados de isolamento e jornada completa.
+- [ ] Validação funcional local e aceite do usuário.
+
+---
+
 ## Fase 5 — Polish + Aceite
 
 **Objetivo:** GO no Plano de Aceite.

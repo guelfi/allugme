@@ -25,7 +25,9 @@ type ApiUser = {
   phone?: string | null
   isSaasAdmin?: boolean
   isClient?: boolean
+  isEmailVerified?: boolean
   avatarUrl?: string | null
+  missingAvatarLoginCount?: number
   memberships?: ApiMembership[]
 }
 
@@ -56,7 +58,9 @@ export function mapUser(dto: ApiUser): User {
     name: dto.name,
     role,
     isClient: Boolean(dto.isClient) || role === 'client',
+    isEmailVerified: dto.isEmailVerified ?? !dto.isClient,
     avatarUrl: dto.avatarUrl ?? undefined,
+    missingAvatarLoginCount: dto.missingAvatarLoginCount ?? 0,
     membershipRole,
     tenantId: membership?.tenantId,
     tenantName: membership?.tenantName,
@@ -89,6 +93,14 @@ export async function logout(): Promise<void> {
   } catch {
     /* best effort */
   }
+}
+
+export function verifyEmail(token: string): Promise<{ message: string; claimed: number }> {
+  return post('/auth/verify-email', { token }, { skipAuth: true })
+}
+
+export function resendEmailVerification(email: string): Promise<{ message: string }> {
+  return post('/auth/resend-email-verification', { email }, { skipAuth: true })
 }
 
 export async function fetchMe(): Promise<User> {

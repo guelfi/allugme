@@ -45,6 +45,7 @@ public class BrokersController(
         var previousPath = user.AvatarPath;
         await using var stream = file.OpenReadStream();
         user.AvatarPath = await storage.SaveAsync(stream, file.FileName, file.ContentType, ct);
+        user.MissingAvatarLoginCount = 0;
         await db.SaveChangesAsync(ct);
 
         if (!string.IsNullOrEmpty(previousPath))
@@ -78,57 +79,12 @@ public class BrokersController(
         var currentUserId = User.GetUserId();
         var seats = members.Select(m => ToSeat(m, currentUserId)).ToList();
 
-        var quota = BuildQuota(tenant, seats.Count, User);
+        var usedSeats = members.Count(m => m.Status != MembershipStatus.Inactive);
+        var quota = BuildQuota(tenant, usedSeats, User);
         if (User.IsSaasAdmin() && string.IsNullOrEmpty(User.GetRole()))
             quota = quota with { CanManageBrokers = false };
 
         return Ok(new TeamResponse(quota, seats));
-    }
-
-    [HttpPost]
-    public async Task<ActionResult<BrokerSeatDto>> Create([FromBody] CreateBrokerRequest request, CancellationToken ct)
-    {
-        var gate = await EnsureCanManageAsync(ct);
-        if (gate.Result is not null) return gate.Result;
-        var tenant = gate.Tenant!;
-
-        var used = await db.TenantMemberships.CountAsync(m => m.TenantId == tenant.Id, ct);
-        if (used >= tenant.MaxBrokerSlots)
-            return Conflict(new
-            {
-                message =
-                    $"Limite de {tenant.MaxBrokerSlots} assentos atingido. Contrate corretores extras com o administrador Allugme."
-            });
-
-        var email = request.Email.Trim().ToLowerInvariant();
-        if (await db.Users.AnyAsync(u => u.Email == email, ct))
-            return Conflict(new { message = "E-mail já cadastrado." });
-
-        if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 6)
-            return BadRequest(new { message = "Senha deve ter ao menos 6 caracteres." });
-
-        var user = new User
-        {
-            Id = Guid.NewGuid(),
-            Email = email,
-            Name = request.Name.Trim(),
-            Phone = request.Phone,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
-        };
-        db.Users.Add(user);
-
-        var membership = new TenantMembership
-        {
-            Id = Guid.NewGuid(),
-            UserId = user.Id,
-            TenantId = tenant.Id,
-            Role = MembershipRole.Broker,
-            Status = MembershipStatus.Active
-        };
-        db.TenantMemberships.Add(membership);
-        await db.SaveChangesAsync(ct);
-
-        return Created($"/api/v1/brokers/{user.Id}", ToSeat(membership, user, false));
     }
 
     [HttpPost("invite")]
@@ -138,7 +94,8 @@ public class BrokersController(
         if (gate.Result is not null) return gate.Result;
         var tenant = gate.Tenant!;
 
-        var used = await db.TenantMemberships.CountAsync(m => m.TenantId == tenant.Id, ct);
+        var used = await db.TenantMemberships.CountAsync(
+            m => m.TenantId == tenant.Id && m.Status != MembershipStatus.Inactive, ct);
         if (used >= tenant.MaxBrokerSlots)
             return Conflict(new
             {
@@ -199,8 +156,17 @@ public class BrokersController(
             .FirstOrDefaultAsync(m => m.TenantId == tenant.Id && m.UserId == userId, ct);
         if (membership is null)
             return NotFound();
-        if (membership.Status != MembershipStatus.Invited)
-            return BadRequest(new { message = "Este corretor já concluiu o cadastro." });
+        if (membership.Status == MembershipStatus.Inactive)
+        {
+            var used = await db.TenantMemberships.CountAsync(
+                m => m.TenantId == tenant.Id && m.Status != MembershipStatus.Inactive, ct);
+            if (used >= tenant.MaxBrokerSlots)
+                return Conflict(new
+                {
+                    message = $"Limite de {tenant.MaxBrokerSlots} assentos atingido. Libere um assento antes de enviar um novo convite."
+                });
+        }
+        membership.Status = MembershipStatus.Invited;
 
         var now = DateTime.UtcNow;
         var existing = await db.BrokerInviteTokens
@@ -224,8 +190,8 @@ public class BrokersController(
         return Ok(new { message = "Convite reenviado." });
     }
 
-    [HttpDelete("{userId:guid}")]
-    public async Task<IActionResult> Remove(Guid userId, CancellationToken ct)
+    [HttpPost("{userId:guid}/deactivate")]
+    public async Task<ActionResult<BrokerSeatDto>> Deactivate(Guid userId, CancellationToken ct)
     {
         var gate = await EnsureCanManageAsync(ct);
         if (gate.Result is not null) return gate.Result;
@@ -238,21 +204,21 @@ public class BrokersController(
             return NotFound();
 
         if (membership.Role == MembershipRole.AgencyAdmin)
-            return BadRequest(new { message = "Não é possível remover o administrador da imobiliária." });
+            return BadRequest(new { message = "Não é possível inativar o administrador da imobiliária." });
 
         if (membership.UserId == User.GetUserId())
-            return BadRequest(new { message = "Você não pode remover a si mesmo." });
+            return BadRequest(new { message = "Você não pode inativar a si mesmo." });
 
-        var invites = await db.BrokerInviteTokens.Where(t => t.UserId == userId).ToListAsync(ct);
-        db.BrokerInviteTokens.RemoveRange(invites);
-        db.TenantMemberships.Remove(membership);
-        // Usuário convidado sem outras memberships: remove a conta órfã
-        var other = await db.TenantMemberships.AnyAsync(m => m.UserId == userId && m.Id != membership.Id, ct);
-        if (!other && !membership.User.IsSaasAdmin && !membership.User.IsClient)
-            db.Users.Remove(membership.User);
+        membership.Status = MembershipStatus.Inactive;
+        var now = DateTime.UtcNow;
+        var pendingInvites = await db.BrokerInviteTokens
+            .Where(t => t.UserId == userId && t.TenantId == tenant.Id && t.UsedAt == null)
+            .ToListAsync(ct);
+        foreach (var invite in pendingInvites)
+            invite.UsedAt = now;
 
         await db.SaveChangesAsync(ct);
-        return NoContent();
+        return Ok(ToSeat(membership, membership.User, false));
     }
 
     private async Task<(ActionResult? Result, Tenant? Tenant)> EnsureCanManageAsync(CancellationToken ct)

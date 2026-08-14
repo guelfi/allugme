@@ -21,12 +21,6 @@ public record BrokerQuotaDto(
     int RemainingBrokerSlots,
     bool CanManageBrokers);
 
-public record CreateBrokerRequest(
-    string Name,
-    string Email,
-    string Password,
-    string? Phone);
-
 public record InviteBrokerRequest(
     string Name,
     string Email,

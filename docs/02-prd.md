@@ -147,6 +147,12 @@ Visitante aceita a política de privacidade e cria conta → entra no portal sep
 | REQ-PORTAL-01 | Cadastro/login de cliente em shell separado do painel B2B | P1 |
 | REQ-PORTAL-02 | Cliente autenticado favorita/desfavorita imóveis | P1 |
 | REQ-PORTAL-03 | Cliente acompanha e reivindica visitas pelo e-mail verificado no fluxo | P1 |
+| REQ-PORTAL-04 | Cadastro de cliente exige confirmação do e-mail antes de reivindicar visitas anteriores | P0 |
+| REQ-PORTAL-05 | Cliente cancela visita até o limite operacional, adiciona à agenda e avalia visita concluída | P1 |
+| REQ-PORTAL-06 | Dashboard do cliente resume favoritos, pendências, próxima visita e avaliações pendentes | P1 |
+| REQ-CRM-01 | SaaS admin vê todos os clientes; tenant vê somente clientes relacionados por visita/favorito no próprio tenant | P0 |
+| REQ-CRM-02 | Corretor afiliado vê somente clientes das próprias visitas; feedback respeita o mesmo escopo | P0 |
+| REQ-VIS-17 | Enviar recebimento, lembretes de 24h/2h e solicitação de avaliação por e-mail com comportamento fail-soft | P1 |
 
 ## 5. Regras de negócio — agenda
 

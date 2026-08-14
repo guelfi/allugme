@@ -71,7 +71,12 @@ public static class EnumMapper
 
     public static string? ToApi(ConfirmedVia? via) => via?.ToString().ToLowerInvariant();
 
-    public static string ToApi(MembershipStatus status) => status == MembershipStatus.Invited ? "invited" : "active";
+    public static string ToApi(MembershipStatus status) => status switch
+    {
+        MembershipStatus.Invited => "invited",
+        MembershipStatus.Inactive => "inactive",
+        _ => "active"
+    };
 }
 
 public static class ConfirmationCodeGenerator
@@ -135,5 +140,6 @@ public static class DtoMappers
         new(v.Id, v.PropertyId, v.Property.Title, v.TenantId, v.BrokerId, v.Broker.Name,
             v.VisitorName, v.VisitorPhone, v.VisitorEmail, v.StartAt, v.EndAt,
             v.BufferMinutesApplied, EnumMapper.ToApi(v.Status), v.ConfirmationCode,
-            v.NotifiedAt, EnumMapper.ToApi(v.ConfirmedVia), v.CreatedAt, v.ClientUserId);
+            v.NotifiedAt, EnumMapper.ToApi(v.ConfirmedVia), v.CreatedAt, v.ClientUserId,
+            v.CompletedAt, v.Feedback is not null);
 }

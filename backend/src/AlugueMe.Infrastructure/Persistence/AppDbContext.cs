@@ -21,6 +21,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<AvailabilityRule> AvailabilityRules => Set<AvailabilityRule>();
     public DbSet<ConsentRecord> ConsentRecords => Set<ConsentRecord>();
     public DbSet<FavoriteProperty> FavoriteProperties => Set<FavoriteProperty>();
+    public DbSet<VisitFeedback> VisitFeedbacks => Set<VisitFeedback>();
+    public DbSet<EmailVerificationToken> EmailVerificationTokens => Set<EmailVerificationToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,6 +33,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.Email).HasMaxLength(256);
             e.Property(x => x.Name).HasMaxLength(200);
             e.Property(x => x.AvatarPath).HasMaxLength(300);
+            e.Property(x => x.MissingAvatarLoginCount).HasDefaultValue(0);
         });
 
         modelBuilder.Entity<Tenant>(e =>
@@ -157,6 +160,26 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(x => new { x.UserId, x.PropertyId }).IsUnique();
             e.HasOne(x => x.User).WithMany(u => u.Favorites).HasForeignKey(x => x.UserId);
             e.HasOne(x => x.Property).WithMany().HasForeignKey(x => x.PropertyId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<EmailVerificationToken>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.TokenHash).IsUnique();
+            e.HasIndex(x => new { x.UserId, x.ExpiresAt });
+            e.Property(x => x.TokenHash).HasMaxLength(128);
+            e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
+        });
+
+        modelBuilder.Entity<VisitFeedback>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.VisitId).IsUnique();
+            e.HasIndex(x => new { x.ClientUserId, x.SubmittedAt });
+            e.Property(x => x.InterestLevel).HasMaxLength(32);
+            e.Property(x => x.Comment).HasMaxLength(2000);
+            e.HasOne(x => x.Visit).WithOne(v => v.Feedback).HasForeignKey<VisitFeedback>(x => x.VisitId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.ClientUser).WithMany().HasForeignKey(x => x.ClientUserId).OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
