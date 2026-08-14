@@ -1,4 +1,5 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { useEffect } from 'react'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { AppShell } from './components/layout/AppShell'
 import { ClientPortalRoute, ProtectedRoute, SaasAdminRoute } from './components/auth/ProtectedRoute'
@@ -27,10 +28,52 @@ import { ClientsPage } from './pages/ClientsPage'
 
 const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/'
 
+const routeTitles: Record<string, string> = {
+  '/': 'Allugme',
+  '/login': 'Allugme — Entrar',
+  '/forgot-password': 'Allugme — Recuperar senha',
+  '/reset-password': 'Allugme — Redefinir senha',
+  '/register': 'Allugme — Criar conta',
+  '/privacy': 'Allugme — Privacidade',
+  '/accept-invite': 'Allugme — Aceitar convite',
+  '/portal/register': 'Allugme — Cadastro de cliente',
+  '/portal': 'Allugme — Portal do cliente',
+  '/portal/favorites': 'Allugme — Favoritos',
+  '/portal/visits': 'Allugme — Minhas visitas',
+  '/painel': 'Allugme — Painel',
+  '/properties': 'Allugme — Imóveis',
+  '/properties/new': 'Allugme — Novo imóvel',
+  '/visits': 'Allugme — Visitas',
+  '/team': 'Allugme — Equipe',
+  '/clients': 'Allugme — Clientes',
+  '/settings': 'Allugme — Configurações',
+  '/theme': 'Allugme — Tema',
+  '/admin/tenants': 'Allugme — Tenants',
+}
+
+function DocumentTitle() {
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    const title =
+      routeTitles[pathname] ??
+      (pathname.startsWith('/properties/')
+        ? 'Allugme — Editar imóvel'
+        : pathname.startsWith('/admin/tenants/')
+          ? 'Allugme — Detalhes do tenant'
+          : 'Allugme')
+
+    document.title = title
+  }, [pathname])
+
+  return null
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter basename={basename}>
+        <DocumentTitle />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
