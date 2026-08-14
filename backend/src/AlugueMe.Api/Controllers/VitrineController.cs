@@ -1,4 +1,5 @@
 using AlugueMe.Application.Interfaces;
+using AlugueMe.Api.Pages;
 using AlugueMe.Infrastructure.Persistence;
 using AlugueMe.Infrastructure.Themes;
 using Microsoft.AspNetCore.Mvc;
@@ -29,7 +30,15 @@ public class VitrineController(AppDbContext db, IThemeRenderer themeRenderer, IC
                 (t.Status == Domain.Enums.TenantStatus.Active || t.Status == Domain.Enums.TenantStatus.Trial), ct);
 
         if (tenant is null)
-            return NotFound();
+        {
+            var marketingBaseUrl = configuration["App:MarketingBaseUrl"] ?? "https://allugme.online";
+            return new ContentResult
+            {
+                Content = VitrineNotFoundPage.Render(marketingBaseUrl),
+                ContentType = "text/html; charset=utf-8",
+                StatusCode = StatusCodes.Status404NotFound
+            };
+        }
 
         // API/painel ficam sob /allugme; assets da vitrine na raiz (/themes/...).
         var publicBase = configuration["PublicBasePath"]?.TrimEnd('/') ?? "";
