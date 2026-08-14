@@ -100,6 +100,12 @@ function thumbSrc(key: string) {
 }
 
 function demoUrl(slug: string) {
+  const hostname = window.location.hostname.toLowerCase()
+
+  if (hostname === 'allugme.online' || hostname === 'www.allugme.online') {
+    return `https://${slug}.allugme.online/`
+  }
+
   return `/${slug}/`
 }
 
