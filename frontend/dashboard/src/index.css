@@ -1345,28 +1345,33 @@ td.actions-cell > * + * {
 
 .public-footer-message {
   display: block;
-  overflow: hidden;
+  min-height: 1.25em;
 }
 
-.public-footer-message > span {
-  display: block;
-  animation: public-footer-message-in 0.55s ease both;
+.public-footer-message-text {
+  display: inline;
 }
 
-@keyframes public-footer-message-in {
-  from {
-    opacity: 0;
-    transform: translateY(0.35rem);
-  }
+.public-footer-type-cursor {
+  display: inline-block;
+  width: 0.68em;
+  height: 0.12em;
+  margin-left: 0.08em;
+  border-radius: 0.04em;
+  background: #f4efe6;
+  box-shadow: 0 0 0.45rem rgb(244 239 230 / 30%);
+  vertical-align: -0.08em;
+  animation: public-footer-cursor-blink 0.8s steps(1, end) infinite;
+}
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
+@keyframes public-footer-cursor-blink {
+  50% {
+    opacity: 0.35;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .public-footer-message > span {
+  .public-footer-type-cursor {
     animation: none;
   }
 }

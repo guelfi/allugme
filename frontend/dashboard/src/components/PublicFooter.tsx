@@ -35,17 +35,42 @@ export function WhatsAppIcon({ className }: { className?: string }) {
 export function PublicFooter() {
   const footerRef = useRef<HTMLElement | null>(null)
   const [messageIndex, setMessageIndex] = useState(0)
+  const [visibleCharacters, setVisibleCharacters] = useState(0)
+  const [reducedMotion, setReducedMotion] = useState(false)
 
   useEffect(() => {
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
-    if (reducedMotion.matches) return
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const syncPreference = () => setReducedMotion(mediaQuery.matches)
 
-    const timer = window.setInterval(() => {
-      setMessageIndex((current) => (current + 1) % productMessages.length)
-    }, 4500)
+    syncPreference()
+    mediaQuery.addEventListener('change', syncPreference)
 
-    return () => window.clearInterval(timer)
+    return () => mediaQuery.removeEventListener('change', syncPreference)
   }, [])
+
+  useEffect(() => {
+    if (reducedMotion) {
+      setVisibleCharacters(productMessages[messageIndex].length)
+      return
+    }
+
+    const message = productMessages[messageIndex]
+
+    if (visibleCharacters < message.length) {
+      const typingTimer = window.setTimeout(() => {
+        setVisibleCharacters((current) => current + 1)
+      }, 48)
+
+      return () => window.clearTimeout(typingTimer)
+    }
+
+    const pauseTimer = window.setTimeout(() => {
+      setMessageIndex((current) => (current + 1) % productMessages.length)
+      setVisibleCharacters(0)
+    }, 2400)
+
+    return () => window.clearTimeout(pauseTimer)
+  }, [messageIndex, reducedMotion, visibleCharacters])
 
   useEffect(() => {
     const footer = footerRef.current
@@ -72,8 +97,11 @@ export function PublicFooter() {
       <div className="public-footer-inner">
         <div className="public-footer-brand">
           <strong>Allugme</strong>
-          <span className="public-footer-message" aria-label="Destaques do produto">
-            <span key={messageIndex}>{productMessages[messageIndex]}</span>
+          <span className="public-footer-message" aria-label={productMessages[messageIndex]}>
+            <span className="public-footer-message-text" aria-hidden="true">
+              {productMessages[messageIndex].slice(0, visibleCharacters)}
+              {!reducedMotion && <span className="public-footer-type-cursor" />}
+            </span>
           </span>
         </div>
         <nav className="public-footer-links" aria-label="Links do rodapé">
