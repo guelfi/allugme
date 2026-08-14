@@ -1,6 +1,18 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { contactEmail, contactMailto, contactWhatsAppUrl } from '../contact'
+
+const productMessages = [
+  'Seus imóveis, clientes e visitas em um só lugar.',
+  'Transforme imóveis em oportunidades e visitas em negócios.',
+  'Sua imobiliária conectada do anúncio à visita.',
+  'Mais presença, mais visitas, mais negócios.',
+  'Sua vitrine imobiliária pronta para gerar oportunidades.',
+  'Divulgue imóveis, organize visitas e conquiste clientes.',
+  'Sua operação imobiliária simples, conectada e sob controle.',
+  'Imóveis, clientes e visitas em um só lugar.',
+  'Transforme imóveis em oportunidades e visitas em negócios.',
+] as const
 
 export function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -22,6 +34,18 @@ export function WhatsAppIcon({ className }: { className?: string }) {
 
 export function PublicFooter() {
   const footerRef = useRef<HTMLElement | null>(null)
+  const [messageIndex, setMessageIndex] = useState(0)
+
+  useEffect(() => {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+    if (reducedMotion.matches) return
+
+    const timer = window.setInterval(() => {
+      setMessageIndex((current) => (current + 1) % productMessages.length)
+    }, 4500)
+
+    return () => window.clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     const footer = footerRef.current
@@ -48,7 +72,9 @@ export function PublicFooter() {
       <div className="public-footer-inner">
         <div className="public-footer-brand">
           <strong>Allugme</strong>
-          <span>Vitrine · Agenda · WhatsApp</span>
+          <span className="public-footer-message" aria-label="Destaques do produto">
+            <span key={messageIndex}>{productMessages[messageIndex]}</span>
+          </span>
         </div>
         <nav className="public-footer-links" aria-label="Links do rodapé">
           <Link to="/login">Entrar no painel</Link>
