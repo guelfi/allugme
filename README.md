@@ -8,7 +8,11 @@ SaaS multi-tenant de vitrine imobiliária + agenda de visitas + WhatsApp (Evolut
 |----------|--------|-----|---------|---------|
 | **Local** (nginx-local) | http://192.168.15.119/allugme | http://192.168.15.119/allugme/api/v1 | http://192.168.15.119/allugme/swagger/index.html | http://192.168.15.119/{slug} |
 | **OCI** | http://129.153.86.168/allugme | http://129.153.86.168/allugme/api/v1 | http://129.153.86.168/allugme/swagger/index.html | http://129.153.86.168/{slug} |
-| **Produção** | https://www.allugme.com.br/allugme | https://www.allugme.com.br/allugme/api/v1 | https://www.allugme.com.br/allugme/swagger/index.html | https://www.allugme.com.br/{slug} |
+| **Produção** | https://app.allugme.online | https://api.allugme.online/api/v1 | https://api.allugme.online/swagger/index.html | https://{slug}.allugme.online |
+
+Site comercial: `https://allugme.online`. O host `www` e o domínio web legado
+`allugme.com.br` redirecionam permanentemente para esse endereço. O e-mail
+`@allugme.com.br` permanece na Umbler e não é afetado pelos redirecionamentos HTTP.
 
 ## Estrutura
 
@@ -41,7 +45,7 @@ Build de produção:
 
 ```bash
 cd frontend/dashboard
-VITE_BASE_PATH=/allugme/ npm run build
+VITE_BASE_PATH=/ VITE_API_BASE_URL=https://api.allugme.online/api/v1 npm run build
 ```
 
 ## Stack Docker local (paridade OCI)

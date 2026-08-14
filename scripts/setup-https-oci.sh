@@ -37,7 +37,10 @@ sudo docker exec nginx-proxy nginx -t
 sudo docker exec nginx-proxy nginx -s reload
 
 if grep -q '^VITE_API_URL=' .env 2>/dev/null; then
-  sed -i 's|^VITE_API_URL=.*|VITE_API_URL=https://www.allugme.com.br/allugme/api/v1|' .env
+  sed -i 's|^VITE_API_URL=.*|VITE_API_URL=https://api.allugme.online/api/v1|' .env
+fi
+if grep -q '^VITE_BASE_PATH=' .env 2>/dev/null; then
+  sed -i 's|^VITE_BASE_PATH=.*|VITE_BASE_PATH=/|' .env
 fi
 
 sudo tee /usr/local/bin/renew-allugme-cert.sh >/dev/null << 'RENEW'
@@ -54,7 +57,9 @@ RENEW
 sudo chmod +x /usr/local/bin/renew-allugme-cert.sh
 echo '0 4 1 * * root /usr/local/bin/renew-allugme-cert.sh >> /var/log/allugme-cert-renew.log 2>&1' | sudo tee /etc/cron.d/allugme-cert-renew >/dev/null
 
-curl -fsS -o /dev/null -w 'https front %{http_code}\n' https://allugme.com.br/allugme/
+curl -fsSL -o /dev/null -w 'https site canônico %{http_code}\n' https://allugme.online/
+curl -fsSL -o /dev/null -w 'https painel %{http_code}\n' https://app.allugme.online/
+curl -fsSL -o /dev/null -w 'https api %{http_code}\n' https://api.allugme.online/health
 EOF
 
-echo "Pronto: https://allugme.com.br/allugme/"
+echo "Pronto: https://allugme.online/"

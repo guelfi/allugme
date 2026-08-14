@@ -3,7 +3,7 @@
 **Status geral:** implementação **completa** — local + cloud (OCI)  
 **Última atualização:** 2026-08-04 (commit `132d730`; CI/CD verdes)  
 **Arquivos alvo (prováveis):** [`frontend/dashboard/src/pages/LandingPage.tsx`](../../frontend/dashboard/src/pages/LandingPage.tsx), [`frontend/dashboard/src/pages/LoginPage.tsx`](../../frontend/dashboard/src/pages/LoginPage.tsx), [`frontend/dashboard/src/pages/RegisterPage.tsx`](../../frontend/dashboard/src/pages/RegisterPage.tsx), [`frontend/dashboard/src/index.css`](../../frontend/dashboard/src/index.css)  
-**URLs de validação:** local `http://192.168.15.119/allugme/`, prod `https://www.allugme.com.br/allugme/`
+**URLs de validação:** local `http://192.168.15.157/allugme/`, produção `https://allugme.online/`
 
 ## Como usar
 

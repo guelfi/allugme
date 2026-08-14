@@ -16,7 +16,7 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_URL: ${VITE_API_URL:-https://api.allugme.online/api/v1}
-        VITE_BASE_PATH: ${VITE_BASE_PATH:-/allugme/}
+        VITE_BASE_PATH: ${VITE_BASE_PATH:-/}
     container_name: allugme-frontend
     depends_on:
       allugme-api:
@@ -84,7 +84,7 @@ services:
       Swagger__Enabled: ${Swagger__Enabled:-true}
       Evolution__Enabled: ${Evolution__Enabled:-false}
       Themes__RootPath: /app/themes/official
-      PublicBasePath: /allugme
+      PublicBasePath: ""
       Cors__Origins__0: https://allugme.com.br
       Cors__Origins__1: https://www.allugme.com.br
       Cors__Origins__2: http://129.153.86.168
@@ -102,7 +102,7 @@ services:
       Smtp__UseSsl: ${Smtp__UseSsl:-true}
       Smtp__FromAddress: ${Smtp__FromAddress:-contato@allugme.com.br}
       Smtp__FromName: ${Smtp__FromName:-Allugme}
-      App__DashboardBaseUrl: ${App__DashboardBaseUrl:-https://app.allugme.online/allugme}
+      App__DashboardBaseUrl: ${App__DashboardBaseUrl:-https://app.allugme.online}
       Storage__EmailTemplatesPath: /app/storage/email-templates
 
     volumes:

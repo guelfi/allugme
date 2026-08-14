@@ -27,8 +27,8 @@ git reset --hard origin/main
 
 if [ ! -f .env ]; then
   printf '%s\n' \\
-    'VITE_API_URL=https://www.allugme.com.br/allugme/api/v1' \\
-    'VITE_BASE_PATH=/allugme/' \\
+    'VITE_API_URL=https://api.allugme.online/api/v1' \\
+    'VITE_BASE_PATH=/' \\
     'POSTGRES_DB=allugme' \\
     'POSTGRES_USER=allugme' \\
     'POSTGRES_PASSWORD=allugme_oci_change_me' \\
@@ -60,10 +60,12 @@ fi
 
 sleep 20
 sudo docker ps --filter name=allugme --format 'table {{.Names}}\t{{.Status}}'
-curl -fsS -o /dev/null -w "front HTTP %{http_code}\n" http://127.0.0.1/allugme/ || true
-curl -fsS -o /dev/null -w "swagger HTTP %{http_code}\n" http://127.0.0.1/allugme/swagger/index.html || true
-curl -fsS -o /dev/null -w "https front %{http_code}\n" https://allugme.com.br/allugme/ || true
+curl -fsS -o /dev/null -w "front container HTTP %{http_code}\n" http://allugme-frontend/ || true
+curl -fsS -o /dev/null -w "api container HTTP %{http_code}\n" http://allugme-api:8080/health || true
+curl -fsSL -o /dev/null -w "site canônico HTTPS %{http_code}\n" https://allugme.online/
+curl -fsSL -o /dev/null -w "painel HTTPS %{http_code}\n" https://app.allugme.online/
+curl -fsSL -o /dev/null -w "api HTTPS %{http_code}\n" https://api.allugme.online/health
 cd \$APP_DIR && git log -1 --oneline
 EOF
 
-echo "OCI: https://allugme.com.br/allugme/"
+echo "OCI: https://allugme.online/ | https://app.allugme.online/"

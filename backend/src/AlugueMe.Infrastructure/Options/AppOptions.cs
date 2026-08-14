@@ -46,8 +46,8 @@ public class StorageOptions
 public class AppPublicOptions
 {
     public const string SectionName = "App";
-    /// <summary>Base do painel, sem barra final — ex.: https://www.allugme.com.br/allugme</summary>
-    public string DashboardBaseUrl { get; set; } = "https://app.allugme.online/allugme";
+    /// <summary>Base canônica do painel, sem barra final — ex.: https://app.allugme.online</summary>
+    public string DashboardBaseUrl { get; set; } = "https://app.allugme.online";
 }
 
 public class RedisOptions

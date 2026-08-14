@@ -31,7 +31,7 @@ import { agencyPricing, independentPricing, yearlySavingsLabel } from '../pricin
 type CarouselDirection = 'forward' | 'reverse'
 type PlanAudience = 'agency' | 'independent'
 
-const assetBase = (import.meta.env.BASE_URL || '/allugme/').replace(/\/?$/, '/')
+const assetBase = (import.meta.env.BASE_URL || '/').replace(/\/?$/, '/')
 
 const themes = [
   {

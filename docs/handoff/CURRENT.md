@@ -20,11 +20,12 @@ O critério de conclusão do MVP não é mais quantidade de features. É obter `
 | Local Windows (validação) | http://192.168.15.157/allugme/ |
 | Local Windows Swagger | http://192.168.15.157/allugme/swagger/index.html |
 | OCI (IP) | http://129.153.86.168/allugme |
-| Produção | https://www.allugme.com.br/allugme |
-| Produção Swagger | https://www.allugme.com.br/allugme/swagger/index.html |
-| Vitrine tenant | https://www.allugme.com.br/{slug}/ |
-| Portal cliente | https://www.allugme.com.br/allugme/portal |
-| Cadastro visitante | https://www.allugme.com.br/allugme/portal/register |
+| Site comercial | https://allugme.online/ |
+| Painel produção | https://app.allugme.online/ |
+| Produção Swagger | https://api.allugme.online/swagger/index.html |
+| Vitrine tenant | https://{slug}.allugme.online/ |
+| Portal cliente | https://app.allugme.online/portal |
+| Cadastro visitante | https://app.allugme.online/portal/register |
 
 Path OCI: `/var/www/allugme`.
 

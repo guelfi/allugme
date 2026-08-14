@@ -46,8 +46,8 @@ jobs:
 
       - name: Build
         env:
-          VITE_BASE_PATH: /allugme/
-          VITE_API_BASE_URL: /allugme/api/v1
+          VITE_BASE_PATH: /
+          VITE_API_BASE_URL: https://api.allugme.online/api/v1
         run: npm run build
 
   backend:
@@ -121,8 +121,8 @@ jobs:
       - name: Build frontend Docker image
         run: |
           docker build -t allugme-frontend:test \
-            --build-arg VITE_API_URL=http://129.153.86.168/allugme/api/v1 \
-            --build-arg VITE_BASE_PATH=/allugme/ \
+            --build-arg VITE_API_URL=https://api.allugme.online/api/v1 \
+            --build-arg VITE_BASE_PATH=/ \
             .
 
       - name: Build API Docker image

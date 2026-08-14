@@ -97,7 +97,7 @@ Sugestão de títulos alinhados ao tema (copy só para demo):
 
 ## 7. URLs de vitrine
 
-Vitrine na **raiz do host** (`/{slug}/`). Painel/API permanecem em `/allugme/`.
+Vitrine em **subdomínio próprio** (`https://{slug}.allugme.online/`). Painel e API usam hosts dedicados.
 
 ```
 /horizon/          → tema moderno
@@ -107,7 +107,7 @@ Vitrine na **raiz do host** (`/{slug}/`). Painel/API permanecem em `/allugme/`.
 /porto-lar/        → tema porto
 ```
 
-Produção: `https://www.allugme.com.br/{slug}/`  
+Produção: `https://{slug}.allugme.online/`
 Local: `http://192.168.15.119/{slug}/`  
 Legado `/allugme/t/{slug}/` redireciona para `/{slug}/`.
 

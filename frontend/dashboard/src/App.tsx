@@ -25,7 +25,7 @@ import { ThemePage } from './pages/ThemePage'
 import { TeamPage } from './pages/TeamPage'
 import { ClientsPage } from './pages/ClientsPage'
 
-const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/allugme'
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/'
 
 export default function App() {
   return (

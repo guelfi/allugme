@@ -96,7 +96,7 @@ jobs:
           OCI_HOST: ${{ secrets.OCI_HOST }}
           OCI_USER: ${{ secrets.OCI_USERNAME }}
         run: |
-          ssh -o StrictHostKeyChecking=no ${OCI_USER}@${OCI_HOST} 'bash -s' << 'EOF'
+          ssh -o StrictHostKeyChecking=no "${OCI_USER}@${OCI_HOST}" 'bash -s' << 'EOF'
             set -euo pipefail
             APP_DIR=/var/www/allugme
             REPO_URL=https://github.com/guelfi/allugme.git
@@ -115,7 +115,7 @@ jobs:
             if [ ! -f .env ]; then
               printf '%s\n' \
                 'VITE_API_URL=https://api.allugme.online/api/v1' \
-                'VITE_BASE_PATH=/allugme/' \
+                'VITE_BASE_PATH=/' \
                 'POSTGRES_DB=allugme' \
                 'POSTGRES_USER=allugme' \
                 'POSTGRES_PASSWORD=allugme_oci_change_me' \
@@ -136,10 +136,15 @@ jobs:
             else
               printf '%s\n' 'VITE_API_URL=https://api.allugme.online/api/v1' >> .env
             fi
-            if grep -q '^App__DashboardBaseUrl=' .env; then
-              sed -i 's|^App__DashboardBaseUrl=.*|App__DashboardBaseUrl=https://app.allugme.online/allugme|' .env
+            if grep -q '^VITE_BASE_PATH=' .env; then
+              sed -i 's|^VITE_BASE_PATH=.*|VITE_BASE_PATH=/|' .env
             else
-              printf '%s\n' 'App__DashboardBaseUrl=https://app.allugme.online/allugme' >> .env
+              printf '%s\n' 'VITE_BASE_PATH=/' >> .env
+            fi
+            if grep -q '^App__DashboardBaseUrl=' .env; then
+              sed -i 's|^App__DashboardBaseUrl=.*|App__DashboardBaseUrl=https://app.allugme.online|' .env
+            else
+              printf '%s\n' 'App__DashboardBaseUrl=https://app.allugme.online' >> .env
             fi
 
             # Mantém a identidade administrativa canônica também em instalações existentes.
@@ -179,11 +184,44 @@ jobs:
         run: |
           echo "Waiting for stack to stabilize..."
           sleep 35
-          ssh -o StrictHostKeyChecking=no ${OCI_USER}@${OCI_HOST} "sudo docker ps --filter name=allugme --format 'table {{.Names}}\t{{.Status}}'"
-          ssh -o StrictHostKeyChecking=no ${OCI_USER}@${OCI_HOST} "sudo docker exec allugme-frontend wget -q -O /dev/null http://127.0.0.1/health && echo 'frontend health OK' || echo 'frontend health FAILED'"
-          ssh -o StrictHostKeyChecking=no ${OCI_USER}@${OCI_HOST} "sudo docker exec allugme-api curl -fsS http://127.0.0.1:8080/health && echo && echo 'api health OK' || echo 'api health FAILED'"
-          ssh -o StrictHostKeyChecking=no ${OCI_USER}@${OCI_HOST} "curl -fsS -o /dev/null -w 'public front HTTP %{http_code}\n' http://127.0.0.1/allugme/ || true"
-          ssh -o StrictHostKeyChecking=no ${OCI_USER}@${OCI_HOST} "curl -fsS -o /dev/null -w 'public swagger HTTP %{http_code}\n' http://127.0.0.1/allugme/swagger/index.html || true"
-          ssh -o StrictHostKeyChecking=no ${OCI_USER}@${OCI_HOST} "curl -fsS -o /dev/null -w 'public health API via path HTTP %{http_code}\n' http://127.0.0.1/allugme/api/v1/../health 2>/dev/null || curl -fsS -o /dev/null -w 'api rewrite probe %{http_code}\n' http://127.0.0.1/allugme/swagger/index.html || true"
+          ssh -o StrictHostKeyChecking=no "${OCI_USER}@${OCI_HOST}" "sudo docker ps --filter name=allugme --format 'table {{.Names}}\t{{.Status}}'"
+          ssh -o StrictHostKeyChecking=no "${OCI_USER}@${OCI_HOST}" "sudo docker exec allugme-frontend wget -q -O /dev/null http://127.0.0.1/health && echo 'frontend health OK' || echo 'frontend health FAILED'"
+          ssh -o StrictHostKeyChecking=no "${OCI_USER}@${OCI_HOST}" "sudo docker exec allugme-api curl -fsS http://127.0.0.1:8080/health && echo && echo 'api health OK' || echo 'api health FAILED'"
+          ssh -o StrictHostKeyChecking=no "${OCI_USER}@${OCI_HOST}" "curl -fsS -o /dev/null -w 'public front HTTP %{http_code}\n' http://127.0.0.1/allugme/ || true"
+          ssh -o StrictHostKeyChecking=no "${OCI_USER}@${OCI_HOST}" "curl -fsS -o /dev/null -w 'public swagger HTTP %{http_code}\n' http://127.0.0.1/allugme/swagger/index.html || true"
+          ssh -o StrictHostKeyChecking=no "${OCI_USER}@${OCI_HOST}" "curl -fsS -o /dev/null -w 'public health API via path HTTP %{http_code}\n' http://127.0.0.1/allugme/api/v1/../health 2>/dev/null || curl -fsS -o /dev/null -w 'api rewrite probe %{http_code}\n' http://127.0.0.1/allugme/swagger/index.html || true"
           echo "=== Deployed commit (server) ==="
-          ssh -o StrictHostKeyChecking=no ${OCI_USER}@${OCI_HOST} "cd /var/www/allugme && git log -1 --oneline"
+          ssh -o StrictHostKeyChecking=no "${OCI_USER}@${OCI_HOST}" "cd /var/www/allugme && git log -1 --oneline"
+
+      - name: Verify canonical public domains
+        run: |
+          set -euo pipefail
+
+          probe() {
+            local name="$1"
+            local url="$2"
+            local expected="$3"
+            local code
+            code="$(curl -fsSL --retry 4 --retry-delay 3 --connect-timeout 15 --max-time 45 \
+              -A 'Allugme-CD-Health/1.0' -o /dev/null -w '%{http_code}' "$url")"
+            test "$code" = "$expected" || {
+              echo "::error::$name retornou HTTP $code; esperado $expected ($url)"
+              exit 1
+            }
+            echo "$name OK — HTTP $code"
+          }
+
+          probe "site canônico" "https://allugme.online/" "200"
+          probe "www canônico" "https://www.allugme.online/" "200"
+          probe "painel" "https://app.allugme.online/" "200"
+          probe "API" "https://api.allugme.online/health" "200"
+          probe "vitrine Horizon" "https://horizon.allugme.online/" "200"
+
+          legacy_location="$(curl -fsSI --connect-timeout 15 --max-time 30 \
+            -A 'Allugme-CD-Health/1.0' https://www.allugme.com.br/allugme/ \
+            | tr -d '\r' | awk 'tolower($1) == "location:" {print $2; exit}')"
+          test "$legacy_location" = "https://app.allugme.online/" || {
+            echo "::error::Domínio legado redirecionou para '$legacy_location'"
+            exit 1
+          }
+          echo "redirecionamento legado OK — $legacy_location"
