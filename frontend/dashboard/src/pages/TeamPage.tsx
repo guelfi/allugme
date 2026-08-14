@@ -13,6 +13,7 @@ import { Modal } from '../components/Modal'
 import { TablePagination } from '../components/TablePagination'
 import { useAuth } from '../contexts/AuthContext'
 import { usePagination } from '../hooks/usePagination'
+import { countActiveBrokersMissingAvatar } from '../utils/team'
 
 const roleLabel: Record<string, string> = {
   agency_admin: 'Administrador',
@@ -150,9 +151,7 @@ export function TeamPage() {
   }
 
   const atLimit = (quota?.remainingBrokerSlots ?? 0) <= 0
-  const missingAvatarCount = members.filter(
-    (m) => !m.avatarUrl && m.status === 'active',
-  ).length
+  const missingAvatarCount = countActiveBrokersMissingAvatar(members)
 
   return (
     <div>

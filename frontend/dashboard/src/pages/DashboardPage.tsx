@@ -9,6 +9,7 @@ import { getMyPix } from '../api/tenants'
 import { listVisits } from '../api/visits'
 import { Modal } from '../components/Modal'
 import { useAuth } from '../contexts/AuthContext'
+import { countActiveBrokersMissingAvatar } from '../utils/team'
 import {
   canEditTheme,
   canEditTenantSettings,
@@ -75,7 +76,7 @@ export function DashboardPage() {
         clients: clients.length,
         teamUsed: team?.quota.usedBrokerSlots,
         teamMax: team?.quota.maxBrokerSlots,
-        brokersMissingAvatar: team ? team.members.filter((m) => !m.avatarUrl).length : 0,
+        brokersMissingAvatar: team ? countActiveBrokersMissingAvatar(team.members) : 0,
       })
     })
     return () => {
