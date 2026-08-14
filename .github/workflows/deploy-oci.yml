@@ -65,6 +65,32 @@ jobs:
       - name: Add OCI host to known_hosts
         run: ssh-keyscan -H ${{ secrets.OCI_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
+      - name: Install Cloudflare origin certificate
+        env:
+          OCI_HOST: ${{ secrets.OCI_HOST }}
+          OCI_USER: ${{ secrets.OCI_USERNAME }}
+          ORIGIN_CERT: ${{ secrets.CLOUDFLARE_ORIGIN_CERT }}
+          ORIGIN_KEY: ${{ secrets.CLOUDFLARE_ORIGIN_KEY }}
+        run: |
+          set -euo pipefail
+          CERT_FILE="${RUNNER_TEMP}/allugme-online-origin.pem"
+          KEY_FILE="${RUNNER_TEMP}/allugme-online-origin.key"
+          printf '%s\n' "$ORIGIN_CERT" > "$CERT_FILE"
+          printf '%s\n' "$ORIGIN_KEY" > "$KEY_FILE"
+          chmod 600 "$CERT_FILE" "$KEY_FILE"
+
+          scp -o StrictHostKeyChecking=no "$CERT_FILE" "${OCI_USER}@${OCI_HOST}:/tmp/allugme-online-origin.pem"
+          scp -o StrictHostKeyChecking=no "$KEY_FILE" "${OCI_USER}@${OCI_HOST}:/tmp/allugme-online-origin.key"
+          ssh -o StrictHostKeyChecking=no "${OCI_USER}@${OCI_HOST}" 'bash -s' << 'EOF'
+            set -euo pipefail
+            sudo install -d -m 700 /etc/letsencrypt/live/allugme.online
+            sudo install -m 644 /tmp/allugme-online-origin.pem /etc/letsencrypt/live/allugme.online/origin.pem
+            sudo install -m 600 /tmp/allugme-online-origin.key /etc/letsencrypt/live/allugme.online/origin.key
+            rm -f /tmp/allugme-online-origin.pem /tmp/allugme-online-origin.key
+          EOF
+
+          rm -f "$CERT_FILE" "$KEY_FILE"
+
       - name: Deploy to OCI server
         env:
           OCI_HOST: ${{ secrets.OCI_HOST }}
