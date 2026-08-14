@@ -206,7 +206,9 @@ export function ClientRegisterPage() {
 
             <p className="client-reg-pro-line muted">
               É imobiliária ou corretor?{' '}
-              <Link to="/register">Cadastre sua conta profissional</Link>
+              <Link className="client-reg-pro-link" to="/register">
+                Cadastre sua conta profissional
+              </Link>
             </p>
           </div>
         )}

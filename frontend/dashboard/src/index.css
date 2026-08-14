@@ -2860,6 +2860,15 @@ td.actions-cell > * + * {
   line-height: 1.4;
 }
 
+.client-reg-pro-link {
+  color: var(--primary, #0f766e);
+  font-weight: 700;
+}
+
+.client-reg-pro-link:hover {
+  color: var(--primary-hover, #0d655e);
+}
+
 .client-register-privacy {
   display: flex !important;
   flex-direction: row !important;
