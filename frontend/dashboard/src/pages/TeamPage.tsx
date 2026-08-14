@@ -1,20 +1,19 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import {
-  createBroker,
+  deactivateBroker,
   fetchTeam,
   inviteBroker,
-  removeBroker,
   resendInvite,
   type BrokerQuota,
   type BrokerSeat,
 } from '../api/brokers'
 import { BrokerDetail } from '../components/BrokerDetail'
 import { Modal } from '../components/Modal'
-import { PasswordInput } from '../components/PasswordInput'
 import { TablePagination } from '../components/TablePagination'
 import { useAuth } from '../contexts/AuthContext'
 import { usePagination } from '../hooks/usePagination'
+import { countActiveBrokersMissingAvatar } from '../utils/team'
 
 const roleLabel: Record<string, string> = {
   agency_admin: 'Administrador',
@@ -22,7 +21,7 @@ const roleLabel: Record<string, string> = {
   independent_broker: 'Corretor independente',
 }
 
-type ModalMode = 'invite' | 'password' | null
+type ModalMode = 'invite' | null
 
 export function TeamPage() {
   const { canManageBrokers, isIndependent } = useAuth()
@@ -33,7 +32,6 @@ export function TeamPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
-  const [password, setPassword] = useState('')
   const [saving, setSaving] = useState(false)
   const [modalMode, setModalMode] = useState<ModalMode>(null)
   const [selectedMember, setSelectedMember] = useState<BrokerSeat | null>(null)
@@ -59,7 +57,6 @@ export function TeamPage() {
     setName('')
     setEmail('')
     setPhone('')
-    setPassword('')
   }
 
   function closeModal() {
@@ -99,30 +96,31 @@ export function TeamPage() {
     }
   }
 
-  async function handleCreate(event: FormEvent) {
-    event.preventDefault()
-    setError(null)
-    setSaving(true)
-    try {
-      const created = await createBroker({
-        name,
-        email,
-        password,
-        phone: phone || undefined,
-      })
-      onCreated(created)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Falha ao cadastrar corretor')
-    } finally {
-      setSaving(false)
-    }
-  }
-
   async function handleResend(member: BrokerSeat) {
+    if (
+      member.status === 'active' &&
+      !confirm(`Enviar um novo convite para ${member.name}? O acesso atual ficará bloqueado até a conclusão do convite.`)
+    ) return
     setError(null)
     setResendingId(member.userId)
     try {
       await resendInvite(member.userId)
+      setMembers((prev) =>
+        prev.map((item) =>
+          item.userId === member.userId ? { ...item, status: 'invited' } : item,
+        ),
+      )
+      if (member.status === 'inactive') {
+        setQuota((prev) =>
+          prev
+            ? {
+                ...prev,
+                usedBrokerSlots: prev.usedBrokerSlots + 1,
+                remainingBrokerSlots: Math.max(0, prev.remainingBrokerSlots - 1),
+              }
+            : prev,
+        )
+      }
       setError(null)
       alert(`Convite reenviado para ${member.email}`)
     } catch (err) {
@@ -132,30 +130,28 @@ export function TeamPage() {
     }
   }
 
-  async function handleRemove(member: BrokerSeat) {
-    if (!confirm(`Remover ${member.name} da equipe?`)) return
+  async function handleDeactivate(member: BrokerSeat) {
+    if (!confirm(`Inativar o acesso de ${member.name}? O histórico será preservado.`)) return
     setError(null)
     try {
-      await removeBroker(member.userId)
-      setMembers((prev) => prev.filter((m) => m.userId !== member.userId))
+      const updated = await deactivateBroker(member.userId)
+      setMembers((prev) => prev.map((item) => (item.userId === member.userId ? updated : item)))
       setQuota((prev) =>
         prev
           ? {
-              ...prev,
-              usedBrokerSlots: Math.max(0, prev.usedBrokerSlots - 1),
-              remainingBrokerSlots: prev.remainingBrokerSlots + 1,
-            }
+            ...prev,
+            usedBrokerSlots: Math.max(0, prev.usedBrokerSlots - 1),
+            remainingBrokerSlots: prev.remainingBrokerSlots + 1,
+          }
           : prev,
       )
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Falha ao remover corretor')
+      setError(err instanceof Error ? err.message : 'Falha ao inativar corretor')
     }
   }
 
   const atLimit = (quota?.remainingBrokerSlots ?? 0) <= 0
-  const missingAvatarCount = members.filter(
-    (m) => !m.avatarUrl && m.status !== 'invited',
-  ).length
+  const missingAvatarCount = countActiveBrokersMissingAvatar(members)
 
   return (
     <div>
@@ -183,18 +179,6 @@ export function TeamPage() {
             title={atLimit ? 'Limite de assentos atingido' : undefined}
           >
             Convidar por e-mail
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => {
-              resetForm()
-              setModalMode('password')
-            }}
-            disabled={loading || atLimit}
-            title={atLimit ? 'Limite de assentos atingido' : undefined}
-          >
-            Adicionar com senha
           </button>
         </div>
       </header>
@@ -275,6 +259,11 @@ export function TeamPage() {
                           Convidado
                         </span>
                       )}
+                      {member.status === 'inactive' && (
+                        <span className="badge badge-suspended" style={{ marginLeft: '0.5rem' }}>
+                          Inativo
+                        </span>
+                      )}
                       {!member.avatarUrl && member.status !== 'invited' && (
                         <span className="badge badge-pending" style={{ marginLeft: '0.5rem' }}>
                           Sem foto
@@ -284,29 +273,33 @@ export function TeamPage() {
                     <td data-label="E-mail">{member.email}</td>
                     <td data-label="Papel">{roleLabel[member.role] ?? member.role}</td>
                     <td className="actions-cell">
-                      {member.status === 'invited' && (
+                      {member.role === 'broker' && (
                         <button
                           type="button"
                           className="btn btn-sm btn-secondary"
-                          disabled={resendingId === member.userId}
+                          disabled={resendingId === member.userId || (member.status === 'inactive' && atLimit)}
                           onClick={(e) => {
                             e.stopPropagation()
                             void handleResend(member)
                           }}
                         >
-                          {resendingId === member.userId ? 'Enviando…' : 'Reenviar convite'}
+                          {resendingId === member.userId
+                            ? 'Enviando…'
+                            : member.status === 'invited'
+                              ? 'Reenviar convite'
+                              : 'Novo convite de acesso'}
                         </button>
                       )}
-                      {member.role === 'broker' && !member.isCurrentUser && (
+                      {member.role === 'broker' && !member.isCurrentUser && member.status !== 'inactive' && (
                         <button
                           type="button"
                           className="btn btn-sm btn-danger"
                           onClick={(e) => {
                             e.stopPropagation()
-                            void handleRemove(member)
+                            void handleDeactivate(member)
                           }}
                         >
-                          Remover
+                          Inativar
                         </button>
                       )}
                     </td>
@@ -345,45 +338,6 @@ export function TeamPage() {
             </label>
             <button type="submit" className="btn btn-primary" disabled={saving || atLimit}>
               {saving ? 'Enviando…' : 'Enviar convite'}
-            </button>
-          </form>
-        </Modal>
-      )}
-
-      {modalMode === 'password' && (
-        <Modal title="Adicionar com senha" onClose={closeModal}>
-          <form className="form-grid" onSubmit={(e) => void handleCreate(e)}>
-            <label>
-              Nome
-              <input value={name} onChange={(e) => setName(e.target.value)} required disabled={atLimit} />
-            </label>
-            <label>
-              E-mail
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={atLimit}
-              />
-            </label>
-            <label>
-              WhatsApp (opcional)
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} disabled={atLimit} />
-            </label>
-            <label>
-              Senha inicial
-              <PasswordInput
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                disabled={atLimit}
-                autoComplete="new-password"
-              />
-            </label>
-            <button type="submit" className="btn btn-primary" disabled={saving || atLimit}>
-              {saving ? 'Salvando…' : 'Cadastrar corretor'}
             </button>
           </form>
         </Modal>

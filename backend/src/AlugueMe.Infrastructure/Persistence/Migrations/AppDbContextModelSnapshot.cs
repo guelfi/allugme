@@ -22,6 +22,77 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("AlugueMe.Domain.Entities.AvailabilityRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("BrokerUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("integer");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<bool>("IsClosed")
+                        .HasColumnType("boolean");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BrokerUserId");
+
+                    b.HasIndex("TenantId", "BrokerUserId", "DayOfWeek");
+
+                    b.ToTable("AvailabilityRules");
+                });
+
+            modelBuilder.Entity("AlugueMe.Domain.Entities.BrokerInviteToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "ExpiresAt");
+
+                    b.ToTable("BrokerInviteTokens");
+                });
+
             modelBuilder.Entity("AlugueMe.Domain.Entities.BrokerSettings", b =>
                 {
                     b.Property<Guid>("Id")
@@ -85,6 +156,142 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
                     b.HasIndex("BrokerId", "StartAt", "EndAt");
 
                     b.ToTable("CalendarBlocks");
+                });
+
+            modelBuilder.Entity("AlugueMe.Domain.Entities.ConsentRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Context")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("PolicyVersion")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("SubjectEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("VisitId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Context", "AcceptedAt");
+
+                    b.ToTable("ConsentRecords");
+                });
+
+            modelBuilder.Entity("AlugueMe.Domain.Entities.EmailVerificationToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "ExpiresAt");
+
+                    b.ToTable("EmailVerificationTokens");
+                });
+
+            modelBuilder.Entity("AlugueMe.Domain.Entities.FavoriteProperty", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PropertyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PropertyId");
+
+                    b.HasIndex("UserId", "PropertyId")
+                        .IsUnique();
+
+                    b.ToTable("FavoriteProperties");
+                });
+
+            modelBuilder.Entity("AlugueMe.Domain.Entities.PasswordResetToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "ExpiresAt");
+
+                    b.ToTable("PasswordResetTokens");
                 });
 
             modelBuilder.Entity("AlugueMe.Domain.Entities.Property", b =>
@@ -162,8 +369,9 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("MediaType")
-                        .HasDefaultValue(0)
-                        .HasColumnType("integer");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("Path")
                         .IsRequired()
@@ -206,16 +414,16 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<string>("PixReferenceCode")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
                     b.Property<string>("Plan")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasDefaultValue("monthly");
-
-                    b.Property<string>("PixReferenceCode")
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -256,6 +464,11 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("integer");
 
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
 
@@ -279,6 +492,11 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("BufferMinutes")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("EmailNotifyEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("EvolutionInstanceName")
                         .HasColumnType("text");
@@ -315,8 +533,19 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<DateTime?>("EmailVerifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsClient")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsSaasAdmin")
                         .HasColumnType("boolean");
+
+                    b.Property<int>("MissingAvatarLoginCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -350,9 +579,21 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
                     b.Property<int>("BufferMinutesApplied")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ClientUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("ConfirmationCode")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int?>("ConfirmedVia")
                         .HasColumnType("integer");
@@ -363,11 +604,20 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("EndAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("FeedbackRequestedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime?>("NotifiedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("PropertyId")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("Reminder24hSentAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("Reminder2hSentAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("StartAt")
                         .HasColumnType("timestamp with time zone");
@@ -391,6 +641,8 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClientUserId");
+
                     b.HasIndex("ConfirmationCode")
                         .IsUnique();
 
@@ -403,37 +655,50 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
                     b.ToTable("Visits");
                 });
 
-            modelBuilder.Entity("AlugueMe.Domain.Entities.PasswordResetToken", b =>
+            modelBuilder.Entity("AlugueMe.Domain.Entities.VisitFeedback", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<int>("BrokerRating")
+                        .HasColumnType("integer");
 
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("TokenHash")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
-                    b.Property<DateTime?>("UsedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid>("ClientUserId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("InterestLevel")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<int>("OverallRating")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("VisitId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("WantsContact")
+                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TokenHash")
+                    b.HasIndex("VisitId")
                         .IsUnique();
 
-                    b.HasIndex("UserId", "ExpiresAt");
+                    b.HasIndex("ClientUserId", "SubmittedAt");
 
-                    b.ToTable("PasswordResetTokens");
+                    b.ToTable("VisitFeedbacks");
                 });
 
             modelBuilder.Entity("AlugueMe.Domain.Entities.WhatsAppOutboundLog", b =>
@@ -471,6 +736,43 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
                     b.ToTable("WhatsAppOutboundLogs");
                 });
 
+            modelBuilder.Entity("AlugueMe.Domain.Entities.AvailabilityRule", b =>
+                {
+                    b.HasOne("AlugueMe.Domain.Entities.User", "Broker")
+                        .WithMany()
+                        .HasForeignKey("BrokerUserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("AlugueMe.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Broker");
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("AlugueMe.Domain.Entities.BrokerInviteToken", b =>
+                {
+                    b.HasOne("AlugueMe.Domain.Entities.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AlugueMe.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("AlugueMe.Domain.Entities.BrokerSettings", b =>
                 {
                     b.HasOne("AlugueMe.Domain.Entities.Tenant", "Tenant")
@@ -499,6 +801,36 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Broker");
+                });
+
+            modelBuilder.Entity("AlugueMe.Domain.Entities.EmailVerificationToken", b =>
+                {
+                    b.HasOne("AlugueMe.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AlugueMe.Domain.Entities.FavoriteProperty", b =>
+                {
+                    b.HasOne("AlugueMe.Domain.Entities.Property", "Property")
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AlugueMe.Domain.Entities.User", "User")
+                        .WithMany("Favorites")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Property");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("AlugueMe.Domain.Entities.PasswordResetToken", b =>
@@ -580,6 +912,11 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("AlugueMe.Domain.Entities.User", "ClientUser")
+                        .WithMany()
+                        .HasForeignKey("ClientUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("AlugueMe.Domain.Entities.Property", "Property")
                         .WithMany("Visits")
                         .HasForeignKey("PropertyId")
@@ -594,9 +931,30 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
 
                     b.Navigation("Broker");
 
+                    b.Navigation("ClientUser");
+
                     b.Navigation("Property");
 
                     b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("AlugueMe.Domain.Entities.VisitFeedback", b =>
+                {
+                    b.HasOne("AlugueMe.Domain.Entities.User", "ClientUser")
+                        .WithMany()
+                        .HasForeignKey("ClientUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AlugueMe.Domain.Entities.Visit", "Visit")
+                        .WithOne("Feedback")
+                        .HasForeignKey("AlugueMe.Domain.Entities.VisitFeedback", "VisitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ClientUser");
+
+                    b.Navigation("Visit");
                 });
 
             modelBuilder.Entity("AlugueMe.Domain.Entities.Property", b =>
@@ -623,11 +981,18 @@ namespace AlugueMe.Infrastructure.Persistence.Migrations
 
                     b.Navigation("CalendarBlocks");
 
+                    b.Navigation("Favorites");
+
                     b.Navigation("Memberships");
 
                     b.Navigation("ResponsibleProperties");
 
                     b.Navigation("Visits");
+                });
+
+            modelBuilder.Entity("AlugueMe.Domain.Entities.Visit", b =>
+                {
+                    b.Navigation("Feedback");
                 });
 #pragma warning restore 612, 618
         }

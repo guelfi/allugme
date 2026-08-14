@@ -30,7 +30,9 @@ public record VisitDto(
     DateTime? NotifiedAt,
     string? ConfirmedVia,
     DateTime CreatedAt,
-    Guid? ClientUserId = null);
+    Guid? ClientUserId = null,
+    DateTime? CompletedAt = null,
+    bool HasFeedback = false);
 
 public record PatchVisitRequest(string Status);
 

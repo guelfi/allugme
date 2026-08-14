@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { mapUser, quotePix, registerAccount, type PixQuote } from '../api/auth'
+import { AuthCardHeader } from '../components/AuthCardHeader'
 import { PasswordInput } from '../components/PasswordInput'
 import { useAuth } from '../contexts/AuthContext'
 import { useIsMobile } from '../hooks/useIsMobile'
@@ -159,17 +160,7 @@ export function RegisterPage() {
       <div className="login-page lp-register-wrap">
         <RegisterBgVideo />
         <div className="login-card card register-card">
-          <div className="login-brand-block">
-            <Link to="/" className="login-back-link">
-              ← Voltar à página inicial
-            </Link>
-            <span className="login-brand-sep" aria-hidden="true">
-              -
-            </span>
-            <Link to="/" className="login-brand-name">
-              Allugme
-            </Link>
-          </div>
+          <AuthCardHeader backTo="/" backLabel="Voltar à página inicial" />
           <h1>Cadastro concluído</h1>
           <p className="muted">{done.message}</p>
           <div className="alert" style={{ background: '#ecfdf5', color: '#065f46' }}>
@@ -327,17 +318,7 @@ export function RegisterPage() {
       <RegisterBgVideo />
       <div className="login-card card register-card">
         <header className="register-head">
-          <div className="login-brand-block">
-            <Link to="/" className="login-back-link">
-              ← Voltar à página inicial
-            </Link>
-            <span className="login-brand-sep" aria-hidden="true">
-              -
-            </span>
-            <Link to="/" className="login-brand-name">
-              Allugme
-            </Link>
-          </div>
+          <AuthCardHeader backTo="/" backLabel="Voltar à página inicial" />
           <h1 className="register-title-line">
             <span>Cadastre-se</span>
             <span className="login-brand-sep" aria-hidden="true">

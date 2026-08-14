@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { BrokerAvatarGate } from './BrokerAvatarGate'
 
 function isClientUser(user: { role: string; isClient?: boolean } | null): boolean {
   return Boolean(user && (user.role === 'client' || user.isClient))
@@ -24,7 +25,11 @@ export function ProtectedRoute() {
     return <Navigate to="/portal" replace />
   }
 
-  return <Outlet />
+  return (
+    <BrokerAvatarGate>
+      <Outlet />
+    </BrokerAvatarGate>
+  )
 }
 
 export function ClientPortalRoute() {

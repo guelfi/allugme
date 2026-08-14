@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
+import { AuthCardHeader } from '../components/AuthCardHeader'
 import { PasswordInput } from '../components/PasswordInput'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -31,11 +32,7 @@ export function LoginPage() {
       style={{ ['--login-bg-image' as string]: `url(${bgUrl})` }}
     >
       <form className="login-card card" onSubmit={(e) => void handleSubmit(e)}>
-        <div className="login-brand-block">
-          <Link to="/" className="login-back-link">
-            ← Voltar à página inicial
-          </Link>
-        </div>
+        <AuthCardHeader backTo="/" backLabel="Voltar à página inicial" />
 
         <h1 className="register-title-line" style={{ fontSize: '1.25rem', margin: '0.35rem 0 0' }}>
           Entrar

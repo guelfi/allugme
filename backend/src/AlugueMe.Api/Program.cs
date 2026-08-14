@@ -1,4 +1,6 @@
 using AlugueMe.Api.Health;
+using AlugueMe.Api.Auth;
+using AlugueMe.Domain.Enums;
 using AlugueMe.Infrastructure;
 using AlugueMe.Infrastructure.Options;
 using AlugueMe.Infrastructure.Persistence;
@@ -6,6 +8,7 @@ using AlugueMe.Infrastructure.Persistence.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using StackExchange.Redis;
+using AlugueMe.Api.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +17,7 @@ if (!string.IsNullOrWhiteSpace(publicBasePath))
     builder.Configuration["Storage:PublicBaseUrl"] = $"{publicBasePath.TrimEnd('/')}/media";
 
 builder.Services.AddControllers();
+builder.Services.AddHostedService<VisitJourneyWorker>();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
 var homeUrl = string.IsNullOrWhiteSpace(publicBasePath)
@@ -133,6 +137,35 @@ app.UseSwaggerUI(c =>
 
 app.UseCors();
 app.UseAuthentication();
+app.Use(async (context, next) =>
+{
+    var tenantId = context.User.GetTenantId();
+    var mustValidateMembership = context.User.Identity?.IsAuthenticated == true
+        && tenantId.HasValue
+        && !context.User.IsSaasAdmin()
+        && !context.User.IsClient()
+        && !(context.Request.Path.Value?.EndsWith("/auth/logout", StringComparison.OrdinalIgnoreCase) ?? false);
+
+    if (mustValidateMembership)
+    {
+        var db = context.RequestServices.GetRequiredService<AppDbContext>();
+        var userId = context.User.GetUserId();
+        var isActive = await db.TenantMemberships.AnyAsync(
+            m => m.UserId == userId && m.TenantId == tenantId && m.Status == MembershipStatus.Active,
+            context.RequestAborted);
+        if (!isActive)
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            await context.Response.WriteAsJsonAsync(new
+            {
+                message = "Seu acesso está inativo. Entre em contato com a imobiliária responsável."
+            }, context.RequestAborted);
+            return;
+        }
+    }
+
+    await next();
+});
 app.UseAuthorization();
 
 var storagePath = builder.Configuration.GetSection(StorageOptions.SectionName).Get<StorageOptions>()?.MediaPath ?? "storage/media";

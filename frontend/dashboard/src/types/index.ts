@@ -8,7 +8,9 @@ export interface User {
   email: string
   role: UserRole
   isClient?: boolean
+  isEmailVerified?: boolean
   avatarUrl?: string
+  missingAvatarLoginCount?: number
   membershipRole?: MembershipRole
   tenantId?: string
   tenantName?: string
@@ -74,10 +76,12 @@ export interface Visit {
   brokerName?: string
   startAt: string
   endAt: string
-  status: 'pending' | 'confirmed' | 'declined' | 'rejected' | 'cancelled'
+  status: 'pending' | 'confirmed' | 'declined' | 'rejected' | 'cancelled' | 'done'
   confirmationCode?: string
-  tenantId?: string
-}
+    tenantId?: string
+    completedAt?: string
+    hasFeedback?: boolean
+  }
 
 export interface TenantSettings {
   visitDurationMinutes: number

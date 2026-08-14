@@ -45,6 +45,9 @@ public class DemoSeed(AppDbContext db, IOptions<SeedOptions> seedOptions, ILogge
                 throw new InvalidOperationException(
                     $"O e-mail administrativo configurado '{_options.SaasAdminEmail}' já pertence a um usuário não administrativo.");
 
+            if (_options.ResetPasswords)
+                configuredAdmin.PasswordHash = BCrypt.Net.BCrypt.HashPassword(_options.SaasAdminPassword);
+
             return;
         }
 
@@ -162,6 +165,10 @@ public class DemoSeed(AppDbContext db, IOptions<SeedOptions> seedOptions, ILogge
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(_options.DemoPassword)
             };
             db.Users.Add(user);
+        }
+        else if (_options.ResetPasswords)
+        {
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(_options.DemoPassword);
         }
 
         if (!await db.TenantMemberships.AnyAsync(m => m.UserId == user.Id && m.TenantId == tenant.Id, cancellationToken))

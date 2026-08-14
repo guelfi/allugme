@@ -34,6 +34,7 @@ public class AuthController(
 {
     private const int TrialDays = 7;
     private const int PasswordResetMinutes = 60;
+    private const int EmailVerificationHours = 24;
 
     [HttpPost("register")]
     [AllowAnonymous]
@@ -72,7 +73,8 @@ public class AuthController(
             Email = email,
             Name = request.Name,
             Phone = phoneE164,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            EmailVerifiedAt = DateTime.UtcNow
         };
         db.Users.Add(user);
 
@@ -222,9 +224,9 @@ public class AuthController(
             return Unauthorized(new { message = "Credenciais inválidas." });
 
         var memberships = await LoadMembershipsAsync(user.Id, ct);
-        if (memberships.Any(m => m.Status == MembershipStatus.Invited) &&
-            memberships.All(m => m.Status == MembershipStatus.Invited) &&
-            !user.IsClient && !user.IsSaasAdmin)
+        var hasActiveMembership = memberships.Any(m => m.Status == MembershipStatus.Active);
+        if (!hasActiveMembership && memberships.Any(m => m.Status == MembershipStatus.Invited)
+            && !user.IsClient && !user.IsSaasAdmin)
         {
             return StatusCode(StatusCodes.Status403Forbidden, new
             {
@@ -278,6 +280,24 @@ public class AuthController(
                 {
                     message = "Conta suspensa. Fale com o suporte Allugme."
                 });
+        }
+        if (!hasActiveMembership && memberships.Any(m => m.Status == MembershipStatus.Inactive)
+            && !user.IsClient && !user.IsSaasAdmin)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                message = "Seu acesso está inativo. Entre em contato com a imobiliária responsável."
+            });
+        }
+
+        var selectedMembership = tenantId.HasValue
+            ? memberships.FirstOrDefault(m => m.TenantId == tenantId && m.Status == MembershipStatus.Active)
+            : null;
+        if (string.IsNullOrEmpty(user.AvatarPath)
+            && selectedMembership?.Role is MembershipRole.Broker or MembershipRole.IndependentBroker)
+        {
+            user.MissingAvatarLoginCount++;
+            await db.SaveChangesAsync(ct);
         }
 
         var token = jwt.GenerateToken(user.Id, user.Email, user.Name, user.IsSaasAdmin, tenantId, role, user.IsClient);
@@ -406,11 +426,15 @@ public class AuthController(
         [FromForm] string token,
         [FromForm] string password,
         [FromForm] string phone,
+        [FromForm] bool acceptPrivacy,
         IFormFile? avatar,
         CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(password) || password.Length < 8)
             return BadRequest(new { message = "Token inválido ou senha muito curta (mínimo 8 caracteres)." });
+
+        if (!acceptPrivacy)
+            return BadRequest(new { message = "É necessário aceitar a Política de Privacidade (LGPD)." });
 
         var phoneDigits = Regex.Replace(phone ?? string.Empty, @"\D", "");
         if (phoneDigits.Length < 10)
@@ -445,6 +469,17 @@ public class AuthController(
 
         membership.Status = MembershipStatus.Active;
         invite.UsedAt = now;
+        db.ConsentRecords.Add(new ConsentRecord
+        {
+            Id = Guid.NewGuid(),
+            Context = "accept_broker_invite",
+            PolicyVersion = "1.0",
+            SubjectEmail = invite.User.Email,
+            UserId = invite.User.Id,
+            IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+            UserAgent = Request.Headers.UserAgent.ToString(),
+            AcceptedAt = now
+        });
         await db.SaveChangesAsync(ct);
 
         var jwtToken = jwt.GenerateToken(
@@ -495,17 +530,71 @@ public class AuthController(
             AcceptedAt = DateTime.UtcNow
         });
 
-        // Vincula visitas anteriores pelo mesmo e-mail
-        var orphanVisits = await db.Visits
-            .Where(v => v.ClientUserId == null && v.VisitorEmail != null && v.VisitorEmail.ToLower() == email)
-            .ToListAsync(ct);
-        foreach (var v in orphanVisits)
-            v.ClientUserId = user.Id;
-
         await db.SaveChangesAsync(ct);
+
+        await IssueEmailVerificationAsync(user, ct);
 
         var token = jwt.GenerateToken(user.Id, user.Email, user.Name, false, null, "client", isClient: true);
         return Ok(new AuthResponse(token, await MapUserAsync(user, [], ct)));
+    }
+
+    [HttpPost("verify-email")]
+    [AllowAnonymous]
+    public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequest request, CancellationToken ct)
+    {
+        var hash = HashToken((request.Token ?? string.Empty).Trim());
+        var now = DateTime.UtcNow;
+        var verification = await db.EmailVerificationTokens.Include(t => t.User)
+            .FirstOrDefaultAsync(t => t.TokenHash == hash, ct);
+        if (verification is null || verification.UsedAt is not null || verification.ExpiresAt < now)
+            return BadRequest(new { message = "Link inválido ou expirado." });
+
+        verification.UsedAt = now;
+        verification.User.EmailVerifiedAt = now;
+        var email = verification.User.Email.ToLowerInvariant();
+        var orphans = await db.Visits
+            .Where(v => v.ClientUserId == null && v.VisitorEmail != null && v.VisitorEmail.ToLower() == email)
+            .ToListAsync(ct);
+        foreach (var visit in orphans) visit.ClientUserId = verification.UserId;
+        await db.SaveChangesAsync(ct);
+        return Ok(new { message = "E-mail confirmado com sucesso.", claimed = orphans.Count });
+    }
+
+    [HttpPost("resend-email-verification")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResendEmailVerification([FromBody] ResendEmailVerificationRequest request, CancellationToken ct)
+    {
+        var generic = new { message = "Se a conta estiver aguardando confirmação, um novo link será enviado." };
+        var email = (request.Email ?? string.Empty).Trim().ToLowerInvariant();
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email && u.IsClient, ct);
+        if (user is null || user.EmailVerifiedAt is not null) return Ok(generic);
+        await IssueEmailVerificationAsync(user, ct);
+        return Ok(generic);
+    }
+
+    private async Task IssueEmailVerificationAsync(User user, CancellationToken ct)
+    {
+        var now = DateTime.UtcNow;
+        var active = await db.EmailVerificationTokens
+            .Where(t => t.UserId == user.Id && t.UsedAt == null && t.ExpiresAt > now).ToListAsync(ct);
+        foreach (var token in active) token.UsedAt = now;
+        var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+        db.EmailVerificationTokens.Add(new EmailVerificationToken
+        {
+            Id = Guid.NewGuid(), UserId = user.Id, TokenHash = HashToken(rawToken),
+            ExpiresAt = now.AddHours(EmailVerificationHours), CreatedAt = now
+        });
+        await db.SaveChangesAsync(ct);
+        var url = $"{appPublicOptions.Value.DashboardBaseUrl.TrimEnd('/')}/verify-email?token={Uri.EscapeDataString(rawToken)}";
+        try
+        {
+            var html = $"<div style=\"font-family:Arial;max-width:520px;margin:auto\"><h2 style=\"color:#0f766e\">Confirme seu e-mail</h2><p>Olá, {System.Net.WebUtility.HtmlEncode(user.Name)}.</p><p>Confirme seu endereço para proteger sua conta e vincular com segurança suas visitas.</p><p><a href=\"{url}\" style=\"background:#0f766e;color:white;padding:12px 18px;border-radius:8px;text-decoration:none\">Confirmar e-mail</a></p><p>O link expira em 24 horas.</p></div>";
+            await emailSender.SendAsync(user.Email, "Allugme — Confirme seu e-mail", html, ct: ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Falha ao enviar confirmação de e-mail para {Email}.", user.Email);
+        }
     }
 
     private static string HashToken(string rawToken)
@@ -537,7 +626,7 @@ public class AuthController(
     {
         var tenantIds = memberships.Select(m => m.TenantId).Distinct().ToList();
         var usage = await db.TenantMemberships
-            .Where(m => tenantIds.Contains(m.TenantId))
+            .Where(m => tenantIds.Contains(m.TenantId) && m.Status != MembershipStatus.Inactive)
             .GroupBy(m => m.TenantId)
             .Select(g => new { TenantId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.TenantId, x => x.Count, ct);
@@ -549,7 +638,9 @@ public class AuthController(
             user.Phone,
             user.IsSaasAdmin,
             user.IsClient,
+            !user.IsClient || user.EmailVerifiedAt is not null,
             string.IsNullOrEmpty(user.AvatarPath) ? null : storage.GetPublicUrl(user.AvatarPath),
+            user.MissingAvatarLoginCount,
             memberships.Select(m => DtoMappers.ToDto(m, usage.GetValueOrDefault(m.TenantId))).ToList());
     }
 

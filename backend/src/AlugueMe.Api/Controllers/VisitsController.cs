@@ -69,6 +69,8 @@ public class VisitsController(
         var newStatus = EnumMapper.ParseVisitStatus(request.Status);
         if (newStatus is VisitStatus.Confirmed or VisitStatus.Rejected && visit.Status != VisitStatus.Pending)
             return BadRequest(new { message = "Visita não está pendente." });
+        if (newStatus == VisitStatus.Done && visit.Status != VisitStatus.Confirmed)
+            return BadRequest(new { message = "Somente uma visita confirmada pode ser concluída." });
 
         await using var redisLock = await lockService.AcquireLockAsync($"visit:broker:{visit.BrokerId}", TimeSpan.FromSeconds(30), ct);
         if (redisLock is null)
@@ -89,6 +91,14 @@ public class VisitsController(
 
         visit.Status = newStatus;
         visit.ConfirmedVia = ConfirmedVia.Panel;
+        var now = DateTime.UtcNow;
+        if (newStatus == VisitStatus.Confirmed) visit.ConfirmedAt = now;
+        if (newStatus == VisitStatus.Cancelled) visit.CancelledAt = now;
+        if (newStatus == VisitStatus.Done)
+        {
+            visit.CompletedAt = now;
+            visit.FeedbackRequestedAt = now;
+        }
         await db.SaveChangesAsync(ct);
 
         await NotifyVisitorAsync(visit, ct);

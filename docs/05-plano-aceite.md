@@ -225,7 +225,23 @@ Legenda status: `PENDENTE` · `PASS` · `FAIL` · `N/A`
 | AC-PORTAL-03 | REQ-PORTAL-03 | Visita com mesmo e-mail do cliente | Abrir Minhas visitas/reivindicar | Visita compatível aparece e fica vinculada ao cliente | P1 | PENDENTE |
 | AC-PORTAL-04 | REQ-PORTAL-03 | Visitas com e-mails diferentes | Tentar consultar/reivindicar visita de terceiro | Visita não é exposta nem vinculada | P1 | PENDENTE |
 
-### 5.10 Segurança mínima
+### 5.10 Jornada do cliente e isolamento do CRM
+
+| ID | REQ | Pré-condição | Passos | Esperado | Sev. | Status |
+|----|-----|--------------|--------|----------|------|--------|
+| AC-CLIENT-01 | REQ-PORTAL-04 | Cliente recém-cadastrado | Tentar reivindicar visita antes/depois da confirmação | Bloqueado antes; vinculado depois | Blocker | PENDENTE |
+| AC-CLIENT-02 | REQ-PORTAL-05 | Visita confirmada futura | Cancelar com mais e menos de 2h | Cancela no prazo; orienta contato fora do prazo | P1 | PENDENTE |
+| AC-CLIENT-03 | REQ-PORTAL-05 | Visita concluída | Avaliar duas vezes | Primeira aceita; duplicada rejeitada | P1 | PENDENTE |
+| AC-CLIENT-04 | REQ-VIS-17 | Visita confirmada | Processar janelas 24h e 2h | Um lembrete por janela, sem duplicação | P1 | PENDENTE |
+| AC-CLIENT-05 | REQ-PORTAL-05 | Visita futura e horários disponíveis | Reagendar e tentar escolher horário ocupado/bloqueado | Horário válido volta a `Pending`; conflitos e bloqueios são rejeitados | P1 | PENDENTE |
+| AC-CRM-01 | REQ-CRM-01 | Dois tenants e cliente relacionado só ao A | Listar clientes como admin A e B | A vê; B não vê | Blocker | PENDENTE |
+| AC-CRM-02 | REQ-CRM-02 | Dois corretores no tenant | Listar como cada corretor | Cada um vê somente suas próprias relações | Blocker | PENDENTE |
+| AC-CRM-03 | REQ-CRM-01 | SaaS admin | Listar clientes | Vê todas as contas cliente, somente leitura | Blocker | PENDENTE |
+| AC-BROKER-01 | REQ-TEN-04 | Agency admin e novo corretor | Pré-cadastrar, abrir convite e definir senha | Agência não define senha; convidado ativa a própria conta e aceita os termos | Blocker | PENDENTE |
+| AC-BROKER-02 | REQ-TEN-04 | Corretor afiliado ativo | Inativar, tentar login e reenviar convite | Login perde acesso ao tenant; histórico permanece; novo convite permite reativação | Blocker | PENDENTE |
+| AC-BROKER-03 | REQ-TEN-04 | Corretor sem avatar | Efetuar logins sucessivos e capturar foto pela câmera | Aviso progressivo; após 9 logins o fluxo é obrigatório; upload conclui o gate | P1 | PENDENTE |
+
+### 5.11 Segurança mínima
 
 | ID | REQ | Pré-condição | Passos | Esperado | Sev. | Status |
 |----|-----|--------------|--------|----------|------|--------|

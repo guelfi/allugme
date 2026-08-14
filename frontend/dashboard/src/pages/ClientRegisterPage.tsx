@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { registerClient } from '../api/auth'
+import { AuthCardHeader } from '../components/AuthCardHeader'
 import { Modal } from '../components/Modal'
 import { PasswordInput } from '../components/PasswordInput'
 import { PrivacyPolicyContent } from '../components/PrivacyPolicyContent'
@@ -99,17 +100,7 @@ export function ClientRegisterPage() {
     >
       <form className="login-card card client-register-card" onSubmit={(e) => void handleSubmit(e)}>
         <header className="client-register-head">
-          <div className="login-brand-block">
-            <Link to="/login" className="login-back-link">
-              ← Voltar ao login
-            </Link>
-            <span className="login-brand-sep" aria-hidden="true">
-              -
-            </span>
-            <Link to="/" className="login-brand-name">
-              Allugme
-            </Link>
-          </div>
+          <AuthCardHeader backTo="/login" backLabel="Voltar ao login" />
           <h1 className="register-title-line client-register-title">Conta de visitante</h1>
           <p className="muted client-register-lead">
             Salve favoritos e acompanhe suas visitas. WhatsApp obrigatório para avisos.

@@ -102,8 +102,15 @@ public class TransactionalEmailService(
     {
         if (!emailEnabled || string.IsNullOrWhiteSpace(visit.VisitorEmail))
             return;
-        if (visit.Status is not (VisitStatus.Confirmed or VisitStatus.Rejected))
+        if (visit.Status is not (VisitStatus.Confirmed or VisitStatus.Rejected or VisitStatus.Done))
             return;
+
+        if (visit.Status == VisitStatus.Done)
+        {
+            await SendSimpleVisitorEmailAsync(visit, tenant, $"{tenant.Name} — Conte como foi sua visita",
+                "Sua visita foi concluída", $"Avalie o imóvel e o atendimento no seu portal: {appOptions.Value.DashboardBaseUrl.TrimEnd('/')}/portal/visits", ct);
+            return;
+        }
 
         var key = visit.Status == VisitStatus.Confirmed
             ? EmailTemplateKeys.VisitConfirmedVisitor
@@ -135,6 +142,29 @@ public class TransactionalEmailService(
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Falha ao e-mailar visitante sobre visita {VisitId}.", visit.Id);
+        }
+    }
+
+    public Task SendVisitReceivedToVisitorAsync(Visit visit, Tenant tenant, bool enabled, CancellationToken ct) =>
+        !enabled ? Task.CompletedTask : SendSimpleVisitorEmailAsync(visit, tenant,
+            $"{tenant.Name} — Solicitação de visita recebida", "Recebemos sua solicitação",
+            "O corretor irá analisar o horário e você receberá uma confirmação.", ct);
+
+    public Task SendVisitReminderAsync(Visit visit, Tenant tenant, string whenLabel, CancellationToken ct) =>
+        SendSimpleVisitorEmailAsync(visit, tenant, $"{tenant.Name} — Lembrete de visita",
+            $"Sua visita é {whenLabel}", $"Imóvel: {visit.Property.Title}. Consulte os detalhes em {appOptions.Value.DashboardBaseUrl.TrimEnd('/')}/portal/visits", ct);
+
+    private async Task SendSimpleVisitorEmailAsync(Visit visit, Tenant tenant, string subject, string heading, string body, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(visit.VisitorEmail)) return;
+        try
+        {
+            var html = $"<div style=\"font-family:Arial;max-width:520px;margin:auto\"><h2 style=\"color:#0f766e\">{System.Net.WebUtility.HtmlEncode(heading)}</h2><p>Olá, {System.Net.WebUtility.HtmlEncode(visit.VisitorName)}.</p><p>{System.Net.WebUtility.HtmlEncode(body)}</p><p>{System.Net.WebUtility.HtmlEncode(tenant.Name)} · Allugme</p></div>";
+            await emailSender.SendAsync(visit.VisitorEmail, subject, html, ct: ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Falha ao enviar e-mail da jornada da visita {VisitId}.", visit.Id);
         }
     }
 }

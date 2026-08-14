@@ -1,3 +1,4 @@
+using AlugueMe.Api.Auth;
 using AlugueMe.Application.Common;
 using AlugueMe.Application.Dtos.Payments;
 using AlugueMe.Application.Dtos.Properties;
@@ -194,13 +195,13 @@ public class PublicController(
             return Conflict(new { message = "Horário indisponível." });
 
         Guid? clientUserId = null;
-        if (!string.IsNullOrWhiteSpace(request.VisitorEmail))
+        if (User.Identity?.IsAuthenticated == true && User.IsClient())
         {
-            var visitorEmail = request.VisitorEmail.Trim().ToLowerInvariant();
-            clientUserId = await db.Users
-                .Where(u => u.IsClient && u.Email == visitorEmail)
-                .Select(u => (Guid?)u.Id)
-                .FirstOrDefaultAsync(ct);
+            var authenticatedUserId = User.GetUserId();
+            var authenticatedClient = await db.Users.AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == authenticatedUserId && u.IsClient && u.EmailVerifiedAt != null, ct);
+            if (authenticatedClient is not null)
+                clientUserId = authenticatedClient.Id;
         }
 
         var visit = new Visit
@@ -236,6 +237,7 @@ public class PublicController(
         await db.SaveChangesAsync(ct);
 
         await EnqueueVisitNotificationAsync(visit, property, ct);
+        await emails.SendVisitReceivedToVisitorAsync(visit, property.Tenant, property.Tenant.Settings?.EmailNotifyEnabled ?? true, ct);
 
         await db.Entry(visit).Reference(v => v.Property).LoadAsync(ct);
         await db.Entry(visit).Reference(v => v.Broker).LoadAsync(ct);

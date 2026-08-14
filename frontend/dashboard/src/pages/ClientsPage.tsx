@@ -66,6 +66,8 @@ export function ClientsPage() {
                 <th>E-mail</th>
                 {isSaasReadOnly(user) && <th>Tenant</th>}
                 <th>Visitas</th>
+                {!isSaasReadOnly(user) && <th>Avaliação</th>}
+                {!isSaasReadOnly(user) && <th>Interesse</th>}
                 {isSaasReadOnly(user) && <th>Cadastro</th>}
                 <th>Última visita</th>
               </tr>
@@ -78,6 +80,8 @@ export function ClientsPage() {
                   <td data-label="E-mail">{client.visitorEmail || '—'}</td>
                   {isSaasReadOnly(user) && <td data-label="Tenant">{client.tenantName || '—'}</td>}
                   <td data-label="Visitas">{client.visitCount}</td>
+                  {!isSaasReadOnly(user) && <td data-label="Avaliação">{client.averageVisitRating ? `${client.averageVisitRating.toFixed(1)} / 5` : '—'}</td>}
+                  {!isSaasReadOnly(user) && <td data-label="Interesse">{client.wantsContact ? 'Solicitou contato' : client.latestInterestLevel?.replaceAll('_', ' ') || '—'}</td>}
                   {isSaasReadOnly(user) && <td data-label="Cadastro">{client.registeredAt ? new Date(client.registeredAt).toLocaleDateString('pt-BR') : '—'}</td>}
                   <td data-label="Última visita">{client.lastVisitAt ? new Date(client.lastVisitAt).toLocaleString('pt-BR') : '—'}</td>
                 </tr>

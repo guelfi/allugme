@@ -1,6 +1,7 @@
 import { type FormEvent, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { acceptInvite } from '../api/auth'
+import { AuthCardHeader } from '../components/AuthCardHeader'
 import { PasswordInput } from '../components/PasswordInput'
 import { useAuth } from '../contexts/AuthContext'
 import { formatBrPhone, isValidBrPhone, phoneToE164 } from '../utils/phone'
@@ -15,6 +16,7 @@ export function AcceptInvitePage() {
   const [confirm, setConfirm] = useState('')
   const [phone, setPhone] = useState('')
   const [avatar, setAvatar] = useState<File | null>(null)
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -41,6 +43,10 @@ export function AcceptInvitePage() {
       setError('A foto de perfil é obrigatória.')
       return
     }
+    if (!acceptPrivacy) {
+      setError('É necessário aceitar a Política de Privacidade para ativar a conta.')
+      return
+    }
 
     setLoading(true)
     try {
@@ -49,6 +55,7 @@ export function AcceptInvitePage() {
       formData.append('password', password)
       formData.append('phone', phoneToE164(phone))
       formData.append('avatar', avatar)
+      formData.append('acceptPrivacy', 'true')
       const result = await acceptInvite(formData)
       applySession(result.accessToken, result.user)
       navigate('/painel', { replace: true })
@@ -64,17 +71,7 @@ export function AcceptInvitePage() {
   return (
     <div className="login-page" style={{ ['--login-bg-image' as string]: `url(${bgUrl})` }}>
       <form className="login-card card" onSubmit={(e) => void handleSubmit(e)}>
-        <div className="login-brand-block">
-          <Link to="/login" className="login-back-link">
-            ← Voltar ao login
-          </Link>
-          <span className="login-brand-sep" aria-hidden="true">
-            -
-          </span>
-          <Link to="/" className="login-brand-name">
-            Allugme
-          </Link>
-        </div>
+        <AuthCardHeader backTo="/login" backLabel="Voltar ao login" />
         <h1 className="register-title-line" style={{ fontSize: '1.25rem', margin: 0 }}>
           Finalizar cadastro
         </h1>
@@ -123,7 +120,18 @@ export function AcceptInvitePage() {
             onChange={(e) => setAvatar(e.target.files?.[0] ?? null)}
           />
         </label>
-        <button type="submit" className="btn btn-primary" disabled={loading || !token}>
+        <label className="checkbox-row">
+          <input
+            type="checkbox"
+            checked={acceptPrivacy}
+            onChange={(event) => setAcceptPrivacy(event.target.checked)}
+            required
+          />
+          <span>
+            Li e aceito a <Link to="/privacy" target="_blank">Política de Privacidade</Link>
+          </span>
+        </label>
+        <button type="submit" className="btn btn-primary" disabled={loading || !token || !acceptPrivacy}>
           {loading ? 'Salvando…' : 'Ativar conta'}
         </button>
       </form>

@@ -1,5 +1,6 @@
 using AlugueMe.Api.Auth;
 using AlugueMe.Infrastructure.Persistence;
+using AlugueMe.Application.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,10 @@ public record ClientDto(
     DateTime? LastVisitAt,
     DateTime? RegisteredAt,
     Guid? TenantId,
-    string? TenantName);
+    string? TenantName,
+    double? AverageVisitRating = null,
+    string? LatestInterestLevel = null,
+    bool WantsContact = false);
 
 [ApiController]
 [Route("api/v1/clients")]
@@ -46,6 +50,7 @@ public class ClientsController(AppDbContext db) : ControllerBase
             var relatedVisits = await db.Visits
                 .AsNoTracking()
                 .Include(v => v.Tenant)
+                .Include(v => v.Feedback)
                 .Where(v => (v.ClientUserId.HasValue && clientIds.Contains(v.ClientUserId.Value))
                     || (v.VisitorEmail != null && clientEmails.Contains(v.VisitorEmail.ToLower())))
                 .ToListAsync(ct);
@@ -69,24 +74,85 @@ public class ClientsController(AppDbContext db) : ControllerBase
                     last?.StartAt,
                     client.CreatedAt,
                     last?.TenantId,
-                    last?.Tenant?.Name);
+                    last?.Tenant?.Name,
+                    visits.Where(v => v.Feedback != null).Select(v => (double?)v.Feedback!.OverallRating).Average(),
+                    visits.FirstOrDefault(v => v.Feedback != null)?.Feedback?.InterestLevel,
+                    visits.Any(v => v.Feedback?.WantsContact == true));
             }).ToList();
 
             return Ok(registeredClientDtos);
         }
 
+        var scopedTenantId = tenantId!.Value;
+        var scopedTenantName = await db.Tenants
+            .AsNoTracking()
+            .Where(t => t.Id == scopedTenantId)
+            .Select(t => t.Name)
+            .SingleAsync(ct);
         var role = User.GetRole();
-        var query = db.Visits.AsNoTracking().Include(v => v.Tenant).AsQueryable();
+        IQueryable<AlugueMe.Domain.Entities.Visit> query = db.Visits
+            .AsNoTracking()
+            .Include(v => v.Tenant)
+            .Include(v => v.ClientUser)
+            .Include(v => v.Feedback);
 
-        if (tenantId.HasValue)
-            query = query.Where(v => v.TenantId == tenantId);
-
-        if (role == "broker" && !User.IsSaasAdmin())
-            query = query.Where(v => v.BrokerId == User.GetUserId());
+        // Um corretor afiliado enxerga somente visitantes das próprias visitas.
+        // A visão ampliada por favoritos pertence apenas à administração da imobiliária.
+        query = ClientVisibilityPolicy.ScopeVisits(query, scopedTenantId, role, User.GetUserId());
 
         var visits = await query.ToListAsync(ct);
+        var relatedClientIds = visits
+            .Where(v => v.ClientUserId.HasValue)
+            .Select(v => v.ClientUserId!.Value)
+            .ToHashSet();
 
-        var clients = visits
+        if (role != "broker")
+        {
+            var favoriteClientIds = await db.FavoriteProperties
+                .AsNoTracking()
+                .Where(f => f.Property.TenantId == scopedTenantId && f.User.IsClient)
+                .Select(f => f.UserId)
+                .Distinct()
+                .ToListAsync(ct);
+            relatedClientIds.UnionWith(favoriteClientIds);
+        }
+
+        var tenantRegisteredClients = await db.Users
+            .AsNoTracking()
+            .Where(u => u.IsClient && relatedClientIds.Contains(u.Id))
+            .ToListAsync(ct);
+
+        var registeredDtos = tenantRegisteredClients.Select(client =>
+        {
+            var clientVisits = visits
+                .Where(v => v.ClientUserId == client.Id
+                    || (v.VisitorEmail != null
+                        && v.VisitorEmail.Equals(client.Email, StringComparison.OrdinalIgnoreCase)))
+                .OrderByDescending(v => v.StartAt)
+                .ToList();
+            var last = clientVisits.FirstOrDefault();
+            return new ClientDto(
+                client.Id,
+                client.Name,
+                client.Phone ?? string.Empty,
+                client.Email,
+                clientVisits.Count,
+                last?.StartAt,
+                client.CreatedAt,
+                scopedTenantId,
+                scopedTenantName,
+                clientVisits.Where(v => v.Feedback != null).Select(v => (double?)v.Feedback!.OverallRating).Average(),
+                clientVisits.FirstOrDefault(v => v.Feedback != null)?.Feedback?.InterestLevel,
+                clientVisits.Any(v => v.Feedback?.WantsContact == true));
+        });
+
+        var registeredEmails = tenantRegisteredClients
+            .Select(c => c.Email.ToLowerInvariant())
+            .ToHashSet();
+
+        var anonymousDtos = visits
+            .Where(v => v.ClientUserId == null
+                && (v.VisitorEmail == null || !registeredEmails.Contains(v.VisitorEmail.ToLower())))
             .GroupBy(v => new
             {
                 Phone = (v.VisitorPhone ?? "").Trim(),
@@ -106,9 +172,16 @@ public class ClientsController(AppDbContext db) : ControllerBase
                     last.StartAt,
                     last.ClientUser?.CreatedAt,
                     g.Key.TenantId,
-                    last.Tenant?.Name);
+                    last.Tenant?.Name,
+                    g.Where(v => v.Feedback != null).Select(v => (double?)v.Feedback!.OverallRating).Average(),
+                    g.FirstOrDefault(v => v.Feedback != null)?.Feedback?.InterestLevel,
+                    g.Any(v => v.Feedback?.WantsContact == true));
             })
-            .OrderByDescending(c => c.LastVisitAt)
+            .ToList();
+
+        var clients = registeredDtos
+            .Concat(anonymousDtos)
+            .OrderByDescending(c => c.LastVisitAt ?? c.RegisteredAt)
             .ToList();
 
         return Ok(clients);

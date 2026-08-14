@@ -942,6 +942,73 @@ input, select {
   padding: 0;
 }
 
+.avatar-gate-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(10 31 43 / 72%);
+  backdrop-filter: blur(4px);
+}
+
+.avatar-gate-card {
+  width: min(100%, 600px);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.avatar-gate-card h1,
+.avatar-gate-card p {
+  margin: 0;
+}
+
+.avatar-gate-heading,
+.avatar-gate-actions,
+.avatar-camera-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.avatar-gate-actions .btn,
+.avatar-camera-actions .btn {
+  flex: 1;
+}
+
+.avatar-camera-stage {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.avatar-camera-stage video {
+  width: min(100%, 420px);
+  aspect-ratio: 1;
+  justify-self: center;
+  border-radius: 1rem;
+  background: #0c1e27;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+@media (max-width: 560px) {
+  .avatar-gate-heading,
+  .avatar-gate-actions,
+  .avatar-camera-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .avatar-gate-heading .btn {
+    align-self: flex-start;
+  }
+}
+
 .table-shell {
   width: fit-content;
   min-width: min(100%, 64rem);

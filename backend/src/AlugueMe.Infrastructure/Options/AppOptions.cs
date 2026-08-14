@@ -25,6 +25,11 @@ public class SeedOptions
     public string DemoPassword { get; set; } = "Demo@123456";
     public string SaasAdminEmail { get; set; } = "admin@allugme.com.br";
     public string SaasAdminPassword { get; set; } = "Admin123#";
+    /// <summary>
+    /// Redefine as senhas das contas seed a cada inicialização. Deve ser usado somente em
+    /// ambientes locais/descartáveis para manter testes reproduzíveis.
+    /// </summary>
+    public bool ResetPasswords { get; set; }
 }
 
 public class ThemesOptions

@@ -10,6 +10,9 @@ export type Client = {
   registeredAt?: string | null
   tenantId?: string | null
   tenantName?: string | null
+  averageVisitRating?: number | null
+  latestInterestLevel?: string | null
+  wantsContact?: boolean
 }
 
 export async function listClients(): Promise<Client[]> {

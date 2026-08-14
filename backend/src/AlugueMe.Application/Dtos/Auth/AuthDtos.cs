@@ -31,6 +31,8 @@ public record LoginRequest(string Email, string Password, Guid? TenantId);
 public record ForgotPasswordRequest(string Email);
 
 public record ResetPasswordRequest(string Token, string NewPassword);
+public record VerifyEmailRequest(string Token);
+public record ResendEmailVerificationRequest(string Email);
 
 public record AuthResponse(string Token, UserDto User);
 
@@ -41,7 +43,9 @@ public record UserDto(
     string? Phone,
     bool IsSaasAdmin,
     bool IsClient,
+    bool IsEmailVerified,
     string? AvatarUrl,
+    int MissingAvatarLoginCount,
     IReadOnlyList<MembershipDto> Memberships);
 
 public record MembershipDto(
