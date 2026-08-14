@@ -14,6 +14,16 @@ const productMessages = [
   'Transforme imóveis em oportunidades e visitas em negócios.',
 ] as const
 
+function getTypingDelay(message: string, characterIndex: number) {
+  const character = message[characterIndex]
+
+  if (character === ',' || character === '.' || character === ':' || character === ';') return 260
+  if (character === ' ') return 70
+
+  const naturalVariation = (character.charCodeAt(0) * 17 + characterIndex * 13) % 56
+  return 90 + naturalVariation
+}
+
 export function WhatsAppIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -57,9 +67,10 @@ export function PublicFooter() {
     const message = productMessages[messageIndex]
 
     if (visibleCharacters < message.length) {
+      const typingDelay = getTypingDelay(message, visibleCharacters)
       const typingTimer = window.setTimeout(() => {
         setVisibleCharacters((current) => current + 1)
-      }, 48)
+      }, typingDelay)
 
       return () => window.clearTimeout(typingTimer)
     }
