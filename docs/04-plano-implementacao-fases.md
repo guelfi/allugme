@@ -204,7 +204,7 @@ Visitas + buffer + WhatsApp OK em **fake mode**. Débitos UI corrigidos; Evoluti
 - [x] Queries de clientes e feedback com escopo explícito de tenant/corretor.
 - [x] Build backend e frontend.
 - [ ] Testes de integração automatizados de isolamento e jornada completa.
-- [ ] Validação funcional local e aceite do usuário.
+- [x] Validação funcional local concluída em 2026-08-14; câmera física ficou como homologação operacional posterior.
 
 ---
 
@@ -223,9 +223,9 @@ Visitas + buffer + WhatsApp OK em **fake mode**. Débitos UI corrigidos; Evoluti
 - Atualização handoff + checkpoint S14–16  
 
 ### DoD
-- [ ] Ata de aceite GO ou GO com ressalvas documentadas  
-- [ ] Nenhum bloqueador P0 aberto  
-- [ ] `CURRENT.md` = Fase 5 concluída  
+- [x] GO técnico com ressalvas operacionais documentado em 2026-08-14
+- [x] Nenhum bloqueador P0 conhecido aberto no escopo aprovado
+- [x] `CURRENT.md` = Fase 5 concluída
 - [x] `npm run lint` executa Oxlint real (não comando placeholder)
 - [ ] Testes de integração automatizam tenancy, publicação e concorrência de visitas
 

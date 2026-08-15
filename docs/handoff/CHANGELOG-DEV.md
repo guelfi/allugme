@@ -4,6 +4,28 @@ Registro cronológico de evolução (decisões, entregas, mudanças de escopo).
 
 ---
 
+## 2026-08-14
+
+### Jornada de cliente e corretor
+- Confirmação de e-mail, dashboard ampliado do cliente, cancelamento, reagendamento, lembretes e avaliação pós-visita.
+- CRM com visibilidade global exclusiva do SaaS admin, escopo por relacionamento para imobiliárias e por visitas próprias para corretores.
+- Pré-cadastro e convite de corretor afiliado sem definição de senha pela imobiliária; aceite e senha exclusivos do convidado.
+- Inativação sem exclusão de histórico, reenvio de convite e gate progressivo de avatar/câmera após logins sem foto.
+
+### Qualidade e entrega
+- Backend: 38/38 testes unitários e 2/2 testes de integração aprovados.
+- Frontend: Oxlint, Vitest 2/2, build e Playwright 3/3 desktop + 3/3 mobile aprovados.
+- Upload real de JPEG de 2,30 MiB validado pelo proxy e gateway de mídia.
+- Recuperação de senha transacional entregue pelo Resend em produção.
+- PR #6 aprovada e mesclada; baseline `dc60252` implantada na OCI após CI/CD verde.
+- Veredito atualizado para **GO técnico com ressalvas operacionais**. Evolution API real e câmera física ficaram para homologação posterior.
+
+### Handoff entre equipamentos
+- `CURRENT.md`, plano de fases, plano de aceite e relatório de testes consolidados na baseline implantada.
+- Secrets, certificados, chaves privadas, senhas e `.env` permanecem fora do Git.
+
+---
+
 ## 2026-08-10
 
 ### Clientes e grids administrativos

@@ -1,9 +1,10 @@
 # Estado atual — Allugme
 
 **Última atualização:** 2026-08-14
-**Fase:** MVP funcional; Fase 5 (polish, automação e aceite formal) em andamento
+**Fase:** MVP funcional; Fase 5 concluída com GO técnico e ressalvas operacionais
 **Repo GitHub:** https://github.com/guelfi/allugme  
-**Progresso estimado MVP:** ~95% de implementação; entrega comercial condicionada ao aceite formal e à homologação da Evolution API real
+**Baseline implantada:** `dc6025233f9184f9ae216acb13d97a6b926d1ef5` (`main`, merge da PR #6)
+**Progresso estimado MVP:** 100% do escopo técnico acordado; homologações externas de Evolution API e câmera física foram adiadas sem bloquear esta entrega
 
 ---
 
@@ -11,7 +12,7 @@
 
 O núcleo do produto está implementado: SaaS multi-tenant, RBAC, imóveis e mídia, busca/vitrine, agenda e visitas, cinco temas, trial/Pix estático, e-mail transacional, LGPD e portal do cliente. A infraestrutura de WhatsApp (fila Redis, worker, webhook, idempotência e comandos `SIM/NAO`) está pronta e opera em fake mode por padrão; a integração real ainda precisa ser configurada e homologada.
 
-O critério de conclusão do MVP não é mais quantidade de features. É obter `GO` ou `GO com ressalvas` no [Plano de Aceite](../05-plano-aceite.md), com todos os casos Blocker em `PASS`.
+A rodada de 2026-08-14 obteve **GO técnico com ressalvas operacionais**. Build, testes automatizados, isolamento multi-tenant amostrado, upload real, e-mail transacional, CI, merge e deploy na OCI foram aprovados. WhatsApp real via Evolution API e câmera física permanecem para homologação posterior.
 
 ## URLs e ambientes
 
@@ -40,7 +41,7 @@ Path OCI: `/var/www/allugme`.
 | 3b — WhatsApp | 🟡 | Código/fake mode completos; Evolution real pendente de homologação |
 | 4 — Temas e Vitrine | ✅ | Cinco temas, cinco tenants seed e rota pública por slug |
 | 4b — E-mail, LGPD e Portal | ✅ | Fases 0→6 do pacote concluídas em 2026-08-07 |
-| 5 — Polish e Aceite | 🔄 | Lint/testes em evolução; todos os `AC-*` ainda precisam de rodada formal |
+| 5 — Polish e Aceite | ✅ | GO técnico em 2026-08-14; Evolution real e câmera física seguem como ressalvas operacionais |
 
 ## Baseline implementada
 
@@ -61,31 +62,43 @@ Path OCI: `/var/www/allugme`.
 - WhatsApp: fila Redis, worker, logs, webhook, autorização do remetente, idempotência e retorno ao visitante.
 - CI com build backend/frontend, testes, Gitleaks e build Docker; CD automatizado para OCI após CI verde.
 
-## Estado de qualidade
+## Estado de qualidade e entrega
 
-| Área | Estado atual | Próxima evidência exigida |
-|------|--------------|---------------------------|
-| Tenancy/RBAC | Implementada; teste manual histórico | `AC-RBAC-*` e `AC-TEN-*` com evidência reproduzível |
-| Publicação | Implementada | `AC-PROP-01/03` + busca/detalhe público |
-| Visitas | Implementada + testes unitários do cálculo | `AC-VIS-01..09`, incluindo dois POSTs concorrentes |
-| WhatsApp | Fake mode funcional; UI expõe `EvolutionInstanceName` e teste envia `ToE164` | `AC-WA-*` com instância Evolution e números reais |
-| Testes backend | Unitários em expansão; integração era placeholder | Automatizar API/DB para tenancy, publicação e visitas |
-| Frontend | Build no CI | Oxlint real, sem warnings, no CI |
+| Área | Evidência vigente |
+|------|-------------------|
+| Containers locais | API, frontend e PostgreSQL saudáveis; Redis e Nginx ativos após rebuild |
+| Backend | 38/38 testes unitários e 2/2 testes de integração aprovados |
+| Frontend | Oxlint, Vitest 2/2 e build de produção aprovados |
+| E2E público | Playwright 3/3 desktop e 3/3 mobile aprovados |
+| Tenancy/RBAC | Isolamento A→B aprovado na amostragem por API; acesso cruzado retornou 404 |
+| Visitas | Criação, concorrência 409, confirmação, conclusão, avaliação, cancelamento e reagendamento aprovados por API |
+| Upload | JPEG real de 2,30 MiB aprovado pelo proxy, persistido e servido publicamente |
+| E-mail | Recuperação transacional entregue pelo Resend em destinatário controlado |
+| CI/CD | PR #6 com checks verdes, merge em `main` e deploy OCI concluído |
+| WhatsApp | Código/fake mode cobertos; Evolution API real não homologada nesta rodada |
+| Câmera | Gate, contador e fallback validados; hardware físico não homologado nesta rodada |
 
-## Pendências imediatas — ordem de execução
+Relatório detalhado: [CLAUDE-COWORK-TEST-RESULT.md](../test-results/CLAUDE-COWORK-TEST-RESULT.md).
 
-1. Preparar ambiente imutável de aceite: commit/tag, URLs, seed, Postgres, Redis, Evolution, SMTP e contas de teste.
-2. Executar a Porta de Blockers completa: baseline/Auth/segurança → tenancy/RBAC → publicação/vitrine → visitas/concorrência → WhatsApp real/webhook.
-3. Corrigir qualquer Blocker e repetir a onda afetada até que **todos** estejam em `PASS`; nenhum P0/P1 começa antes desse gate.
-4. Executar os P0 restantes e a regressão crítica.
-5. Executar os P1, incluindo `AC-EMAIL-*`, `AC-LGPD-*` e `AC-PORTAL-*`.
-6. Emitir ata `GO`, `GO com ressalvas` ou `NO-GO` e atualizar este arquivo.
+## Próximos passos para outra estação de trabalho
+
+1. Clonar ou atualizar `https://github.com/guelfi/allugme` e confirmar a `main` em `dc60252` ou commit posterior.
+2. Manter certificados, chaves privadas, senhas e arquivos `.env` fora do Git; recuperar secrets pelos canais operacionais autorizados.
+3. Homologar Evolution API/WhatsApp real quando a instância e os números controlados estiverem disponíveis.
+4. Homologar captura de selfie em câmera física no celular e no desktop.
+5. Expandir continuamente os testes de integração API/PostgreSQL/Redis e E2E autenticados.
+6. Atualizar o plano de aceite e este handoff a cada nova rodada ou mudança de baseline.
 
 Plano operacional detalhado: seção “Estratégia de execução” em [05-plano-aceite.md](../05-plano-aceite.md).
 
 ## Blockers ativos
 
-Nenhum defeito Blocker conhecido está aberto, mas os Blockers do plano permanecem **não homologados**. Falta de evidência não equivale a `PASS`.
+Nenhum defeito Blocker conhecido está aberto no escopo técnico aprovado. Evolution API real e câmera física são ressalvas de homologação externa e não bloquearam o GO desta baseline.
+
+## Estado de contas operacionais
+
+- A conta cliente `marco@guelfi.com.br` existe no ambiente local e na OCI.
+- Em 2026-08-14 foi solicitado um reset de senha oficial na OCI; a conclusão depende do link recebido pelo titular. Nenhuma senha é documentada ou versionada.
 
 ## Roadmap pós-aceite
 

@@ -56,6 +56,41 @@ O smoke real de Evolution permanece manual/operacional: um mock não comprova en
 
 ---
 
+## 0.1 Resultado vigente — baseline de 2026-08-14
+
+**Commit implantado:** `dc6025233f9184f9ae216acb13d97a6b926d1ef5`
+
+**Branch:** `main`
+
+**Origem:** merge da PR #6 (`feat/client-journey-broker-testing`)
+
+**Resultado:** **GO técnico com ressalvas operacionais**
+
+### Evidências consolidadas
+
+| Verificação | Resultado |
+|---|---|
+| Containers locais após rebuild | PASS |
+| Backend unitário | PASS — 38/38 |
+| Backend integração | PASS — 2/2 |
+| Frontend lint/Vitest/build | PASS — lint, 2/2 e build |
+| Playwright desktop/mobile | PASS — 3/3 + 3/3 |
+| Isolamento de tenant amostrado por API | PASS — leitura e atualização cruzadas retornaram 404 |
+| Concorrência de visitas | PASS — segunda solicitação no mesmo horário retornou 409 |
+| Upload real pelo proxy | PASS — JPEG de 2,30 MiB persistido e servido com HTTP 200 |
+| E-mail transacional real | PASS — recuperação entregue pelo Resend |
+| GitHub Actions da PR #6 | PASS |
+| Merge em `main` e deploy OCI | PASS |
+
+### Ressalvas aceitas sem bloqueio desta baseline
+
+- Evolution API/WhatsApp com instância e números reais.
+- Captura de selfie usando câmera física de celular e desktop.
+
+Os campos `Status` da matriz abaixo permanecem como checklist granular para futuras rodadas formais. O resultado consolidado desta baseline está nesta seção e no [relatório de testes](test-results/CLAUDE-COWORK-TEST-RESULT.md); não se deve interpretar um `PENDENTE` granular como regressão automática da baseline já aprovada quando o caso estiver fora da amostragem ou da ressalva acordada.
+
+---
+
 ## 1. Papéis
 
 | Papel | Responsabilidade |

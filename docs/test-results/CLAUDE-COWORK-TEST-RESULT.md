@@ -2,6 +2,12 @@
 
 > Execução independente baseada em `docs/handoff/CLAUDE-CODE-COWORK-TESTING.md`. Este relatório não contém senhas, tokens ou dados pessoais reais.
 
+## Estado vigente após a rodada corretiva
+
+O veredito inicial abaixo é preservado como histórico da primeira execução. Após as correções, a nova bateria, o CI verde, o merge da PR #6 e o deploy na OCI, o resultado vigente passou a ser **GO técnico com ressalvas operacionais** para a baseline `dc60252` em `main`.
+
+Ressalvas aceitas e adiadas: homologação da Evolution API/WhatsApp real e captura com câmera física. Elas não bloquearam a entrega técnica acordada.
+
 ## Identificação da rodada
 
 - Data: 2026-08-14
