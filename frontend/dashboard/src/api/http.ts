@@ -5,6 +5,20 @@ const raw =
 
 export const API_BASE = raw.replace(/\/$/, '')
 
+export function resolvePublicAssetUrl(
+  value?: string | null,
+  baseUrl: string = API_BASE || window.location.origin,
+): string | undefined {
+  if (!value) return undefined
+
+  try {
+    const apiOrigin = new URL(baseUrl).origin
+    return new URL(value, apiOrigin).toString()
+  } catch {
+    return value
+  }
+}
+
 function readToken(): string | null {
   try {
     return localStorage.getItem('authToken')

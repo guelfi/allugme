@@ -17,6 +17,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
+  setAvatarUrl: (avatarUrl: string) => void
   applySession: (token: string, user: User) => void
   isSaasAdmin: boolean
   isAgencyAdmin: boolean
@@ -80,6 +81,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const setAvatarUrl = useCallback((avatarUrl: string) => {
+    setUser((current) =>
+      current ? { ...current, avatarUrl, missingAvatarLoginCount: 0 } : current,
+    )
+  }, [])
+
   const value = useMemo(
     () => ({
       user,
@@ -88,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       refreshUser,
+      setAvatarUrl,
       applySession,
       isSaasAdmin: user?.role === 'saas_admin',
       isAgencyAdmin: user?.membershipRole === 'agency_admin',
@@ -95,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user?.membershipRole === 'independent_broker' || user?.tenantType === 'independent',
       canManageBrokers: Boolean(user?.canManageBrokers),
     }),
-    [user, isInitializing, isLoading, login, logout, refreshUser, applySession],
+    [user, isInitializing, isLoading, login, logout, refreshUser, setAvatarUrl, applySession],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

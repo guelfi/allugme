@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { uploadMyAvatar } from '../../api/brokers'
+import { resolvePublicAssetUrl } from '../../api/http'
 import { useAuth } from '../../contexts/AuthContext'
 
 const OPTIONAL_LOGIN_LIMIT = 9
 
 export function BrokerAvatarGate({ children }: { children: ReactNode }) {
-  const { user, refreshUser } = useAuth()
+  const { user, refreshUser, setAvatarUrl } = useAuth()
   const [dismissed, setDismissed] = useState(false)
   const [cameraOpen, setCameraOpen] = useState(false)
   const [cameraError, setCameraError] = useState<string | null>(null)
@@ -61,7 +62,8 @@ export function BrokerAvatarGate({ children }: { children: ReactNode }) {
     setUploading(true)
     setUploadError(null)
     try {
-      await uploadMyAvatar(file)
+      const result = await uploadMyAvatar(file)
+      setAvatarUrl(resolvePublicAssetUrl(result.avatarUrl) ?? result.avatarUrl)
       stopCamera()
       await refreshUser()
       setDismissed(true)

@@ -1,4 +1,4 @@
-import { get, post, upload } from './http'
+import { get, post, resolvePublicAssetUrl, upload } from './http'
 import type { LoginResponse, MembershipRole, TenantType, User, UserRole } from '../types'
 
 type ApiMembership = {
@@ -59,7 +59,7 @@ export function mapUser(dto: ApiUser): User {
     role,
     isClient: Boolean(dto.isClient) || role === 'client',
     isEmailVerified: dto.isEmailVerified ?? !dto.isClient,
-    avatarUrl: dto.avatarUrl ?? undefined,
+    avatarUrl: resolvePublicAssetUrl(dto.avatarUrl),
     missingAvatarLoginCount: dto.missingAvatarLoginCount ?? 0,
     membershipRole,
     tenantId: membership?.tenantId,

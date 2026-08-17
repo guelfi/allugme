@@ -1,6 +1,7 @@
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { uploadMyAvatar } from '../api/brokers'
+import { resolvePublicAssetUrl } from '../api/http'
 import {
   getAvailability,
   getBrokerSettings,
@@ -46,7 +47,7 @@ function normalizeRules(rules: AvailabilityRule[]): AvailabilityRule[] {
 }
 
 export function SettingsPage() {
-  const { user, refreshUser } = useAuth()
+  const { user, refreshUser, setAvatarUrl } = useAuth()
   const tenantMode = canEditTenantSettings(user)
   const brokerMode = canEditBrokerSettings(user) && !tenantMode
   const [avatarUploading, setAvatarUploading] = useState(false)
@@ -139,7 +140,8 @@ export function SettingsPage() {
     setAvatarError(null)
     setAvatarUploading(true)
     try {
-      await uploadMyAvatar(file)
+      const result = await uploadMyAvatar(file)
+      setAvatarUrl(resolvePublicAssetUrl(result.avatarUrl) ?? result.avatarUrl)
       await refreshUser()
     } catch (err) {
       setAvatarError(err instanceof Error ? err.message : 'Erro ao enviar foto')
