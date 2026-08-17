@@ -150,7 +150,7 @@ Visitas + buffer + WhatsApp OK em **fake mode**. Débitos UI corrigidos; Evoluti
 ### Entregáveis
 - Temas `moderno`, `urbano`, `classico`, `minimal`, `porto` com 4 páginas cada  
 - Engine de placeholders  
-- Resolução por slug de tenant (`/{slug}/` na raiz do domínio)  
+- Resolução por slug de tenant (`/loja/{slug}/`; legado `/{slug}/` na raiz redireciona)  
 - Seleção de tema no painel (`REQ-SRC-03/04`)  
 - **Seed completo 5 tenants × 5 temas** ([06-seed-demo-tenants.md](06-seed-demo-tenants.md)) — `REQ-SEED-*`  
 - JS da vitrine chama slots/visita  

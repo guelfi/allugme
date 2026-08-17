@@ -105,7 +105,7 @@ Os campos `Status` da matriz abaixo permanecem como checklist granular para futu
 |------|--------------------------|
 | URL API | `_` |
 | URL Dashboard | `_` |
-| URL Vitrine (base) | `_` — ex. `/{slug}/` |
+| URL Vitrine (base) | `_` — ex. `/loja/{slug}/` |
 | Commit / tag | `_` |
 | Data da rodada | `_` |
 
@@ -186,7 +186,7 @@ Legenda status: `PENDENTE` · `PASS` · `FAIL` · `N/A`
 |----|-----|--------------|--------|----------|------|--------|
 | AC-SRC-01 | REQ-SRC-01 | Dados seed | Filtrar cidade + preço | Resultados coerentes | Blocker | PENDENTE |
 | AC-SRC-02 | REQ-SRC-02 | Imóvel publicado | Abrir detalhe na vitrine | Dados e fotos corretos | Blocker | PENDENTE |
-| AC-SRC-03 | REQ-SRC-03 | 5 temas + seed | Abrir `/{slug}/` dos 5 tenants seed | Cada slug com layout visual distinto | Blocker | PENDENTE |
+| AC-SRC-03 | REQ-SRC-03 | 5 temas + seed | Abrir `/loja/{slug}/` dos 5 tenants seed | Cada slug com layout visual distinto | Blocker | PENDENTE |
 | AC-SRC-04 | REQ-SRC-04 | admin@horizon | Trocar tema moderno→porto e recarregar vitrine | Mesmos imóveis, layout Porto | Blocker | PENDENTE |
 | AC-SEED-01 | REQ-SEED-01 | DB limpa / idempotente | Executar seed | 5 tenants ativos com ThemeKey correto | Blocker | PENDENTE |
 | AC-SEED-02 | REQ-SEED-02 | Seed ok | Contar imóveis publicados por tenant | ≥ 3 em cada um dos 5 | P0 | PENDENTE |
@@ -291,7 +291,7 @@ Legenda status: `PENDENTE` · `PASS` · `FAIL` · `N/A`
 ## 6. Checklist rápido pré-demo
 
 - [ ] Seed carregado (5 tenants × temas)  
-- [ ] Credenciais e URLs `/{slug}/` documentadas  
+- [ ] Credenciais e URLs `/loja/{slug}/` documentadas  
 - [ ] Demo troca de layout (horizon: moderno ↔ porto) ensaiada  
 - [ ] Postgres + Redis no ar  
 - [ ] Evolution conectada (ou mock documentado para aceite)  

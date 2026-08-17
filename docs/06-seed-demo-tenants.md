@@ -97,19 +97,19 @@ Sugestão de títulos alinhados ao tema (copy só para demo):
 
 ## 7. URLs de vitrine
 
-Vitrine em **subdomínio próprio** (`https://{slug}.allugme.online/`). Painel e API usam hosts dedicados.
+Vitrine em **subdomínio próprio** (`https://{slug}.allugme.online/`) na produção. No IP compartilhado (local/OCI), o caminho canônico é `/loja/{slug}/`.
 
 ```
-/horizon/          → tema moderno
-/vista-urbana/     → tema urbano
-/casa-tradicao/    → tema classico
-/atlas/            → tema minimal
-/porto-lar/        → tema porto
+/loja/horizon/          → tema moderno
+/loja/vista-urbana/     → tema urbano
+/loja/casa-tradicao/    → tema classico
+/loja/atlas/            → tema minimal
+/loja/porto-lar/        → tema porto
 ```
 
 Produção: `https://{slug}.allugme.online/`
-Local: `http://192.168.15.119/{slug}/`  
-Legado `/allugme/t/{slug}/` redireciona para `/{slug}/`.
+Local: `http://192.168.15.119/loja/{slug}/`
+Legado `/{slug}/` e `/allugme/t/{slug}/` redirecionam (301) para `/loja/{slug}/`.
 
 ---
 
