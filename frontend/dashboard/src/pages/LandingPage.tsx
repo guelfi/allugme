@@ -86,10 +86,18 @@ function thumbSrc(key: string) {
 function demoUrl(slug: string) {
   const hostname = window.location.hostname.toLowerCase()
 
-  if (hostname === 'allugme.online' || hostname === 'www.allugme.online') {
+  // Esquema canônico: qualquer host da família allugme.online (site
+  // comercial, painel app.allugme.online, ou uma vitrine de tenant)
+  // sempre aponta a prévia para o subdomínio dedicado do tema.
+  if (hostname === 'allugme.online' || hostname.endsWith('.allugme.online')) {
     return `https://${slug}.allugme.online/`
   }
 
+  // Fora do domínio allugme.online (dev local, IP da rede, etc.): fallback
+  // pela raiz. Em produção esse path é um redirect legado para /loja/{slug}/
+  // (ver docs/handoff/PENDENCIA-nginx-vitrine-regex-conflita-static-outros-projetos.md);
+  // em nginx locais ainda não migrados ele serve o conteúdo direto. Ambos
+  // os casos resolvem para a vitrine correta.
   return `/${slug}/`
 }
 
