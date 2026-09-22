@@ -54,7 +54,7 @@ export function ExplorarPage() {
       })
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false))
-  }, [searchParams])
+  }, [query])
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
