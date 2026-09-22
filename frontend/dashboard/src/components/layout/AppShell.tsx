@@ -41,6 +41,7 @@ export function AppShell() {
     if (isSaasReadOnly(user)) {
       items.push(
         { to: '/admin/tenants', label: 'Tenants', icon: 'building' },
+        { to: '/admin/layouts', label: 'Layouts', icon: 'palette' },
         { to: '/properties', label: 'Imóveis', icon: 'home' },
         { to: '/visits', label: 'Visitas', icon: 'calendar' },
         { to: '/clients', label: 'Clientes', icon: 'users' },
@@ -69,7 +70,12 @@ export function AppShell() {
       items.push({ to: '/settings', label: 'Configurações', icon: 'settings' })
     }
     if (canEditTheme(user)) items.push({ to: '/theme', label: 'Tema', icon: 'palette' })
-    if (isSaasAdmin) items.push({ to: '/admin/tenants', label: 'Tenants', icon: 'building' })
+    if (isSaasAdmin) {
+      items.push(
+        { to: '/admin/tenants', label: 'Tenants', icon: 'building' },
+        { to: '/admin/layouts', label: 'Layouts', icon: 'palette' },
+      )
+    }
     return items
   }, [user, isSaasAdmin])
 

@@ -103,6 +103,15 @@ export interface ThemeConfig {
   themeId: string
   primaryColor?: string
   logoUrl?: string
+  submissions?: Array<{
+    id: string
+    themeKey: string
+    status: string
+    version: number
+    originalFileName: string
+    reviewNotes?: string | null
+    submittedAt: string
+  }>
 }
 
 export interface LoginResponse {

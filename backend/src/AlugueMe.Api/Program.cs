@@ -1,10 +1,13 @@
 using AlugueMe.Api.Health;
 using AlugueMe.Api.Auth;
+using AlugueMe.Api.Urls;
+using AlugueMe.Application.Interfaces;
 using AlugueMe.Domain.Enums;
 using AlugueMe.Infrastructure;
 using AlugueMe.Infrastructure.Options;
 using AlugueMe.Infrastructure.Persistence;
 using AlugueMe.Infrastructure.Persistence.Seed;
+using AlugueMe.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using StackExchange.Redis;
@@ -17,6 +20,8 @@ if (!string.IsNullOrWhiteSpace(publicBasePath))
     builder.Configuration["Storage:PublicBaseUrl"] = $"{publicBasePath.TrimEnd('/')}/media";
 
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<IDashboardBaseUrl, DashboardBaseUrlService>();
 builder.Services.AddHostedService<VisitJourneyWorker>();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
@@ -49,22 +54,17 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+var allowPrivateLanInDev = builder.Environment.IsDevelopment();
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins(
-                "http://localhost",
-                "http://localhost:3000",
-                "http://localhost:5173",
-                "http://127.0.0.1:5173",
-                "http://192.168.15.119",
-                "http://129.153.86.168",
-                "https://allugme.com.br",
-                "https://www.allugme.com.br",
-                "https://allugme.online",
-                "https://www.allugme.online",
-                "https://app.allugme.online")
+        policy.SetIsOriginAllowed(origin =>
+            {
+                if (ProductionCorsOrigins.Values.Contains(origin, StringComparer.Ordinal))
+                    return true;
+                return allowPrivateLanInDev && PrivateNetwork.IsAllowedDevelopmentOrigin(origin);
+            })
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -177,9 +177,8 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 // Assets dos temas oficiais (CSS/JS/img da vitrine)
-var themesRoot = builder.Configuration.GetSection(ThemesOptions.SectionName).Get<ThemesOptions>()?.RootPath
-    ?? "themes/official";
-themesRoot = Path.GetFullPath(themesRoot);
+var themeOptions = builder.Configuration.GetSection(ThemesOptions.SectionName).Get<ThemesOptions>();
+var themesRoot = Path.GetFullPath(themeOptions?.RootPath ?? "themes/official");
 if (Directory.Exists(themesRoot))
 {
     app.UseStaticFiles(new StaticFileOptions
@@ -188,6 +187,14 @@ if (Directory.Exists(themesRoot))
         RequestPath = "/themes"
     });
 }
+
+var customThemesRoot = Path.GetFullPath(themeOptions?.CustomRootPath ?? Path.Combine(themesRoot, "..", "custom"));
+Directory.CreateDirectory(customThemesRoot);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(customThemesRoot),
+    RequestPath = "/themes/custom"
+});
 
 app.MapControllers();
 app.MapHealthChecks("/health");

@@ -2,8 +2,10 @@ using AlugueMe.Api.Auth;
 using AlugueMe.Application.Common;
 using AlugueMe.Application.Dtos.Payments;
 using AlugueMe.Application.Dtos.Tenants;
+using AlugueMe.Application.Dtos.Themes;
 using AlugueMe.Application.Interfaces;
 using AlugueMe.Application.Payments;
+using AlugueMe.Application.Themes;
 using AlugueMe.Domain.Entities;
 using AlugueMe.Domain.Enums;
 using AlugueMe.Infrastructure.Options;
@@ -22,7 +24,8 @@ namespace AlugueMe.Api.Controllers;
 public class TenantsController(
     AppDbContext db,
     IOptions<PixOptions> pixOptions,
-    IQrCodeGenerator qrCodeGenerator) : ControllerBase
+    IQrCodeGenerator qrCodeGenerator,
+    ICustomThemePackage customThemes) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<TenantDto>>> List(CancellationToken ct)
@@ -177,7 +180,73 @@ public class TenantsController(
         if (tenant is null)
             return NotFound();
 
-        return Ok(new ThemeResponse(tenant.ThemeKey));
+        return Ok(await ThemePayloadAsync(tenant, ct));
+    }
+
+    [HttpGet("me/theme/model")]
+    public ActionResult<ThemeModelResponse> GetThemeModel()
+    {
+        return Ok(new ThemeModelResponse(
+            OfficialThemeCatalog.Keys,
+            ThemeModelRules.RequiredFiles,
+            ThemeModelRules.RequiredPages,
+            [
+                "tenant.name", "tenant.logo_url", "tenant.phone",
+                "property.id", "property.title", "property.price", "property.city",
+                "property.neighborhood", "property.bedrooms", "property.operation",
+                "property.images", "property.description", "properties",
+                "search.filters", "visit.slots_endpoint", "visit.submit_endpoint",
+                "api.base", "app.dashboard_url"
+            ],
+            "O ZIP precisa seguir o modelo oficial. A vitrine só usa o layout após validação no painel administrativo da Allugme."));
+    }
+
+    [HttpPost("me/theme/submissions")]
+    [RequestSizeLimit(ThemeModelRules.MaxPackageBytes)]
+    public async Task<ActionResult<CustomThemeSubmissionDto>> SubmitCustomTheme(IFormFile? package, CancellationToken ct)
+    {
+        var tenantId = User.GetTenantId();
+        if (tenantId is null)
+            return BadRequest(new { message = "Contexto de tenant não definido." });
+
+        var role = User.GetRole();
+        if (role is not ("agency_admin" or "independent_broker"))
+            return Forbid();
+
+        if (package is null || package.Length == 0)
+            return BadRequest(new { message = "Envie um ZIP do layout no modelo publicado." });
+        if (package.Length > ThemeModelRules.MaxPackageBytes)
+            return BadRequest(new { message = "O pacote excede 8 MB." });
+
+        var tenant = await db.Tenants.FindAsync([tenantId.Value], ct);
+        if (tenant is null)
+            return NotFound();
+
+        var maxVersion = await db.CustomThemeSubmissions
+            .Where(s => s.TenantId == tenant.Id)
+            .Select(s => (int?)s.Version)
+            .MaxAsync(ct);
+        var nextVersion = (maxVersion ?? 0) + 1;
+
+        var submission = new CustomThemeSubmission
+        {
+            Id = Guid.NewGuid(),
+            TenantId = tenant.Id,
+            Version = nextVersion,
+            OriginalFileName = Path.GetFileName(package.FileName)
+        };
+
+        await using var stream = package.OpenReadStream();
+        var stored = await customThemes.StorePendingAsync(
+            tenant.Id, submission.Id, nextVersion, submission.OriginalFileName, stream, ct);
+        if (!stored.IsValid)
+            return BadRequest(new { message = string.Join(" ", stored.Errors) });
+
+        submission.StorageFolder = stored.StorageFolder;
+        db.CustomThemeSubmissions.Add(submission);
+        await db.SaveChangesAsync(ct);
+
+        return Ok(ToDto(submission, tenant.Name));
     }
 
     [HttpPut("me/theme")]
@@ -195,8 +264,46 @@ public class TenantsController(
         if (tenant is null)
             return NotFound();
 
-        tenant.ThemeKey = request.ThemeKey;
+        var themeKey = request.ResolvedKey;
+        CustomThemeSubmission? submission = null;
+        if (OfficialThemeCatalog.TryParseCustomKey(themeKey, out var submissionId))
+        {
+            submission = await db.CustomThemeSubmissions.FirstOrDefaultAsync(s => s.Id == submissionId, ct);
+        }
+
+        if (!ThemeActivation.CanActivate(themeKey, submission, tenant.Id))
+            return BadRequest(new { message = "Só é possível ativar um tema oficial ou um layout próprio já aprovado pelo administrador." });
+
+        tenant.ThemeKey = OfficialThemeCatalog.IsOfficial(themeKey)
+            ? themeKey.Trim().ToLowerInvariant()
+            : themeKey.Trim();
         await db.SaveChangesAsync(ct);
-        return Ok(new ThemeResponse(tenant.ThemeKey));
+        return Ok(await ThemePayloadAsync(tenant, ct));
     }
+
+    private async Task<ThemeResponse> ThemePayloadAsync(Tenant tenant, CancellationToken ct)
+    {
+        var submissions = await db.CustomThemeSubmissions
+            .Where(s => s.TenantId == tenant.Id)
+            .OrderByDescending(s => s.SubmittedAt)
+            .ToListAsync(ct);
+
+        return new ThemeResponse(
+            tenant.ThemeKey,
+            tenant.ThemeKey,
+            submissions.Select(s => ToDto(s, tenant.Name)).ToList());
+    }
+
+    private static CustomThemeSubmissionDto ToDto(CustomThemeSubmission submission, string tenantName) =>
+        new(
+            submission.Id,
+            submission.TenantId,
+            tenantName,
+            submission.Version,
+            submission.Status.ToString().ToLowerInvariant(),
+            submission.ThemeKey,
+            submission.OriginalFileName,
+            submission.ReviewNotes,
+            submission.SubmittedAt,
+            submission.ReviewedAt);
 }

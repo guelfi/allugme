@@ -25,7 +25,7 @@ public class AuthController(
     AppDbContext db,
     IJwtTokenService jwt,
     IOptions<PixOptions> pixOptions,
-    IOptions<AppPublicOptions> appPublicOptions,
+    IDashboardBaseUrl dashboardBaseUrl,
     IQrCodeGenerator qrCodeGenerator,
     IEmailSender emailSender,
     IEmailTemplateRenderer emailTemplates,
@@ -361,7 +361,7 @@ public class AuthController(
         });
         await db.SaveChangesAsync(ct);
 
-        var baseUrl = appPublicOptions.Value.DashboardBaseUrl.TrimEnd('/');
+        var baseUrl = dashboardBaseUrl.GetBaseUrl();
         var resetUrl = $"{baseUrl}/reset-password?token={Uri.EscapeDataString(rawToken)}";
 
         try
@@ -585,7 +585,7 @@ public class AuthController(
             ExpiresAt = now.AddHours(EmailVerificationHours), CreatedAt = now
         });
         await db.SaveChangesAsync(ct);
-        var url = $"{appPublicOptions.Value.DashboardBaseUrl.TrimEnd('/')}/verify-email?token={Uri.EscapeDataString(rawToken)}";
+        var url = $"{dashboardBaseUrl.GetBaseUrl()}/verify-email?token={Uri.EscapeDataString(rawToken)}";
         try
         {
             var html = $"<div style=\"font-family:Arial;max-width:520px;margin:auto\"><h2 style=\"color:#0f766e\">Confirme seu e-mail</h2><p>Olá, {System.Net.WebUtility.HtmlEncode(user.Name)}.</p><p>Confirme seu endereço para proteger sua conta e vincular com segurança suas visitas.</p><p><a href=\"{url}\" style=\"background:#0f766e;color:white;padding:12px 18px;border-radius:8px;text-decoration:none\">Confirmar e-mail</a></p><p>O link expira em 24 horas.</p></div>";

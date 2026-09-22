@@ -1,17 +1,40 @@
 import { type FormEvent, useState } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import { AuthCardHeader } from '../components/AuthCardHeader'
 import { PasswordInput } from '../components/PasswordInput'
+import { addFavorite } from '../api/portal'
 import { useAuth } from '../contexts/AuthContext'
+
+/**
+ * Ver comentário equivalente em ClientRegisterPage.tsx: a vitrine roda em
+ * outro subdomínio e não compartilha sessão com o painel, então o favorito
+ * é aplicado logo após o login e o retorno é uma navegação cross-domain.
+ */
+async function favoriteAndReturn(propertyId: string, returnUrl: string): Promise<void> {
+  try {
+    await addFavorite(propertyId)
+  } catch {
+    /* segue para o retorno mesmo se o favorito falhar */
+  }
+  const separator = returnUrl.includes('?') ? '&' : '?'
+  window.location.href = `${returnUrl}${separator}favorited=${encodeURIComponent(propertyId)}`
+}
 
 export function LoginPage() {
   const { login, isLoading, user, isInitializing } = useAuth()
+  const [searchParams] = useSearchParams()
+  const propertyId = searchParams.get('propertyId')
+  const returnUrl = searchParams.get('returnUrl')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   if (!isInitializing && user) {
     const isClient = user.role === 'client' || user.isClient
+    if (isClient && propertyId && returnUrl) {
+      void favoriteAndReturn(propertyId, returnUrl)
+      return null
+    }
     return <Navigate to={isClient ? '/portal' : '/painel'} replace />
   }
 
@@ -21,6 +44,10 @@ export function LoginPage() {
     const result = await login(email, password)
     if (!result.success) {
       setError(result.error ?? 'Credenciais inválidas')
+      return
+    }
+    if (propertyId && returnUrl) {
+      await favoriteAndReturn(propertyId, returnUrl)
     }
   }
 
@@ -68,7 +95,7 @@ export function LoginPage() {
           {isLoading ? 'Entrando…' : 'Entrar'}
         </button>
         <p className="muted" style={{ textAlign: 'center', marginTop: '0.75rem' }}>
-          Novo por aqui? <Link to="/portal/register">Cadastre-se</Link>
+          Novo por aqui? <Link to={{ pathname: '/portal/register', search: searchParams.toString() }}>Cadastre-se</Link>
         </p>
       </form>
     </div>

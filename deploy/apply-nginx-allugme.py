@@ -99,11 +99,14 @@ def main() -> int:
         if not ok_domain:
             print("WARNING: could not insert Allugme domain servers", file=sys.stderr)
 
-    updated, ok_ip = insert_before(updated, block, r"^[ \t]*location\s+/driverhub/\s*\{")
+    ANCHOR_MOD = r"(?:\^~\s+|~\*?\s+)?"
+    updated, ok_ip = insert_before(updated, block, r"^[ \t]*location\s+" + ANCHOR_MOD + r"/driverhub/\s*\{")
     if not ok_ip:
-        updated, ok_ip = insert_before(updated, block, r"^[ \t]*location\s+/hako/\s*\{")
+        updated, ok_ip = insert_before(updated, block, r"^[ \t]*location\s+" + ANCHOR_MOD + r"/hako/\s*\{")
     if not ok_ip:
-        updated, ok_ip = insert_before(updated, block, r"^[ \t]*location\s+/unisystem/\s*\{")
+        updated, ok_ip = insert_before(updated, block, r"^[ \t]*location\s+" + ANCHOR_MOD + r"/unisystem/\s*\{")
+    if not ok_ip:
+        print("WARNING: could not find an insertion anchor for the Allugme IP/path fragment", file=sys.stderr)
 
     # Match only the batuara TLS server (not allugme.com.br / hako).
     ssl_server = re.search(

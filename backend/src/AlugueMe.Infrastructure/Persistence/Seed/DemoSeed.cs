@@ -9,9 +9,16 @@ using Microsoft.Extensions.Options;
 
 namespace AlugueMe.Infrastructure.Persistence.Seed;
 
-public class DemoSeed(AppDbContext db, IOptions<SeedOptions> seedOptions, ILogger<DemoSeed> logger)
+public class DemoSeed(
+    AppDbContext db,
+    IOptions<SeedOptions> seedOptions,
+    IOptions<ThemesOptions> themesOptions,
+    IOptions<StorageOptions> storageOptions,
+    ILogger<DemoSeed> logger)
 {
     private readonly SeedOptions _options = seedOptions.Value;
+    private readonly ThemesOptions _themes = themesOptions.Value;
+    private readonly StorageOptions _storage = storageOptions.Value;
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
@@ -201,37 +208,99 @@ public class DemoSeed(AppDbContext db, IOptions<SeedOptions> seedOptions, ILogge
 
     private async Task EnsurePropertiesAsync(Tenant tenant, Guid responsibleBrokerId, CancellationToken cancellationToken)
     {
-        var count = await db.Properties.CountAsync(p => p.TenantId == tenant.Id, cancellationToken);
-        if (count >= 3)
+        var listings = DemoListingCatalog.ForTenant(tenant.Slug);
+        if (listings.Count == 0)
             return;
 
-        var templates = new[]
-        {
-            ("Studio conectado no coração de SP", PropertyOperation.Rent, 3200m, 1, 45m, PropertyType.Studio),
-            ("Apartamento amplo com vista", PropertyOperation.Sale, 850000m, 3, 95m, PropertyType.Apartment),
-            ("Casa familiar em bairro tranquilo", PropertyOperation.Rent, 4500m, 3, 120m, PropertyType.House)
-        };
+        var properties = await db.Properties
+            .Include(p => p.Media)
+            .Where(p => p.TenantId == tenant.Id)
+            .OrderBy(p => p.CreatedAt)
+            .ThenBy(p => p.Title)
+            .ToListAsync(cancellationToken);
 
-        for (var i = count; i < templates.Length; i++)
+        for (var i = 0; i < listings.Count; i++)
         {
-            var (title, op, price, beds, area, ptype) = templates[i];
-            db.Properties.Add(new Property
+            var listing = listings[i];
+            Property property;
+            if (i < properties.Count)
+            {
+                property = properties[i];
+            }
+            else
+            {
+                property = new Property
+                {
+                    Id = Guid.NewGuid(),
+                    TenantId = tenant.Id,
+                    ResponsibleBrokerId = responsibleBrokerId,
+                    Status = PropertyStatus.Published,
+                    PublishedAt = DateTime.UtcNow
+                };
+                db.Properties.Add(property);
+            }
+
+            property.ResponsibleBrokerId = responsibleBrokerId;
+            property.Operation = listing.Operation;
+            property.PropertyType = listing.PropertyType;
+            property.Title = listing.Title;
+            property.Description = listing.Description;
+            property.City = listing.City;
+            property.Neighborhood = listing.Neighborhood;
+            property.Price = listing.Price;
+            property.Bedrooms = listing.Bedrooms;
+            property.AreaSqm = listing.AreaSqm;
+            if (property.Status != PropertyStatus.Published)
+                property.Status = PropertyStatus.Published;
+            property.PublishedAt ??= DateTime.UtcNow;
+
+            EnsureDemoPhoto(property, listing);
+        }
+    }
+
+    private void EnsureDemoPhoto(Property property, DemoListing listing)
+    {
+        var hasRealPhoto = property.Media.Any(m =>
+            m.MediaType == PropertyMediaType.Photo &&
+            !m.Path.StartsWith("demo-", StringComparison.OrdinalIgnoreCase));
+        if (hasRealPhoto)
+            return;
+
+        var destName = $"demo-{listing.PhotoFile}";
+        var source = Path.GetFullPath(Path.Combine(_themes.RootPath, "_platform", "demo-listings", listing.PhotoFile));
+        if (!File.Exists(source))
+        {
+            logger.LogWarning("Foto demo ausente: {Path}", source);
+            return;
+        }
+
+        var mediaDir = Path.GetFullPath(_storage.MediaPath);
+        Directory.CreateDirectory(mediaDir);
+        var dest = Path.Combine(mediaDir, destName);
+        File.Copy(source, dest, overwrite: true);
+
+        var current = property.Media
+            .Where(m => m.MediaType == PropertyMediaType.Photo && m.Path.StartsWith("demo-", StringComparison.OrdinalIgnoreCase))
+            .OrderBy(m => m.SortOrder)
+            .ToList();
+        if (current.Count == 0)
+        {
+            var media = new PropertyMedia
             {
                 Id = Guid.NewGuid(),
-                TenantId = tenant.Id,
-                ResponsibleBrokerId = responsibleBrokerId,
-                Operation = op,
-                Status = PropertyStatus.Published,
-                PropertyType = ptype,
-                Title = $"{title} — {tenant.Name}",
-                Description = $"Imóvel demo para vitrine {tenant.ThemeKey}.",
-                City = "São Paulo",
-                Neighborhood = i switch { 0 => "Pinheiros", 1 => "Moema", _ => "Vila Mariana" },
-                Price = price,
-                Bedrooms = beds,
-                AreaSqm = area,
-                PublishedAt = DateTime.UtcNow
-            });
+                PropertyId = property.Id,
+                Path = destName,
+                MediaType = PropertyMediaType.Photo,
+                SortOrder = 0
+            };
+            property.Media.Add(media);
+            db.PropertyMedia.Add(media);
+            return;
         }
+
+        current[0].Path = destName;
+        current[0].SortOrder = 0;
+        foreach (var extra in current.Skip(1))
+            db.PropertyMedia.Remove(extra);
     }
 }

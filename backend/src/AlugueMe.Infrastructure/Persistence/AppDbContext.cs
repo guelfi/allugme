@@ -23,6 +23,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<FavoriteProperty> FavoriteProperties => Set<FavoriteProperty>();
     public DbSet<VisitFeedback> VisitFeedbacks => Set<VisitFeedback>();
     public DbSet<EmailVerificationToken> EmailVerificationTokens => Set<EmailVerificationToken>();
+    public DbSet<CustomThemeSubmission> CustomThemeSubmissions => Set<CustomThemeSubmission>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -169,6 +170,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(x => new { x.UserId, x.ExpiresAt });
             e.Property(x => x.TokenHash).HasMaxLength(128);
             e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
+        });
+
+        modelBuilder.Entity<CustomThemeSubmission>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.TenantId, x.Version }).IsUnique();
+            e.HasIndex(x => x.Status);
+            e.Property(x => x.OriginalFileName).HasMaxLength(260);
+            e.Property(x => x.StorageFolder).HasMaxLength(400);
+            e.Property(x => x.ReviewNotes).HasMaxLength(2000);
+            e.Ignore(x => x.ThemeKey);
+            e.HasOne(x => x.Tenant).WithMany().HasForeignKey(x => x.TenantId);
         });
 
         modelBuilder.Entity<VisitFeedback>(e =>

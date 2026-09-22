@@ -2,9 +2,7 @@ using AlugueMe.Application.Interfaces;
 using AlugueMe.Application.Visits;
 using AlugueMe.Domain.Entities;
 using AlugueMe.Domain.Enums;
-using AlugueMe.Infrastructure.Options;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace AlugueMe.Infrastructure.Email;
 
@@ -12,7 +10,7 @@ namespace AlugueMe.Infrastructure.Email;
 public class TransactionalEmailService(
     IEmailSender emailSender,
     IEmailTemplateRenderer templates,
-    IOptions<AppPublicOptions> appOptions,
+    IDashboardBaseUrl dashboardBaseUrl,
     ILogger<TransactionalEmailService> logger)
 {
     public async Task SendBrokerInviteAsync(
@@ -21,7 +19,7 @@ public class TransactionalEmailService(
         string rawToken,
         CancellationToken ct)
     {
-        var baseUrl = appOptions.Value.DashboardBaseUrl.TrimEnd('/');
+        var baseUrl = dashboardBaseUrl.GetBaseUrl();
         var acceptUrl = $"{baseUrl}/accept-invite?token={Uri.EscapeDataString(rawToken)}";
         try
         {
@@ -78,7 +76,7 @@ public class TransactionalEmailService(
                     ["visitor_email"] = visit.VisitorEmail ?? "—",
                     ["visit_when"] = sp.ToString("dd/MM/yyyy HH:mm"),
                     ["confirmation_code"] = visit.ConfirmationCode,
-                    ["panel_url"] = $"{appOptions.Value.DashboardBaseUrl.TrimEnd('/')}/visits"
+                    ["panel_url"] = $"{dashboardBaseUrl.GetBaseUrl()}/visits"
                 },
                 ct);
             await emailSender.SendAsync(
@@ -108,7 +106,7 @@ public class TransactionalEmailService(
         if (visit.Status == VisitStatus.Done)
         {
             await SendSimpleVisitorEmailAsync(visit, tenant, $"{tenant.Name} — Conte como foi sua visita",
-                "Sua visita foi concluída", $"Avalie o imóvel e o atendimento no seu portal: {appOptions.Value.DashboardBaseUrl.TrimEnd('/')}/portal/visits", ct);
+                "Sua visita foi concluída", $"Avalie o imóvel e o atendimento no seu portal: {dashboardBaseUrl.GetBaseUrl()}/portal/visits", ct);
             return;
         }
 
@@ -118,7 +116,7 @@ public class TransactionalEmailService(
         var subject = visit.Status == VisitStatus.Confirmed
             ? $"{tenant.Name} — Visita confirmada"
             : $"{tenant.Name} — Visita recusada";
-        var portalUrl = $"{appOptions.Value.DashboardBaseUrl.TrimEnd('/')}/portal";
+        var portalUrl = $"{dashboardBaseUrl.GetBaseUrl()}/portal";
         var sp = VisitSlotCalculator.ToSaoPaulo(visit.StartAt);
 
         try
@@ -152,7 +150,7 @@ public class TransactionalEmailService(
 
     public Task SendVisitReminderAsync(Visit visit, Tenant tenant, string whenLabel, CancellationToken ct) =>
         SendSimpleVisitorEmailAsync(visit, tenant, $"{tenant.Name} — Lembrete de visita",
-            $"Sua visita é {whenLabel}", $"Imóvel: {visit.Property.Title}. Consulte os detalhes em {appOptions.Value.DashboardBaseUrl.TrimEnd('/')}/portal/visits", ct);
+            $"Sua visita é {whenLabel}", $"Imóvel: {visit.Property.Title}. Consulte os detalhes em {dashboardBaseUrl.GetBaseUrl()}/portal/visits", ct);
 
     private async Task SendSimpleVisitorEmailAsync(Visit visit, Tenant tenant, string subject, string heading, string body, CancellationToken ct)
     {

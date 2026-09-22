@@ -84,6 +84,7 @@ services:
       Swagger__Enabled: ${Swagger__Enabled:-true}
       Evolution__Enabled: ${Evolution__Enabled:-false}
       Themes__RootPath: /app/themes/official
+      Themes__CustomRootPath: /app/themes/custom
       PublicBasePath: ""
       Cors__Origins__0: https://allugme.com.br
       Cors__Origins__1: https://www.allugme.com.br
@@ -109,6 +110,7 @@ services:
       - ./storage/media:/app/storage/media
       - ./storage/email-templates:/app/storage/email-templates
       - ./themes/official:/app/themes/official:ro
+      - ./themes/custom:/app/themes/custom
     expose:
       - "8080"
     networks:

@@ -22,6 +22,7 @@ public interface IAppDbContext
     DbSet<FavoriteProperty> FavoriteProperties { get; }
     DbSet<VisitFeedback> VisitFeedbacks { get; }
     DbSet<EmailVerificationToken> EmailVerificationTokens { get; }
+    DbSet<CustomThemeSubmission> CustomThemeSubmissions { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

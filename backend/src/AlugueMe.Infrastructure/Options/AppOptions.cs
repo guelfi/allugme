@@ -36,6 +36,7 @@ public class ThemesOptions
 {
     public const string SectionName = "Themes";
     public string RootPath { get; set; } = "../../themes/official";
+    public string CustomRootPath { get; set; } = "../../themes/custom";
 }
 
 public class StorageOptions

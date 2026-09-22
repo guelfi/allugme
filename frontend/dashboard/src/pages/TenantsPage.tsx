@@ -13,11 +13,15 @@ const statusLabel: Record<string, string> = {
   trial: 'Em teste',
 }
 
+type TypeFilter = '' | 'agency' | 'independent'
+
 export function TenantsPage() {
   const [items, setItems] = useState<Tenant[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const pagination = usePagination(items)
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('')
+  const filteredItems = typeFilter ? items.filter((t) => t.type === typeFilter) : items
+  const pagination = usePagination(filteredItems)
 
   useEffect(() => {
     listTenants()
@@ -78,8 +82,18 @@ export function TenantsPage() {
         <p className="muted">Carregando…</p>
       ) : (
         <div className="table-shell">
-          <div className="table-toolbar">
-            <TablePagination total={items.length} page={pagination.page} pageCount={pagination.pageCount} pageSize={pagination.pageSize} onPageChange={pagination.setPage} itemLabel="tenants" />
+          <div className="table-toolbar table-toolbar-split">
+            <select
+              className="table-toolbar-filter"
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value as TypeFilter)}
+              aria-label="Filtrar por tipo"
+            >
+              <option value="">Todos os tipos</option>
+              <option value="agency">Imobiliária</option>
+              <option value="independent">Corretor independente</option>
+            </select>
+            <TablePagination total={filteredItems.length} page={pagination.page} pageCount={pagination.pageCount} pageSize={pagination.pageSize} onPageChange={pagination.setPage} itemLabel="tenants" />
           </div>
           <div className="table-wrap card">
             <table>

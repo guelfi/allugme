@@ -33,6 +33,15 @@ public record PatchTenantPlanRequest(
     int? ExtraBrokerSlots,
     string? Status);
 
-public record ThemeResponse(string ThemeKey);
+public record ThemeResponse(
+    string ThemeKey,
+    string ThemeId,
+    IReadOnlyList<AlugueMe.Application.Dtos.Themes.CustomThemeSubmissionDto> Submissions);
 
-public record UpdateThemeRequest(string ThemeKey);
+public record UpdateThemeRequest(string? ThemeKey, string? ThemeId)
+{
+    public string ResolvedKey =>
+        !string.IsNullOrWhiteSpace(ThemeKey) ? ThemeKey.Trim()
+        : !string.IsNullOrWhiteSpace(ThemeId) ? ThemeId.Trim()
+        : string.Empty;
+}

@@ -5,6 +5,7 @@ using AlugueMe.Application.Dtos.Properties;
 using AlugueMe.Application.Dtos.Visits;
 using AlugueMe.Application.Interfaces;
 using AlugueMe.Application.Payments;
+using AlugueMe.Application.Themes;
 using AlugueMe.Application.Visits;
 using AlugueMe.Domain.Entities;
 using AlugueMe.Domain.Enums;
@@ -24,6 +25,7 @@ public class PublicController(
     AppDbContext db,
     VisitSlotCalculator slotCalculator,
     IFileStorage storage,
+    IThemeResolver themeResolver,
     IRedisLockService lockService,
     IWhatsAppQueue whatsAppQueue,
     IOptions<PixOptions> pixOptions,
@@ -85,14 +87,9 @@ public class PublicController(
             query = query.Where(p => p.Tenant.Slug == tenantSlug);
 
         var items = await query.OrderByDescending(p => p.PublishedAt).Take(100).ToListAsync(ct);
-        var dtos = items.Select(p => new PublicPropertyDto(
-            p.Id, p.Title, p.Description, p.City, p.Neighborhood, p.Price, p.Bedrooms, p.AreaSqm,
-            EnumMapper.ToApi(p.Operation), EnumMapper.ToApi(p.PropertyType),
-            p.Tenant.Name, p.Tenant.Slug,
-            p.Media.Where(m => m.MediaType == PropertyMediaType.Photo).OrderBy(m => m.SortOrder).Select(m => storage.GetPublicUrl(m.Path)).ToList(),
-            p.Media.Where(m => m.MediaType == PropertyMediaType.Video).Select(m => storage.GetPublicUrl(m.Path)).FirstOrDefault(),
-            p.ResponsibleBroker.Name,
-            string.IsNullOrEmpty(p.ResponsibleBroker.AvatarPath) ? null : storage.GetPublicUrl(p.ResponsibleBroker.AvatarPath))).ToList();
+        var dtos = new List<PublicPropertyDto>(items.Count);
+        foreach (var p in items)
+            dtos.Add(await ToPublicDtoAsync(p, ct));
 
         return Ok(new PublicPropertySearchResult(dtos, dtos.Count));
     }
@@ -110,14 +107,7 @@ public class PublicController(
         if (p is null)
             return NotFound();
 
-        return Ok(new PublicPropertyDto(
-            p.Id, p.Title, p.Description, p.City, p.Neighborhood, p.Price, p.Bedrooms, p.AreaSqm,
-            EnumMapper.ToApi(p.Operation), EnumMapper.ToApi(p.PropertyType),
-            p.Tenant.Name, p.Tenant.Slug,
-            p.Media.Where(m => m.MediaType == PropertyMediaType.Photo).OrderBy(m => m.SortOrder).Select(m => storage.GetPublicUrl(m.Path)).ToList(),
-            p.Media.Where(m => m.MediaType == PropertyMediaType.Video).Select(m => storage.GetPublicUrl(m.Path)).FirstOrDefault(),
-            p.ResponsibleBroker.Name,
-            string.IsNullOrEmpty(p.ResponsibleBroker.AvatarPath) ? null : storage.GetPublicUrl(p.ResponsibleBroker.AvatarPath)));
+        return Ok(await ToPublicDtoAsync(p, ct));
     }
 
     [HttpGet("properties/{id:guid}/visit-slots")]
@@ -242,6 +232,30 @@ public class PublicController(
         await db.Entry(visit).Reference(v => v.Property).LoadAsync(ct);
         await db.Entry(visit).Reference(v => v.Broker).LoadAsync(ct);
         return Created($"/api/v1/visits/{visit.Id}", DtoMappers.ToDto(visit));
+    }
+
+    private async Task<PublicPropertyDto> ToPublicDtoAsync(Property p, CancellationToken ct)
+    {
+        var photos = p.Media
+            .Where(m => m.MediaType == PropertyMediaType.Photo)
+            .OrderBy(m => m.SortOrder)
+            .Select(m => storage.GetPublicUrl(m.Path))
+            .Where(url => !string.IsNullOrWhiteSpace(url))
+            .ToList();
+        if (photos.Count == 0)
+        {
+            var location = await themeResolver.ResolveAsync(p.Tenant.ThemeKey, p.Tenant.Id, ct);
+            photos.Add(ThemeListingImage.FallbackUrl(location, ThemeListingImage.VariantFor(p.Id)));
+        }
+
+        return new PublicPropertyDto(
+            p.Id, p.Title, p.Description, p.City, p.Neighborhood, p.Price, p.Bedrooms, p.AreaSqm,
+            EnumMapper.ToApi(p.Operation), EnumMapper.ToApi(p.PropertyType),
+            p.Tenant.Name, p.Tenant.Slug,
+            photos,
+            p.Media.Where(m => m.MediaType == PropertyMediaType.Video).Select(m => storage.GetPublicUrl(m.Path)).FirstOrDefault(),
+            p.ResponsibleBroker.Name,
+            string.IsNullOrEmpty(p.ResponsibleBroker.AvatarPath) ? null : storage.GetPublicUrl(p.ResponsibleBroker.AvatarPath));
     }
 
     private async Task<VisitSlotSettings> ResolveSlotSettingsAsync(Guid brokerId, Guid tenantId, TenantSettings? tenantSettings, CancellationToken ct)

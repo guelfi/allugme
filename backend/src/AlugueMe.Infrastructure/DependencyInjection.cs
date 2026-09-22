@@ -63,6 +63,9 @@ public static class DependencyInjection
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
         services.AddSingleton<IFileStorage, LocalFileStorage>();
         services.AddSingleton<IThemeRenderer, ThemeRenderer>();
+        services.AddSingleton<ICustomThemePackage, CustomThemePackage>();
+        services.AddScoped<IThemeResolver, ThemeResolver>();
+        services.AddScoped<IVitrineComposer, VitrineComposer>();
         services.AddSingleton<IQrCodeGenerator, QrCodeImageGenerator>();
         services.AddSingleton<IEmailSender, SmtpEmailSender>();
         services.AddSingleton<IEmailTemplateRenderer, EmailTemplateRenderer>();

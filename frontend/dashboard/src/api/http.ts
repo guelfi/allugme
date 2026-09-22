@@ -5,9 +5,23 @@ const raw =
 
 export const API_BASE = raw.replace(/\/$/, '')
 
+/**
+ * Resolve a base efetiva da API. Quando VITE_API_URL é uma URL absoluta
+ * (com esquema + host) — caso da produção, onde a API vive em outro
+ * subdomínio — usa exatamente esse valor. Quando é só um caminho (ex.:
+ * "/allugme/api/v1", usado no ambiente local) ou está vazia, resolve
+ * contra a origem atual do navegador. Assim o dev local continua
+ * funcionando mesmo que o IP da LAN mude (DHCP), sem precisar rebuildar.
+ */
+function resolveApiBase(): string {
+  if (!API_BASE) return window.location.origin
+  if (API_BASE.startsWith('/')) return `${window.location.origin}${API_BASE}`
+  return API_BASE
+}
+
 export function resolvePublicAssetUrl(
   value?: string | null,
-  baseUrl: string = API_BASE || window.location.origin,
+  baseUrl: string = resolveApiBase(),
 ): string | undefined {
   if (!value) return undefined
 
@@ -17,6 +31,23 @@ export function resolvePublicAssetUrl(
   } catch {
     return value
   }
+}
+
+/** Fotos da vitrine/tema ficam no host público (`/themes/...`), não no subdomínio da API. */
+export function resolveListingImageUrl(
+  value?: string | null,
+  apiBase: string = resolveApiBase(),
+  pageOrigin: string = typeof window === 'undefined' ? apiBase : window.location.origin,
+): string | undefined {
+  if (!value) return undefined
+  if (value.startsWith('/themes/')) {
+    try {
+      return new URL(value, pageOrigin).toString()
+    } catch {
+      return value
+    }
+  }
+  return resolvePublicAssetUrl(value, apiBase)
 }
 
 function readToken(): string | null {
@@ -48,7 +79,7 @@ type HttpOptions = {
 
 function buildUrl(path: string, query?: Record<string, QueryValue>): string {
   const normalized = path.startsWith('/') ? path : `/${path}`
-  const base = API_BASE || window.location.origin
+  const base = resolveApiBase()
   const url = new URL(`${base}${normalized}`)
   Object.entries(query ?? {}).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {

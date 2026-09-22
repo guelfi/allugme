@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { registerClient } from '../api/auth'
+import { addFavorite } from '../api/portal'
 import { AuthCardHeader } from '../components/AuthCardHeader'
 import { Modal } from '../components/Modal'
 import { PasswordInput } from '../components/PasswordInput'
@@ -11,9 +12,29 @@ import { formatBrPhone, isValidBrPhone, phoneToE164 } from '../utils/phone'
 
 type Step = 'dados' | 'acesso'
 
+/**
+ * Favoritar a partir da vitrine (chave nos cards) sempre passa por aqui:
+ * a vitrine roda em outro subdomínio e não compartilha sessão com o painel,
+ * então o favorito é aplicado logo após o cadastro/login, e o retorno para
+ * a vitrine acontece por navegação de página inteira (cross-domain).
+ */
+async function favoriteAndReturn(propertyId: string, returnUrl: string): Promise<boolean> {
+  try {
+    await addFavorite(propertyId)
+  } catch {
+    /* segue para o retorno mesmo se o favorito falhar; o visitante pode tentar de novo na vitrine */
+  }
+  const separator = returnUrl.includes('?') ? '&' : '?'
+  window.location.href = `${returnUrl}${separator}favorited=${encodeURIComponent(propertyId)}`
+  return true
+}
+
 export function ClientRegisterPage() {
   const { applySession, user, isInitializing } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const propertyId = searchParams.get('propertyId')
+  const returnUrl = searchParams.get('returnUrl')
   const isMobile = useIsMobile()
   const [step, setStep] = useState<Step>('dados')
   const [name, setName] = useState('')
@@ -27,6 +48,10 @@ export function ClientRegisterPage() {
 
   if (!isInitializing && user) {
     const isClient = user.role === 'client' || user.isClient
+    if (isClient && propertyId && returnUrl) {
+      void favoriteAndReturn(propertyId, returnUrl)
+      return null
+    }
     return <Navigate to={isClient ? '/portal' : '/painel'} replace />
   }
 
@@ -81,6 +106,10 @@ export function ClientRegisterPage() {
         acceptPrivacy: true,
       })
       applySession(result.accessToken, result.user)
+      if (propertyId && returnUrl) {
+        await favoriteAndReturn(propertyId, returnUrl)
+        return
+      }
       navigate('/portal', { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha no cadastro')
@@ -227,7 +256,7 @@ export function ClientRegisterPage() {
         </div>
 
         <p className="muted client-register-footer">
-          Já tem conta? <Link to="/login">Entrar</Link>
+          Já tem conta? <Link to={{ pathname: '/login', search: searchParams.toString() }}>Entrar</Link>
         </p>
       </form>
 

@@ -1,17 +1,18 @@
 using AlugueMe.Application.Interfaces;
+using AlugueMe.Application.Themes;
 using AlugueMe.Api.Pages;
-using AlugueMe.Infrastructure.Persistence;
-using AlugueMe.Infrastructure.Themes;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace AlugueMe.Api.Controllers;
 
 [ApiController]
-public class VitrineController(AppDbContext db, IThemeRenderer themeRenderer, IConfiguration configuration) : ControllerBase
+public class VitrineController(
+    IVitrineComposer composer,
+    IConfiguration configuration) : ControllerBase
 {
     [HttpGet("/t/{slug}/{page?}")]
-    public Task<IActionResult> Page(string slug, string? page, CancellationToken ct)
+    [HttpGet("/t/{slug}/{page}/{id:guid}")]
+    public async Task<IActionResult> Page(string slug, string? page, Guid? id, CancellationToken ct)
     {
         page = string.IsNullOrWhiteSpace(page) ? "home" : page;
         page = page.EndsWith(".html", StringComparison.OrdinalIgnoreCase)
@@ -19,17 +20,14 @@ public class VitrineController(AppDbContext db, IThemeRenderer themeRenderer, IC
             : page.TrimEnd('/');
         if (string.IsNullOrWhiteSpace(page))
             page = "home";
-        return RenderAsync(slug, page, ct);
-    }
 
-    private async Task<IActionResult> RenderAsync(string slug, string page, CancellationToken ct)
-    {
-        var tenant = await db.Tenants
-            .Include(t => t.Settings)
-            .FirstOrDefaultAsync(t => t.Slug == slug &&
-                (t.Status == Domain.Enums.TenantStatus.Active || t.Status == Domain.Enums.TenantStatus.Trial), ct);
+        var queryPairs = Request.Query.SelectMany(kvp =>
+            kvp.Value.Select(v => new KeyValuePair<string, string?>(kvp.Key, v)));
+        var propertyId = id ?? ThemeSearchQuery.ParsePropertyId(queryPairs);
+        var search = ThemeSearchQuery.From(queryPairs);
 
-        if (tenant is null)
+        var result = await composer.ComposeAsync(new VitrineComposeRequest(slug, page, propertyId, search), ct);
+        if (result.StatusCode == 404)
         {
             var marketingBaseUrl = configuration["App:MarketingBaseUrl"] ?? "https://allugme.online";
             return new ContentResult
@@ -40,31 +38,6 @@ public class VitrineController(AppDbContext db, IThemeRenderer themeRenderer, IC
             };
         }
 
-        // API/painel ficam sob /allugme; assets da vitrine na raiz (/themes/...).
-        var publicBase = configuration["PublicBasePath"]?.TrimEnd('/') ?? "";
-        var apiBase = string.IsNullOrEmpty(publicBase) ? "/api/v1" : $"{publicBase}/api/v1";
-        var themesBase = configuration["VitrineThemesBasePath"] ?? "";
-
-        var placeholders = new Dictionary<string, string>
-        {
-            ["tenant.name"] = tenant.Name,
-            ["tenant.logo_url"] = "",
-            ["tenant.phone"] = tenant.Settings?.WhatsAppE164 ?? "",
-            ["visit.slots_endpoint"] = $"{apiBase}/public/properties/{{propertyId}}/visit-slots",
-            ["visit.submit_endpoint"] = $"{apiBase}/public/visits",
-            ["search.filters"] = "",
-            ["property.title"] = "",
-            ["property.price"] = "",
-            ["property.city"] = "",
-            ["property.neighborhood"] = "",
-            ["property.bedrooms"] = "",
-            ["property.operation"] = "",
-            ["property.images"] = "",
-            ["properties"] = ""
-        };
-
-        var html = await themeRenderer.RenderPageAsync(tenant.ThemeKey, page, placeholders, ct);
-        html = ThemeAssetUrlRewriter.Rewrite(html, tenant.ThemeKey, themesBase);
-        return Content(html, "text/html; charset=utf-8");
+        return Content(result.Html, "text/html; charset=utf-8");
     }
 }

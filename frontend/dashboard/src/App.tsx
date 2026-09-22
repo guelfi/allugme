@@ -13,6 +13,7 @@ import { RegisterPage } from './pages/RegisterPage'
 import { AcceptInvitePage } from './pages/AcceptInvitePage'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { ClientRegisterPage } from './pages/ClientRegisterPage'
+import { ExplorarPage } from './pages/ExplorarPage'
 import { ClientShell } from './pages/ClientShell'
 import { PortalHomePage } from './pages/PortalHomePage'
 import { PortalFavoritesPage } from './pages/PortalFavoritesPage'
@@ -25,6 +26,7 @@ import { SettingsPage } from './pages/SettingsPage'
 import { TenantsPage } from './pages/TenantsPage'
 import { TenantDetailPage } from './pages/TenantDetailPage'
 import { ThemePage } from './pages/ThemePage'
+import { AdminLayoutsPage } from './pages/AdminLayoutsPage'
 import { TeamPage } from './pages/TeamPage'
 import { ClientsPage } from './pages/ClientsPage'
 
@@ -40,6 +42,7 @@ const routeTitles: Record<string, string> = {
   '/privacy': 'Allugme — Privacidade',
   '/accept-invite': 'Allugme — Aceitar convite',
   '/portal/register': 'Allugme — Cadastro de cliente',
+  '/explorar': 'Allugme — Buscar imóveis',
   '/portal': 'Allugme — Portal do cliente',
   '/portal/favorites': 'Allugme — Favoritos',
   '/portal/visits': 'Allugme — Minhas visitas',
@@ -52,6 +55,7 @@ const routeTitles: Record<string, string> = {
   '/settings': 'Allugme — Configurações',
   '/theme': 'Allugme — Tema',
   '/admin/tenants': 'Allugme — Tenants',
+  '/admin/layouts': 'Allugme — Layouts',
 }
 
 function DocumentTitle() {
@@ -88,6 +92,7 @@ export default function App() {
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/accept-invite" element={<AcceptInvitePage />} />
             <Route path="/portal/register" element={<ClientRegisterPage />} />
+            <Route path="/explorar" element={<ExplorarPage />} />
           </Route>
 
           <Route element={<ClientPortalRoute />}>
@@ -112,6 +117,7 @@ export default function App() {
               <Route element={<SaasAdminRoute />}>
                 <Route path="admin/tenants" element={<TenantsPage />} />
                 <Route path="admin/tenants/:id" element={<TenantDetailPage />} />
+                <Route path="admin/layouts" element={<AdminLayoutsPage />} />
               </Route>
             </Route>
           </Route>

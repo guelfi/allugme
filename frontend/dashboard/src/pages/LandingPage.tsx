@@ -11,6 +11,7 @@ import {
 } from '../contact'
 
 import { agencyPricing, independentPricing, yearlySavingsLabel } from '../pricing'
+import { vitrineHomeUrl } from '../vitrineUrl'
 
 type CarouselDirection = 'forward' | 'reverse'
 type PlanAudience = 'agency' | 'independent'
@@ -84,21 +85,7 @@ function thumbSrc(key: string) {
 }
 
 function demoUrl(slug: string) {
-  const hostname = window.location.hostname.toLowerCase()
-
-  // Esquema canônico: qualquer host da família allugme.online (site
-  // comercial, painel app.allugme.online, ou uma vitrine de tenant)
-  // sempre aponta a prévia para o subdomínio dedicado do tema.
-  if (hostname === 'allugme.online' || hostname.endsWith('.allugme.online')) {
-    return `https://${slug}.allugme.online/`
-  }
-
-  // Fora do domínio allugme.online (dev local, IP da rede, etc.): fallback
-  // pela raiz. Em produção esse path é um redirect legado para /loja/{slug}/
-  // (ver docs/handoff/PENDENCIA-nginx-vitrine-regex-conflita-static-outros-projetos.md);
-  // em nginx locais ainda não migrados ele serve o conteúdo direto. Ambos
-  // os casos resolvem para a vitrine correta.
-  return `/${slug}/`
+  return vitrineHomeUrl(slug)
 }
 
 function HeroLayoutCarousel({ items }: { items: readonly ThemeItem[] }) {
@@ -375,6 +362,9 @@ export function LandingPage() {
           </nav>
 
           <div className="lp-nav-actions">
+            <Link to="/explorar" className="btn btn-ghost btn-sm lp-nav-client">
+              Buscar imóveis
+            </Link>
             <Link to="/login" className="btn btn-ghost btn-sm">
               Entrar
             </Link>
@@ -400,9 +390,12 @@ export function LandingPage() {
               <Link to="/register?type=independent" className="btn btn-secondary btn-lg">
                 Sou corretor
               </Link>
+              <Link to="/explorar" className="btn btn-ghost btn-lg">
+                Sou cliente
+              </Link>
             </div>
             <p className="lp-hero-note lp-hero-note-inline">
-              Cadastro em minutos. 7 dias grátis para testar, pague via Pix quando quiser.
+              Imobiliária e corretor: 7 dias grátis. Cliente: busque imóveis nas vitrines da rede.
             </p>
           </div>
           <div className="lp-hero-visual">
@@ -420,9 +413,12 @@ export function LandingPage() {
             <Link to="/register?type=independent" className="btn btn-secondary btn-lg">
               Sou corretor
             </Link>
+            <Link to="/explorar" className="btn btn-ghost btn-lg">
+              Sou cliente
+            </Link>
           </div>
           <p className="lp-hero-note lp-hero-note-after">
-            Cadastro em minutos. 7 dias grátis para testar, pague via Pix quando quiser.
+            Imobiliária e corretor: 7 dias grátis. Cliente: busque imóveis nas vitrines da rede.
           </p>
         </section>
 
@@ -566,7 +562,7 @@ export function LandingPage() {
             <h2>Coloque sua carteira de imóveis na nuvem</h2>
             <p>
               Imobiliária com equipe ou corretor independente: cadastre-se e use o Allugme agora
-              mesmo, de graça, por 7 dias. Pague via Pix quando quiser. Ou fale conosco agora.
+              mesmo, de graça, por 7 dias. Quem busca imóvel pesquisa nas vitrines da rede.
             </p>
             <div className="lp-close-cta">
               <Link to="/register?type=agency" className="btn btn-primary btn-lg">
@@ -574,6 +570,9 @@ export function LandingPage() {
               </Link>
               <Link to="/register?type=independent" className="btn btn-ghost-light btn-lg">
                 Cadastrar corretor
+              </Link>
+              <Link to="/explorar" className="btn btn-ghost-light btn-lg">
+                Sou cliente — buscar imóveis
               </Link>
             </div>
             <div className="lp-close-contact" aria-label="Canais de contato">
