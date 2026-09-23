@@ -23,7 +23,7 @@ Site comercial: `https://allugme.online`. O host `www` e o domínio web legado
 | `themes/official/` | Vitrine HTML (moderno, classico, urbano, minimal) |
 | `deploy/` | Fragmentos nginx + script de apply idempotente |
 | `storage/` | Mídia, logs e sites estáticos (dev) |
-| `docs/` | Documentação do produto (PRD, DET, escopo, handoff, design) |
+| `docs/` | [Roadmap](docs/ROADMAP.md) — único backlog |
 
 ## Pré-requisitos
 
@@ -71,4 +71,4 @@ Deploy automatizado: workflow `.github/workflows/deploy-oci.yml` (após CI verde
 Path no servidor: `/var/www/allugme`.
 ## Documentação
 
-Comece por [`docs/README.md`](docs/README.md).
+Backlog: [`docs/ROADMAP.md`](docs/ROADMAP.md).

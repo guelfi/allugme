@@ -99,6 +99,7 @@
   }
 
   function initSlots() {
+    if (window.ALLUGME_VITRINE) return;
     const box = document.querySelector("[data-slots]");
     if (!box) return;
     if (!box.children.length || /\{\{/.test(box.innerHTML)) {

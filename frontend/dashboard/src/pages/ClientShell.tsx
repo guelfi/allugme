@@ -20,6 +20,7 @@ export function ClientShell() {
         </NavLink>
         <NavLink to="/portal/favorites">Favoritos</NavLink>
         <NavLink to="/portal/visits">Minhas visitas</NavLink>
+        <NavLink to="/portal/agendar">Agendar</NavLink>
         <button type="button" className="portal-logout" onClick={() => void logout()}>
           Sair
         </button>

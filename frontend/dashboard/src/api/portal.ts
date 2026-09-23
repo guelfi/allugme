@@ -46,6 +46,23 @@ export function getPropertyVisitSlots(propertyId: string, date: string): Promise
   return get(`/public/properties/${propertyId}/visit-slots?date=${encodeURIComponent(date)}`)
 }
 
+export function createPortalVisit(payload: {
+  propertyId: string
+  startAt: string
+  visitorName: string
+  visitorPhone: string
+  visitorEmail: string
+}): Promise<Visit> {
+  return post<Visit>('/public/visits', {
+    propertyId: payload.propertyId,
+    visitorName: payload.visitorName,
+    visitorPhone: payload.visitorPhone,
+    visitorEmail: payload.visitorEmail,
+    startAt: payload.startAt,
+    acceptPrivacy: true,
+  })
+}
+
 export type PortalSummary = {
   pendingVisits: number
   favoriteCount: number

@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router-dom'
+import { toSafePortalPath } from '../auth/safeReturnUrl'
 import { AuthCardHeader } from '../components/AuthCardHeader'
 import { PasswordInput } from '../components/PasswordInput'
 import { addFavorite } from '../api/portal'
@@ -31,9 +32,13 @@ export function LoginPage() {
 
   if (!isInitializing && user) {
     const isClient = user.role === 'client' || user.isClient
-    if (isClient && propertyId && returnUrl) {
+    const portalReturn = toSafePortalPath(returnUrl)
+    if (isClient && propertyId && returnUrl && !portalReturn) {
       void favoriteAndReturn(propertyId, returnUrl)
       return null
+    }
+    if (isClient && portalReturn) {
+      return <Navigate to={portalReturn} replace />
     }
     return <Navigate to={isClient ? '/portal' : '/painel'} replace />
   }
@@ -44,6 +49,11 @@ export function LoginPage() {
     const result = await login(email, password)
     if (!result.success) {
       setError(result.error ?? 'Credenciais inválidas')
+      return
+    }
+    const portalReturn = toSafePortalPath(returnUrl)
+    if (portalReturn) {
+      window.location.assign(`${import.meta.env.BASE_URL.replace(/\/$/, '')}${portalReturn}`)
       return
     }
     if (propertyId && returnUrl) {

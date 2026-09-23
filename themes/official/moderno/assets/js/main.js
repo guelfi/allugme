@@ -147,6 +147,7 @@
           gera dias úteis de demonstração.
      ------------------------------------------------------------------ */
   function initSlots() {
+    if (window.ALLUGME_VITRINE) return;
     var root = document.getElementById("slots");
     if (!root) return;
     var daysEl = root.querySelector(".slots__days");

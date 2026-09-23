@@ -4,35 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{tenant.name}} — Início</title>
-  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="../assets/css/main.css?v=lote1-onda1" />
+  <link rel="icon" type="image/svg+xml" href="{{tenant.favicon_url}}" />
 </head>
 <body>
   <!-- partial:header -->
-  <header class="site-header">
-    <div class="container site-header__inner">
-      <a class="brand" href="home.html">
-        <img src="{{tenant.logo_url}}" alt="" width="36" height="36" onerror="this.style.display='none'" />
-        <span data-bind="tenant.name">{{tenant.name}}</span>
-      </a>
-      <nav class="nav" aria-label="Principal">
-        <a href="home.html" aria-current="page">Início</a>
-        <a href="listing.html">Imóveis</a>
-        <a href="schedule.html">Agendar visita</a>
-      </nav>
-      <div class="header-actions">
-        <a class="phone-link" href="tel:{{tenant.phone}}" data-bind="tenant.phone">{{tenant.phone}}</a>
-        <a class="btn btn--primary" href="listing.html">Buscar</a>
-        <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-label="Abrir menu">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-        </button>
-      </div>
-    </div>
-    <nav class="nav--mobile" data-nav-mobile aria-label="Mobile">
-      <a href="home.html">Início</a>
-      <a href="listing.html">Imóveis</a>
-      <a href="schedule.html">Agendar visita</a>
-    </nav>
-  </header>
 
   <section class="hero">
     <div class="hero__media" aria-hidden="true">
@@ -107,25 +83,6 @@
   </section>
 
   <!-- partial:footer -->
-  <footer class="site-footer">
-    <div class="container">
-      <div class="site-footer__inner">
-        <div>
-          <div class="brand"><span data-bind="tenant.name">{{tenant.name}}</span></div>
-          <p>Vitrine digital para locação e venda — atendimento humano com agenda inteligente.</p>
-        </div>
-        <div>
-          <strong>Contato</strong>
-          <p><a href="tel:{{tenant.phone}}" data-bind="tenant.phone">{{tenant.phone}}</a></p>
-        </div>
-        <div>
-          <strong>Navegação</strong>
-          <p><a href="listing.html">Imóveis</a><br /><a href="schedule.html">Agendar visita</a></p>
-        </div>
-      </div>
-      <p class="site-footer__copy">© <span data-bind="tenant.name">{{tenant.name}}</span></p>
-    </div>
-  </footer>
   <script src="../assets/js/main.js"></script>
 </body>
 </html>

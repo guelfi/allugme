@@ -36,7 +36,13 @@
       ".am-fav[aria-pressed='true']{background:#fff1f2;color:#be123c}" +
       "[data-property-id],.card-imovel,.property-card{position:relative}" +
       ".am-fav--panel{position:static;width:100%;height:auto;border-radius:10px;padding:.75rem 1rem;margin:.75rem 0;box-shadow:none;border:1px solid rgba(15,23,42,.12)}" +
-      ".vitrine-empty{margin:1rem 0;color:#64748b}";
+      ".vitrine-empty{margin:1rem 0;color:#64748b}" +
+      ".vitrine-picker{position:relative;z-index:1;padding:1rem 0;border-bottom:1px solid rgba(15,23,42,.1);background:inherit}" +
+      ".vitrine-picker .container{width:min(100% - 2rem,1100px);margin-inline:auto}" +
+      ".vitrine-picker ul{margin:.5rem 0 0;padding-left:1.2rem}" +
+      ".vitrine-picker li{margin:.4rem 0}" +
+      ".vitrine-picker a{text-decoration:underline}" +
+      "[data-slots][hidden],#slots[hidden],[data-visit-form][hidden],#visit-form[hidden],.schedule-form[hidden]{display:none!important}";
     document.head.appendChild(style);
   }
 
@@ -276,80 +282,122 @@
     }
   }
 
+  function isSchedulePage() {
+    return (cfg.page || document.body.getAttribute("data-page") || "") === "schedule";
+  }
+
+  function gateScheduleWithoutProperty() {
+    if (!isSchedulePage() || propertyId()) return;
+    document.querySelectorAll("[data-schedule-property]").forEach(function (el) {
+      el.innerHTML = "<strong>Imóvel:</strong> escolha um da lista acima.";
+    });
+    document.querySelectorAll("[data-visit-form], #visit-form, .schedule-form").forEach(function (form) {
+      form.setAttribute("hidden", "");
+      if (form.parentNode && !form.parentNode.querySelector("[data-schedule-wait]")) {
+        var note = document.createElement("p");
+        note.setAttribute("data-schedule-wait", "1");
+        note.className = "vitrine-empty";
+        note.textContent = "Depois de escolher o imóvel, você poderá selecionar o horário e enviar o pedido.";
+        form.parentNode.insertBefore(note, form);
+      }
+    });
+    document.querySelectorAll("[data-slots], #slots").forEach(function (el) {
+      el.setAttribute("hidden", "");
+      el.style.display = "none";
+      el.innerHTML = "";
+    });
+  }
+
   function offerPropertyPicker() {
+    if (!isSchedulePage()) return;
     if (propertyId()) return;
-    if ((cfg.page || "") !== "schedule") return;
-    var host = document.querySelector(".schedule-wrap, .schedule-layout, main, .container");
-    if (!host || host.querySelector("[data-vitrine-picker]")) return;
+    if (document.querySelector("[data-vitrine-picker]")) return;
+
+    var box = document.createElement("section");
+    box.setAttribute("data-vitrine-picker", "1");
+    box.className = "vitrine-picker";
+    box.setAttribute("aria-label", "Escolher imóvel para visitar");
+    box.innerHTML = "<div class=\"container\"><p><strong>Escolha o imóvel para visitar</strong></p><p class=\"vitrine-empty\">Selecione um imóvel da carteira. A agenda não sugere um imóvel por conta própria.</p></div>";
+
+    var header = document.querySelector("header.site-header, header");
+    if (header && header.parentNode) {
+      header.insertAdjacentElement("afterend", box);
+    } else {
+      var main = document.querySelector(".schedule-wrap, .schedule-layout, main");
+      if (!main) return;
+      main.insertBefore(box, main.firstChild);
+    }
+
+    var inner = box.querySelector(".container") || box;
     fetch(cfg.apiBase + "/public/properties?tenantSlug=" + encodeURIComponent(cfg.tenantSlug || ""), {
       headers: { Accept: "application/json" }
     })
       .then(function (r) { return r.ok ? r.json() : { items: [] }; })
       .then(function (data) {
         var items = data.items || data.Items || [];
-        var box = document.createElement("div");
-        box.setAttribute("data-vitrine-picker", "1");
-        box.innerHTML = "<p><strong>Escolha o imóvel para visitar</strong></p>";
         if (!items.length) {
-          box.innerHTML += "<p>Nenhum imóvel publicado nesta vitrine.</p>";
-        } else {
-          var list = document.createElement("ul");
-          items.forEach(function (item) {
-            var li = document.createElement("li");
-            var a = document.createElement("a");
-            a.href = "schedule.html?id=" + encodeURIComponent(item.id);
-            a.textContent = item.title + " — " + (item.neighborhood || "") + ", " + (item.city || "");
-            li.appendChild(a);
-            list.appendChild(li);
-          });
-          box.appendChild(list);
+          inner.innerHTML += "<p class=\"vitrine-empty\">Nenhum imóvel publicado nesta vitrine.</p>";
+          return;
         }
-        host.insertBefore(box, host.firstChild);
+        var list = document.createElement("ul");
+        items.forEach(function (item) {
+          var li = document.createElement("li");
+          var a = document.createElement("a");
+          a.href = "schedule.html?id=" + encodeURIComponent(item.id || item.Id);
+          a.textContent = (item.title || item.Title || "Imóvel") + " — " +
+            (item.neighborhood || item.Neighborhood || "") + ", " + (item.city || item.City || "");
+          li.appendChild(a);
+          list.appendChild(li);
+        });
+        inner.appendChild(list);
       })
-      .catch(function () { /* sem picker se a API falhar */ });
+      .catch(function () {
+        inner.innerHTML += "<p class=\"vitrine-empty\">Não foi possível carregar a carteira agora.</p>";
+      });
+  }
+
+  function visitLoginUrl(id) {
+    var dash = (cfg.dashboardUrl || "").replace(/\/$/, "");
+    var next = dash + "/portal/agendar?propertyId=" + encodeURIComponent(id);
+    return dash + "/login?returnUrl=" + encodeURIComponent(next);
+  }
+
+  function visitRegisterUrl(id) {
+    var dash = (cfg.dashboardUrl || "").replace(/\/$/, "");
+    var next = dash + "/portal/agendar?propertyId=" + encodeURIComponent(id);
+    return dash + "/portal/register?returnUrl=" + encodeURIComponent(next);
+  }
+
+  function replaceScheduleFormWithAuthCta() {
+    if (!isSchedulePage() || !propertyId()) return;
+    var form = document.getElementById("visit-form") || document.querySelector("[data-visit-form]");
+    if (!form || form.parentNode.querySelector("[data-schedule-auth]")) return;
+    form.setAttribute("hidden", "");
+    form.style.display = "none";
+    document.querySelectorAll("[data-slots], #slots").forEach(function (el) {
+      el.setAttribute("hidden", "");
+      el.style.display = "none";
+    });
+    var box = document.createElement("div");
+    box.setAttribute("data-schedule-auth", "1");
+    box.innerHTML =
+      "<p><strong>Para agendar você precisa de uma conta de cliente.</strong></p>" +
+      "<p class=\"vitrine-empty\">Entre se já for cliente, ou cadastre-se. Depois você escolhe o horário no portal.</p>" +
+      "<p><a class=\"btn btn--primary btn-primary\" href=\"" + visitLoginUrl(propertyId()) + "\">Entrar para agendar</a> " +
+      "<a class=\"btn btn--outline btn-secondary\" href=\"" + visitRegisterUrl(propertyId()) + "\">Cadastrar</a></p>";
+    form.parentNode.insertBefore(box, form);
   }
 
   function interceptVisitSubmit() {
+    replaceScheduleFormWithAuthCta();
     var form = document.getElementById("visit-form") || document.querySelector("[data-visit-form]");
     if (!form) return;
     form.addEventListener("submit", function (ev) {
       ev.preventDefault();
       ev.stopImmediatePropagation();
       var id = propertyId() || (form.querySelector("[name='propertyId']") || {}).value;
-      var hidden = document.getElementById("slot-selecionado") || form.querySelector("[name='slot']");
-      var startAt = hidden && (hidden.getAttribute("data-start") || hidden.value);
-      var status = form.querySelector(".form-status");
-      function fail(msg) {
-        if (status) { status.hidden = false; status.textContent = msg; }
-        else alert(msg);
-      }
-      if (!id || String(id).indexOf("{{") !== -1) return fail("Escolha um imóvel na vitrine para agendar a visita.");
-      if (!startAt || String(startAt).indexOf("{{") !== -1) return fail("Escolha um horário disponível.");
-      var privacy = form.querySelector("[name='acceptPrivacy']");
-      if (privacy && !privacy.checked) return fail("Aceite a Política de Privacidade para continuar.");
-      var body = {
-        propertyId: id,
-        visitorName: (form.querySelector("[name='nome'], [name='name']") || {}).value,
-        visitorPhone: (form.querySelector("[name='telefone'], [name='phone']") || {}).value,
-        visitorEmail: (form.querySelector("[name='email']") || {}).value,
-        startAt: startAt,
-        acceptPrivacy: true
-      };
-      if (status) { status.hidden = false; status.textContent = "Enviando…"; }
-      fetch(cfg.apiBase + "/public/visits", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(body)
-      }).then(function (r) {
-        return r.json().then(function (data) {
-          if (!r.ok) throw new Error((data && data.message) || "Falha ao agendar");
-          var ok = "Visita solicitada! O corretor confirma em breve.";
-          if (status) status.textContent = ok;
-          else alert(ok);
-        });
-      }).catch(function (err) {
-        fail(err.message || "Não foi possível enviar o agendamento.");
-      });
+      if (!id || String(id).indexOf("{{") !== -1) return;
+      window.location.href = visitLoginUrl(id);
     }, true);
   }
 
@@ -365,13 +413,38 @@
     });
   }
 
+  function markCurrentNav() {
+    var page = cfg.page || document.body.getAttribute("data-page") || "";
+    var op = (qs("operation") || qs("operacao") || "").toLowerCase();
+    document.querySelectorAll(".nav a, .nav--mobile a").forEach(function (a) {
+      var href = a.getAttribute("href") || "";
+      var nav = a.getAttribute("data-nav") || "";
+      var current = false;
+      if (nav === "rent" || /[?&]operation=rent\b/.test(href)) {
+        current = page === "listing" && (op === "rent" || op === "alugar");
+      } else if (nav === "sale" || /[?&]operation=sale\b/.test(href)) {
+        current = page === "listing" && (op === "sale" || op === "comprar");
+      } else if (nav === "schedule" || /schedule\.html/.test(href)) {
+        current = page === "schedule";
+      } else if (nav === "listing" || /listing\.html/.test(href)) {
+        current = page === "listing" && !op;
+      } else if (nav === "home" || /home\.html/.test(href)) {
+        current = page === "home";
+      }
+      if (current) a.setAttribute("aria-current", "page");
+      else a.removeAttribute("aria-current");
+    });
+  }
+
   ready(function () {
     injectStyles();
     fillSearchFromQuery();
     hydratePropertyBinds();
     rewriteScheduleLinks();
+    markCurrentNav();
     wireFavorites();
     offerPropertyPicker();
+    gateScheduleWithoutProperty();
     initRealSlots();
     interceptVisitSubmit();
     markFavorited();

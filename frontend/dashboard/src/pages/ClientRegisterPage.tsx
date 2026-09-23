@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from 'react'
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
+import { toSafePortalPath } from '../auth/safeReturnUrl'
 import { registerClient } from '../api/auth'
 import { addFavorite } from '../api/portal'
 import { AuthCardHeader } from '../components/AuthCardHeader'
@@ -48,9 +49,13 @@ export function ClientRegisterPage() {
 
   if (!isInitializing && user) {
     const isClient = user.role === 'client' || user.isClient
-    if (isClient && propertyId && returnUrl) {
+    const portalReturn = toSafePortalPath(returnUrl)
+    if (isClient && propertyId && returnUrl && !portalReturn) {
       void favoriteAndReturn(propertyId, returnUrl)
       return null
+    }
+    if (isClient && portalReturn) {
+      return <Navigate to={portalReturn} replace />
     }
     return <Navigate to={isClient ? '/portal' : '/painel'} replace />
   }
@@ -106,6 +111,11 @@ export function ClientRegisterPage() {
         acceptPrivacy: true,
       })
       applySession(result.accessToken, result.user)
+      const portalReturn = toSafePortalPath(returnUrl)
+      if (portalReturn) {
+        navigate(portalReturn, { replace: true })
+        return
+      }
       if (propertyId && returnUrl) {
         await favoriteAndReturn(propertyId, returnUrl)
         return

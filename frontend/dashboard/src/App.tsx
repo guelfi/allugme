@@ -18,6 +18,7 @@ import { ClientShell } from './pages/ClientShell'
 import { PortalHomePage } from './pages/PortalHomePage'
 import { PortalFavoritesPage } from './pages/PortalFavoritesPage'
 import { PortalVisitsPage } from './pages/PortalVisitsPage'
+import { PortalAgendarPage } from './pages/PortalAgendarPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { PropertiesPage } from './pages/PropertiesPage'
 import { PropertyFormPage } from './pages/PropertyFormPage'
@@ -46,6 +47,7 @@ const routeTitles: Record<string, string> = {
   '/portal': 'Allugme — Portal do cliente',
   '/portal/favorites': 'Allugme — Favoritos',
   '/portal/visits': 'Allugme — Minhas visitas',
+  '/portal/agendar': 'Allugme — Agendar visita',
   '/painel': 'Allugme — Painel',
   '/properties': 'Allugme — Imóveis',
   '/properties/new': 'Allugme — Novo imóvel',
@@ -100,6 +102,7 @@ export default function App() {
               <Route index element={<PortalHomePage />} />
               <Route path="favorites" element={<PortalFavoritesPage />} />
               <Route path="visits" element={<PortalVisitsPage />} />
+              <Route path="agendar" element={<PortalAgendarPage />} />
             </Route>
           </Route>
 

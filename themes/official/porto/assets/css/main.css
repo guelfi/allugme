@@ -302,3 +302,22 @@ button, input, select { font: inherit; }
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0,0,0,0); border: 0;
 }
+
+body[data-page="listing"] .site-header,
+body[data-page="schedule"] .site-header {
+  position: fixed; left: 0; right: 0; top: 0;
+}
+body[data-page="listing"],
+body[data-page="schedule"] {
+  padding-top: var(--header-h);
+  padding-bottom: 4.5rem;
+}
+body[data-page="listing"] .site-footer,
+body[data-page="schedule"] .site-footer {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  margin-top: 0; padding: 0.85rem 0;
+}
+body[data-page="listing"] .site-footer__copy,
+body[data-page="schedule"] .site-footer__copy {
+  margin-top: 0; padding-top: 0; border-top: 0;
+}

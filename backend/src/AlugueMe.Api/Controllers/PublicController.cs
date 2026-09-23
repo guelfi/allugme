@@ -159,6 +159,19 @@ public class PublicController(
         if (!request.AcceptPrivacy)
             return BadRequest(new { message = "É necessário aceitar a Política de Privacidade (LGPD)." });
 
+        if (User.Identity?.IsAuthenticated != true || !User.IsClient())
+            return Unauthorized(new { message = "Entre com sua conta de cliente para agendar a visita." });
+
+        var authenticatedUserId = User.GetUserId();
+        var client = await db.Users.AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == authenticatedUserId && u.IsClient, ct);
+        if (client is null)
+            return Unauthorized(new { message = "Entre com sua conta de cliente para agendar a visita." });
+
+        var visitorPhone = string.IsNullOrWhiteSpace(client.Phone) ? request.VisitorPhone : client.Phone;
+        if (string.IsNullOrWhiteSpace(visitorPhone))
+            return BadRequest(new { message = "Complete o telefone da sua conta para agendar." });
+
         var property = await db.Properties
             .Include(p => p.Tenant).ThenInclude(t => t.Settings)
             .Include(p => p.ResponsibleBroker)
@@ -184,31 +197,21 @@ public class PublicController(
         if (hasConflict)
             return Conflict(new { message = "Horário indisponível." });
 
-        Guid? clientUserId = null;
-        if (User.Identity?.IsAuthenticated == true && User.IsClient())
-        {
-            var authenticatedUserId = User.GetUserId();
-            var authenticatedClient = await db.Users.AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == authenticatedUserId && u.IsClient && u.EmailVerifiedAt != null, ct);
-            if (authenticatedClient is not null)
-                clientUserId = authenticatedClient.Id;
-        }
-
         var visit = new Visit
         {
             Id = Guid.NewGuid(),
             PropertyId = property.Id,
             TenantId = property.TenantId,
             BrokerId = property.ResponsibleBrokerId,
-            VisitorName = request.VisitorName,
-            VisitorPhone = request.VisitorPhone,
-            VisitorEmail = request.VisitorEmail,
+            VisitorName = string.IsNullOrWhiteSpace(client.Name) ? request.VisitorName : client.Name,
+            VisitorPhone = visitorPhone,
+            VisitorEmail = client.Email,
             StartAt = request.StartAt,
             EndAt = endAt,
             BufferMinutesApplied = settings.BufferMinutes,
             Status = VisitStatus.Pending,
             ConfirmationCode = ConfirmationCodeGenerator.Generate(),
-            ClientUserId = clientUserId
+            ClientUserId = client.Id
         };
         db.Visits.Add(visit);
 

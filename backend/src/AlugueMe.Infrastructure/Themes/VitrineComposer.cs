@@ -68,6 +68,7 @@ public partial class VitrineComposer(
             ["tenant.name"] = tenant.Name,
             ["tenant.slug"] = tenant.Slug,
             ["tenant.logo_url"] = "",
+            ["tenant.favicon_url"] = VitrineFavicon.PlatformHref,
             ["tenant.phone"] = tenant.Settings?.WhatsAppE164 ?? "",
             ["api.base"] = apiBase,
             ["app.dashboard_url"] = dashboardBaseUrl.GetBaseUrl(),
@@ -93,6 +94,9 @@ public partial class VitrineComposer(
         var html = await themeRenderer.RenderPageAsync(location, request.Page, placeholders, RawKeys, cancellationToken);
         html = ThemeAssetUrlRewriter.Rewrite(html, location.PublicAssetKey, themesBase);
         html = PreviewOnlyBlocks().Replace(html, string.Empty);
+        html = EmptyLogoImages().Replace(html, string.Empty);
+        html = VitrineFavicon.Ensure(html, placeholders["tenant.favicon_url"]);
+        html = EnsureBodyDataPage(html, request.Page);
         html = InjectRuntime(html, new
         {
             apiBase,
@@ -216,7 +220,7 @@ public partial class VitrineComposer(
         });
         var snippet =
             "<script>window.ALLUGME_VITRINE=" + json + ";</script>" +
-            "<script src=\"/themes/_platform/js/vitrine-runtime.js\" defer></script>";
+            "<script src=\"/themes/_platform/js/vitrine-runtime.js?v=lote1-onda3\" defer></script>";
 
         var idx = html.LastIndexOf("</body>", StringComparison.OrdinalIgnoreCase);
         return idx >= 0
@@ -224,8 +228,25 @@ public partial class VitrineComposer(
             : html + snippet;
     }
 
+    private static string EnsureBodyDataPage(string html, string page)
+    {
+        if (string.IsNullOrWhiteSpace(page) || BodyDataPage().IsMatch(html))
+            return html;
+
+        return BodyOpen().Replace(html, m => $"<body data-page=\"{WebUtility.HtmlEncode(page)}\"{m.Groups[1].Value}>", 1);
+    }
+
     [GeneratedRegex(
         @"<(article|figure|div)[^>]*data-preview-only[^>]*>[\s\S]*?</\1>",
         RegexOptions.IgnoreCase)]
     private static partial Regex PreviewOnlyBlocks();
+
+    [GeneratedRegex(@"<img\b[^>]*\bsrc\s*=\s*[""'][""'][^>]*>", RegexOptions.IgnoreCase)]
+    private static partial Regex EmptyLogoImages();
+
+    [GeneratedRegex(@"<body\b[^>]*\bdata-page\s*=", RegexOptions.IgnoreCase)]
+    private static partial Regex BodyDataPage();
+
+    [GeneratedRegex(@"<body(\b[^>]*)>", RegexOptions.IgnoreCase)]
+    private static partial Regex BodyOpen();
 }

@@ -11,7 +11,7 @@ xdg-open themes/official/index.html
 | Tema | Origem | Direção |
 |------|--------|---------|
 | `moderno` | Open Design (importado) | Newsreader + Source Sans 3 · azul/ciano · imagens locais |
-| `urbano` | Vitrine interna | **Ref. QuintoAndar** — Nunito Sans · azul `#2D4EB9` · card de busca ([doc](../docs/design/referencia-busca-quintoandar.md)) |
+| `urbano` | Vitrine interna | Nunito Sans · azul `#2D4EB9` · card de busca |
 | `classico` | Vitrine interna | Cormorant + Karla · verde/dourado |
 | `minimal` | Vitrine interna | DM Serif + DM Sans · preto/oliva |
 | `porto` | Vitrine interna (5º) | Sora + IBM Plex Sans · navy/seafoam |

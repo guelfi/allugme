@@ -7,7 +7,7 @@ import {
   type PublicPropertySearchQuery,
 } from '../api/publicProperties'
 import { resolveListingImageUrl } from '../api/http'
-import { vitrinePropertyUrl, vitrineScheduleUrl } from '../vitrineUrl'
+import { vitrinePropertyUrl } from '../vitrineUrl'
 
 function formatPrice(item: PublicProperty): string {
   const value = item.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -165,7 +165,7 @@ export function ExplorarPage() {
               {items.map((item) => {
                 const photo = resolveListingImageUrl(item.imageUrls?.[0])
                 const detail = vitrinePropertyUrl(item.tenantSlug, item.id)
-                const schedule = vitrineScheduleUrl(item.tenantSlug, item.id)
+                const schedule = `/login?returnUrl=${encodeURIComponent(`/portal/agendar?propertyId=${item.id}`)}`
                 return (
                   <article key={item.id} className="lp-explore-card">
                     <a className="lp-explore-media" href={detail}>

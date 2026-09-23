@@ -47,3 +47,7 @@ export function searchPublicProperties(
     },
   })
 }
+
+export function getPublicProperty(id: string): Promise<PublicProperty> {
+  return get<PublicProperty>(`/public/properties/${id}`, { skipAuth: true })
+}

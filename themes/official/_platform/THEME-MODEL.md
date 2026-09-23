@@ -38,6 +38,7 @@ O backend injeta estes tokens. Não altere a grafia.
 | --- | --- |
 | `{{tenant.name}}` | Nome da vitrine |
 | `{{tenant.logo_url}}` | Logo |
+| `{{tenant.favicon_url}}` | Favicon da aba. Na LP e nos temas oficiais é o ícone Allugme; o admin poderá customizar depois. |
 | `{{tenant.phone}}` | Telefone / WhatsApp |
 | `{{properties}}` | Loop de cards em home e listing |
 | `{{search.filters}}` | Estado dos filtros |
@@ -55,6 +56,8 @@ Cards: o `partials/property-card.html` deve ter um link `href="property.html"`. 
 Agenda: incluir `name="propertyId"` e um campo de slot. A runtime da plataforma envia `startAt` ISO para `POST {{api.base}}/public/visits`.
 
 Favoritar: a runtime adiciona o botão e encaminha o visitante ao portal (`/portal/register`) quando não há sessão de cliente.
+
+Favicon: a plataforma injeta o ícone Allugme (`{{tenant.favicon_url}}`) em toda vitrine oficial e na apresentação pela LP. Não envie um favicon próprio no ZIP — a customização por imobiliária entra no painel administrativo.
 
 ## Ativação
 
