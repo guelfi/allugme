@@ -172,12 +172,7 @@ jobs:
             sudo docker network connect allugme_allugme-net nginx-proxy 2>/dev/null || true
 
             if [ -f /var/www/nginx/nginx.conf ]; then
-              sudo python3 deploy/apply-nginx-allugme.py \
-                /var/www/nginx/nginx.conf \
-                deploy/nginx-allugme.locations.conf \
-                deploy/nginx-allugme.domain.conf
-              sudo docker exec nginx-proxy nginx -t
-              sudo docker exec nginx-proxy nginx -s reload
+              bash deploy/apply-shared-nginx-oci.sh
             else
               echo "::warning::/var/www/nginx/nginx.conf não encontrado — skip reload nginx"
             fi

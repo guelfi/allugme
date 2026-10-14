@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import re
-import sys
+import argparse
 from pathlib import Path
 
 MARKER_BEGIN = "# BEGIN ALLUGME (managed by Allugme CD)"
@@ -67,16 +67,15 @@ def insert_before(text: str, block: str, pattern: str) -> tuple[str, bool]:
 
 
 def main() -> int:
-    if len(sys.argv) not in (3, 4):
-        print(
-            "Usage: apply-nginx-allugme.py <nginx.conf> <locations.conf> [domain.conf]",
-            file=sys.stderr,
-        )
-        return 2
-
-    nginx_path = Path(sys.argv[1])
-    fragment_path = Path(sys.argv[2])
-    domain_path = Path(sys.argv[3]) if len(sys.argv) == 4 else None
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("nginx_conf", type=Path)
+    parser.add_argument("locations_conf", type=Path)
+    parser.add_argument("domain_conf", type=Path, nargs="?")
+    parser.add_argument("--output", type=Path, help="Render a candidate without changing the input")
+    args = parser.parse_args()
+    nginx_path, fragment_path, domain_path = args.nginx_conf, args.locations_conf, args.domain_conf
+    if args.output and args.output.resolve() == nginx_path.resolve():
+        parser.error("--output must differ from the input snapshot")
 
     original = nginx_path.read_text(encoding="utf-8")
     block = load_fragment(fragment_path)
@@ -123,6 +122,11 @@ def main() -> int:
             )
             if ok_ssl:
                 updated = updated[: ssl_server.start()] + patched_server + updated[ssl_server.end() :]
+
+    if args.output:
+        args.output.write_text(updated, encoding="utf-8")
+        print(f"Rendered {args.output}; input unchanged")
+        return 0
 
     if updated == original:
         print("nginx.conf already up to date for Allugme")

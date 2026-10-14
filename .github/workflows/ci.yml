@@ -7,6 +7,16 @@ on:
     branches: [main]
 
 jobs:
+  shared-nginx:
+    name: Shared Nginx Deployment Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate deployment helper
+        run: |
+          bash -n deploy/apply-shared-nginx-oci.sh
+          python3 -m unittest discover -s deploy/tests -v
+
   secret-scanning:
     name: Secret Scanning
     runs-on: ubuntu-latest
