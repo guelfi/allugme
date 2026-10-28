@@ -240,8 +240,17 @@ jobs:
           legacy_location="$(curl -fsSI --connect-timeout 15 --max-time 30 \
             -A 'Allugme-CD-Health/1.0' https://www.allugme.com.br/allugme/ \
             | tr -d '\r' | awk 'tolower($1) == "location:" {print $2; exit}')"
-          test "$legacy_location" = "https://app.allugme.online/" || {
-            echo "::error::Domínio legado redirecionou para '$legacy_location'"
+          test "$legacy_location" = "https://allugme.online/" || {
+            echo "::error::Domínio legado redirecionou para '$legacy_location' (esperado https://allugme.online/)"
             exit 1
           }
           echo "redirecionamento legado OK — $legacy_location"
+
+          legacy_root="$(curl -fsSI --connect-timeout 15 --max-time 30 \
+            -A 'Allugme-CD-Health/1.0' https://www.allugme.com.br/ \
+            | tr -d '\r' | awk 'tolower($1) == "location:" {print $2; exit}')"
+          test "$legacy_root" = "https://allugme.online/" || {
+            echo "::error::Raiz .com.br redirecionou para '$legacy_root' (esperado https://allugme.online/)"
+            exit 1
+          }
+          echo "redirecionamento raiz legado OK — $legacy_root"

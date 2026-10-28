@@ -10,9 +10,10 @@ SaaS multi-tenant de vitrine imobiliária + agenda de visitas + WhatsApp (Evolut
 | **OCI** | http://129.153.86.168/allugme | http://129.153.86.168/allugme/api/v1 | http://129.153.86.168/allugme/swagger/index.html | http://129.153.86.168/{slug} |
 | **Produção** | https://app.allugme.online | https://api.allugme.online/api/v1 | https://api.allugme.online/swagger/index.html | https://{slug}.allugme.online |
 
-Site comercial: `https://allugme.online`. O host `www` e o domínio web legado
-`allugme.com.br` redirecionam permanentemente para esse endereço. O e-mail
-`@allugme.com.br` permanece na Umbler e não é afetado pelos redirecionamentos HTTP.
+Site comercial (canônico): `https://allugme.online`. Os hosts `www.allugme.online`,
+`allugme.com.br`, `www.allugme.com.br` e o path legado `/allugme` redirecionam
+para esse endereço (não para o login). O painel fica em `https://app.allugme.online`.
+O e-mail `@allugme.com.br` permanece na Umbler e não é afetado pelos redirecionamentos HTTP.
 
 ## Estrutura
 
